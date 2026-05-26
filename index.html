@@ -1736,22 +1736,28 @@ function renderCatList(containerId, menus, cat) {
 }
 
 function selectCatMenu(cat, idx) {
+
+  // 메뉴 선택 시 재료를 이름 기반으로 정확히 재생성
+  function freshMenu(m) {
+    return {
+      ...m,
+      ingredients: getIngredients(m.name, state.fridge, state.lunchMenu)
+    };
+  }
+
   if (cat === 'bap') {
-    // 밥은 하나만
     document.querySelectorAll('[id^="mcard-bap-"]').forEach(c => c.classList.remove('selected-card'));
     document.getElementById(`mcard-bap-${idx}`).classList.add('selected-card');
-    selectedDinner.bap = window._bapList[idx];
+    selectedDinner.bap = freshMenu(window._bapList[idx]);
 
   } else if (cat === 'guk') {
-    // 국도 하나만
     document.querySelectorAll('[id^="mcard-guk-"]').forEach(c => c.classList.remove('selected-card'));
     document.getElementById(`mcard-guk-${idx}`).classList.add('selected-card');
-    selectedDinner.guk = window._gukList[idx];
+    selectedDinner.guk = freshMenu(window._gukList[idx]);
 
   } else if (cat === 'banchan') {
-    // 반찬은 여러 개
     const card = document.getElementById(`mcard-banchan-${idx}`);
-    const menu = window._banchanList[idx];
+    const menu = freshMenu(window._banchanList[idx]);
     if (card.classList.contains('selected-card')) {
       card.classList.remove('selected-card');
       selectedDinner.banchan = selectedDinner.banchan.filter(m => m.name !== menu.name);
@@ -1953,18 +1959,36 @@ function getIngredients(name, fridge, lunchItems) {
     }
   }
 
-  // 매칭 안 되면 메뉴명에서 재료 유추
+  // 매칭 안 되면 메뉴명에서 재료 유추 (급식 긴 메뉴명 대응)
   if (matched.length === 0) {
     matched = [];
-    if (name.includes('돼지') || name.includes('삼겹')) matched.push('돼지고기');
-    if (name.includes('소고기') || name.includes('쇠고기')) matched.push('소고기');
-    if (name.includes('닭')) matched.push('닭고기');
+    // 주재료 유추
+    if (name.includes('돼지') || name.includes('삼겹') || name.includes('제육')) matched.push('돼지고기');
+    if (name.includes('소고기') || name.includes('쇠고기') || name.includes('불고기')) matched.push('소고기');
+    if (name.includes('닭') || name.includes('치킨')) matched.push('닭고기');
     if (name.includes('계란') || name.includes('달걀')) matched.push('계란');
     if (name.includes('두부')) matched.push('두부');
+    if (name.includes('고등어')) matched.push('고등어');
+    if (name.includes('갈치')) matched.push('갈치');
+    if (name.includes('오징어')) matched.push('오징어');
+    if (name.includes('새우')) matched.push('새우');
+    if (name.includes('멸치')) matched.push('멸치');
+    if (name.includes('콩나물')) matched.push('콩나물');
+    if (name.includes('시금치')) matched.push('시금치');
     if (name.includes('감자')) matched.push('감자');
-    if (name.includes('양파')) matched.push('양파');
-    if (name.includes('대파') || name.includes('파')) matched.push('대파');
-    if (name.includes('마늘')) matched.push('마늘');
+    if (name.includes('미역')) matched.push('미역');
+    if (name.includes('버섯')) matched.push('버섯');
+    // 조리법 기반 공통 재료 추가
+    if (name.includes('찌개') || name.includes('국') || name.includes('탕')) {
+      matched.push('대파','마늘','소금');
+    } else if (name.includes('볶음') || name.includes('구이')) {
+      matched.push('간장','참기름','마늘');
+    } else if (name.includes('조림')) {
+      matched.push('간장','설탕','참기름');
+    } else if (name.includes('나물') || name.includes('무침')) {
+      matched.push('참기름','마늘','소금','깨');
+    }
+    // 그래도 없으면 기본
     if (matched.length === 0) matched = ['간장','참기름','마늘','대파','소금'];
   }
 
