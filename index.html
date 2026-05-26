@@ -739,6 +739,22 @@ body::before {
       </div>
     </div>
 
+    <!-- 주문 후 레시피 보기 -->
+    <div id="recipe-link-card" style="display:none">
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="font-size:24px;margin-bottom:8px">👨‍🍳</div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px">재료 주문 완료!</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:14px">이제 레시피를 확인해보세요</div>
+        <a id="recipe-external-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="display:block;padding:12px;background:var(--accent);border-radius:10px;color:white;font-size:14px;font-weight:700;text-decoration:none">
+          만개의레시피에서 오늘 저녁 레시피 보기 →
+        </a>
+      </div>
+    </div>
+
     <button class="btn-primary" onclick="resetAll()">🍽️ 내일 메뉴도 추천받기</button>
   </div>
 
@@ -1789,17 +1805,6 @@ function renderMenus(menus) {
         <div style="font-size:11px; color:var(--ink3); margin-top:8px">
           ✓ 있는 재료 &nbsp; ❌ 급식과 겹침
         </div>
-
-        <!-- 레시피 버튼 -->
-        <div style="margin-top:12px">
-          <a href="https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(m.name)}"
-            target="_blank"
-            rel="noopener noreferrer"
-            onclick="event.stopPropagation()"
-            style="display:block;text-align:center;padding:10px;background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.3);border-radius:8px;color:var(--accent);font-size:13px;font-weight:600;text-decoration:none">
-            👨‍🍳 만개의레시피에서 보기
-          </a>
-        </div>
       </div>
     </div>
   `).join('');
@@ -1827,6 +1832,10 @@ function goShoppingFromMenu() {
   if (!state.selectedMenu) return;
   goStep(5);
 
+  // 레시피 카드 초기화
+  const recipeCard = document.getElementById('recipe-link-card');
+  if (recipeCard) recipeCard.style.display = 'none';
+
   document.getElementById('shop-title').textContent = `"${state.selectedMenu.name}" 장보기`;
 
   const needed = state.selectedMenu.ingredients.filter(i => !i.have && !i.overlap);
@@ -1842,6 +1851,14 @@ function goShoppingFromMenu() {
         <div class="done-sub">냉장고 재료로 바로 만들 수 있어요</div>
       </div>
     `;
+    // 재료 다 있으면 바로 레시피 카드 보여주기
+    const menuName = state.selectedMenu.name;
+    const recipeLink = document.getElementById('recipe-external-link');
+    if (recipeCard && recipeLink) {
+      recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
+      recipeLink.textContent = `만개의레시피에서 "${menuName}" 레시피 보기 →`;
+      recipeCard.style.display = 'block';
+    }
     return;
   }
 
@@ -1886,6 +1903,20 @@ function toggleCheck(i, name) {
 }
 
 function orderPlatform(platform) {
+  // 선택한 메뉴명으로 레시피 링크 설정
+  const menuName = state.selectedMenu?.name || '';
+  const recipeUrl = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
+
+  // 레시피 카드 표시
+  const recipeCard = document.getElementById('recipe-link-card');
+  const recipeLink = document.getElementById('recipe-external-link');
+  if (recipeCard && recipeLink && menuName) {
+    recipeLink.href = recipeUrl;
+    recipeLink.textContent = `만개의레시피에서 "${menuName}" 레시피 보기 →`;
+    recipeCard.style.display = 'block';
+    recipeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   showToast(`${platform} 연동은 실제 서비스에서 제공됩니다 🚀`);
 }
 
