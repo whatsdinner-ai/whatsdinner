@@ -1791,11 +1791,14 @@ function renderMenus(menus) {
         </div>
 
         <!-- 레시피 버튼 -->
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button onclick="event.stopPropagation();searchRecipeSite('${m.name.replace(/'/g,'\\\'')}')"
-            style="flex:1;padding:10px;background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.3);border-radius:8px;color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">
+        <div style="margin-top:12px">
+          <a href="https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(m.name)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="event.stopPropagation()"
+            style="display:block;text-align:center;padding:10px;background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.3);border-radius:8px;color:var(--accent);font-size:13px;font-weight:600;text-decoration:none">
             👨‍🍳 만개의레시피에서 보기
-          </button>
+          </a>
         </div>
       </div>
     </div>
