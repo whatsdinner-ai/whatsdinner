@@ -599,41 +599,48 @@ body::before {
     <div class="section-sub">학교 급식 메뉴를 실시간으로 가져와<br>저녁 메뉴와 겹치지 않게 추천해요</div>
 
     <div class="card">
-      <div class="form-group">
-        <label class="form-label">시도 선택</label>
-        <select class="form-select" id="sido" onchange="updateSigun()">
-          <option value="">시도를 선택하세요</option>
-          <option value="B10">서울특별시</option>
-          <option value="C10">부산광역시</option>
-          <option value="D10">대구광역시</option>
-          <option value="E10">인천광역시</option>
-          <option value="F10">광주광역시</option>
-          <option value="G10">대전광역시</option>
-          <option value="H10">울산광역시</option>
-          <option value="I10">세종특별자치시</option>
-          <option value="J10">경기도</option>
-          <option value="K10">강원도</option>
-          <option value="M10">충청북도</option>
-          <option value="N10">충청남도</option>
-          <option value="P10">전라북도</option>
-          <option value="Q10">전라남도</option>
-          <option value="R10">경상북도</option>
-          <option value="S10">경상남도</option>
-          <option value="T10">제주특별자치도</option>
-        </select>
+      <div class="form-group" style="position:relative">
+        <label class="form-label">학교 이름 검색</label>
+        <input type="text" class="form-input" id="school-name"
+          placeholder="학교 이름 2글자 이상 입력..."
+          oninput="searchSchool(this.value)"
+          autocomplete="off" />
+        <div id="school-dropdown" style="
+          display:none;
+          position:absolute;
+          top:100%; left:0; right:0;
+          background:var(--paper);
+          border:1.5px solid var(--accent);
+          border-radius:10px;
+          z-index:50;
+          max-height:200px;
+          overflow-y:auto;
+          box-shadow:0 8px 24px var(--shadow);
+          margin-top:4px;
+        "></div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">학교 이름</label>
-        <input type="text" class="form-input" id="school-name" placeholder="예: 의정부중학교" />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">학교 종류</label>
-        <div class="tag-group">
-          <div class="tag" onclick="selectSchoolType(this,'초등학교')">🏫 초등학교</div>
-          <div class="tag" onclick="selectSchoolType(this,'중학교')">📚 중학교</div>
-          <div class="tag" onclick="selectSchoolType(this,'고등학교')">🎓 고등학교</div>
+      <div id="selected-school-info" style="display:none">
+        <div style="
+          background:var(--green-light);
+          border:1px solid rgba(45,106,79,.2);
+          border-radius:10px;
+          padding:12px 14px;
+          display:flex;
+          align-items:center;
+          gap:10px;
+        ">
+          <span style="font-size:20px">🏫</span>
+          <div>
+            <div style="font-weight:600;font-size:14px" id="selected-school-name"></div>
+            <div style="font-size:12px;color:var(--ink3)" id="selected-school-addr"></div>
+          </div>
+          <button onclick="clearSchool()" style="
+            margin-left:auto;
+            background:none;border:none;
+            color:var(--ink3);cursor:pointer;
+            font-size:16px;
+          ">✕</button>
         </div>
       </div>
     </div>
@@ -851,96 +858,109 @@ function toggleExclude(el) {
     : [...state.excludes, val];
 }
 
-// ── 급식 불러오기 ──
+// ── 학교 검색 자동완성 ──
 const NEIS_KEY = '58d4bcecc01d485d9b6b7f0edbf14fad';
+let searchTimer = null;
+let selectedSchool = null;
 
+async function searchSchool(val) {
+  const dropdown = document.getElementById('school-dropdown');
+  if (val.length < 2) { dropdown.style.display = 'none'; return; }
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">검색 중...</div>`;
+    dropdown.style.display = 'block';
+    try {
+      const res = await fetch(
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10&SCHUL_NM=${encodeURIComponent(val)}`
+      );
+      const data = await res.json();
+      const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
+        ['초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
+      );
+      if (rows.length === 0) {
+        dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
+        return;
+      }
+      dropdown.innerHTML = rows.map(r => `
+        <div onclick="selectSchool('${r.SCHUL_NM}','${r.SD_SCHUL_CODE}','${r.ATPT_OFCDC_SC_CODE}','${(r.ORG_RDNMA||'').replace(/'/g,'')}')"
+          style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border)"
+          onmouseover="this.style.background='var(--cream)'"
+          onmouseout="this.style.background=''">
+          <div style="font-weight:600;font-size:14px">${r.SCHUL_NM}</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px">${r.ORG_RDNMA||''}</div>
+        </div>`).join('');
+    } catch(e) {
+      dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">오류. 다시 시도해주세요</div>`;
+    }
+  }, 400);
+}
+
+function selectSchool(name, code, sido, addr) {
+  selectedSchool = { name, code, sido, addr };
+  document.getElementById('school-name').value = name;
+  document.getElementById('school-dropdown').style.display = 'none';
+  document.getElementById('selected-school-name').textContent = name;
+  document.getElementById('selected-school-addr').textContent = addr;
+  document.getElementById('selected-school-info').style.display = 'block';
+  if (name.includes('초등')) state.schoolType = '초등학교';
+  else if (name.includes('중학')) state.schoolType = '중학교';
+  else state.schoolType = '고등학교';
+}
+
+function clearSchool() {
+  selectedSchool = null;
+  document.getElementById('school-name').value = '';
+  document.getElementById('selected-school-info').style.display = 'none';
+}
+
+// ── 급식 불러오기 ──
 async function fetchLunch() {
-  const sido = document.getElementById('sido').value;
-  const schoolName = document.getElementById('school-name').value.trim();
-
-  if (!sido) { showToast('시도를 선택해주세요', true); return; }
-  if (!schoolName) { showToast('학교 이름을 입력해주세요', true); return; }
-  if (!state.schoolType) { showToast('학교 종류를 선택해주세요', true); return; }
+  if (!selectedSchool) { showToast('학교를 검색해서 선택해주세요', true); return; }
 
   goStep(2);
   document.getElementById('lunch-display').innerHTML = `
-    <div style="text-align:center; padding:40px 20px">
+    <div style="text-align:center;padding:40px 20px">
       <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-      <div style="color:var(--ink2)">급식 메뉴 불러오는 중...</div>
+      <div style="color:var(--ink2);font-size:14px">${selectedSchool.name} 급식 불러오는 중...</div>
     </div>`;
 
   const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
 
   try {
-    // 1단계: 학교 코드 검색
-    const schoolRes = await fetch(
-      `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${sido}&SCHUL_NM=${encodeURIComponent(schoolName)}`
-    );
-    const schoolData = await schoolRes.json();
-    // 정확한 학교명 매칭
-    const rows = schoolData?.schoolInfo?.[1]?.row || [];
-    const schoolInfo = rows.find(r => r.SCHUL_NM === schoolName) || rows[0];
-
-    if (!schoolInfo) {
-      showToast('학교를 찾을 수 없어요. 정확한 이름으로 다시 입력해주세요', true);
-      document.getElementById('lunch-display').innerHTML = '';
-      return;
-    }
-
-    const schoolCode = schoolInfo.SD_SCHUL_CODE;
-
-    // 2단계: 급식 메뉴 조회
     const mealRes = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${sido}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${dateStr}`
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${selectedSchool.sido}&SD_SCHUL_CODE=${selectedSchool.code}&MLSV_YMD=${dateStr}`
     );
     const mealData = await mealRes.json();
     const mealRow = mealData?.mealServiceDietInfo?.[1]?.row?.[0];
 
     if (!mealRow) {
-      // 오늘 급식 없으면 샘플로 대체
-      showToast('오늘 급식 정보가 없어요. 샘플 데이터로 진행합니다');
-      const sampleMenus = [
-        { items: ['쌀밥', '된장찌개', '닭갈비', '시금치나물', '깍두기', '우유'], nutrition: { cal: 68, carb: 75, protein: 55, fat: 40 }},
-        { items: ['잡곡밥', '미역국', '돼지불고기', '콩나물무침', '배추김치', '과일'], nutrition: { cal: 72, carb: 70, protein: 60, fat: 38 }},
-      ];
-      const menu = sampleMenus[today.getDay() % sampleMenus.length];
+      showToast('오늘 급식 정보가 없어요. 샘플로 진행합니다');
+      const menu = { items: ['쌀밥', '된장찌개', '제육볶음', '나물', '김치'], nutrition: { cal: 68, carb: 72, protein: 58, fat: 42 }};
       state.lunchMenu = menu.items;
       state.lunchNutrition = menu.nutrition;
-      renderLunch(schoolName, menu);
+      renderLunch(selectedSchool.name, menu);
       return;
     }
 
-    // 급식 메뉴 파싱
     const dishNames = mealRow.DDISH_NM
-      .replace(/<br\/>/g, ',')
-      .split(',')
+      .replace(/<br\/>/g, ',').split(',')
       .map(d => d.replace(/\([^)]*\)/g, '').trim())
       .filter(d => d.length > 0);
 
-    // 영양소 파싱
     const ntrInfo = mealRow.NTR_INFO || '';
-    const calMatch = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/);
-    const carbMatch = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/);
-    const proteinMatch = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/);
-    const fatMatch = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/);
-
-    const cal = calMatch ? Math.min(Math.round(parseFloat(calMatch[1]) / 10), 100) : 65;
-    const carb = carbMatch ? Math.min(Math.round(parseFloat(carbMatch[1]) / 1.5), 100) : 70;
-    const protein = proteinMatch ? Math.min(Math.round(parseFloat(proteinMatch[1]) / 0.6), 100) : 60;
-    const fat = fatMatch ? Math.min(Math.round(parseFloat(fatMatch[1]) / 0.5), 100) : 45;
+    const cal = (() => { const m = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/10),100) : 65; })();
+    const carb = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/1.5),100) : 70; })();
+    const protein = (() => { const m = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.6),100) : 60; })();
+    const fat = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.5),100) : 45; })();
 
     state.lunchMenu = dishNames;
     state.lunchNutrition = { cal, carb, protein, fat };
-
-    renderLunch(schoolName, { items: dishNames, nutrition: { cal, carb, protein, fat } });
+    renderLunch(selectedSchool.name, { items: dishNames, nutrition: { cal, carb, protein, fat } });
 
   } catch(e) {
-    // 네트워크 오류시 샘플로 대체
-    showToast('네트워크 오류. 샘플 데이터로 진행합니다');
-    const menu = { items: ['쌀밥', '된장찌개', '제육볶음', '나물', '김치', '우유'], nutrition: { cal: 68, carb: 72, protein: 58, fat: 42 }};
-    state.lunchMenu = menu.items;
-    state.lunchNutrition = menu.nutrition;
-    renderLunch(schoolName, menu);
+    showToast('오류가 발생했어요. 다시 시도해주세요', true);
+    document.getElementById('lunch-display').innerHTML = '';
   }
 }
 
