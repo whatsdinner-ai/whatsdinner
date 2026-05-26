@@ -1789,6 +1789,29 @@ function renderMenus(menus) {
         <div style="font-size:11px; color:var(--ink3); margin-top:8px">
           ✓ 있는 재료 &nbsp; ❌ 급식과 겹침
         </div>
+
+        <!-- 레시피 버튼 -->
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button onclick="event.stopPropagation();toggleRecipe(${i},'${m.name.replace(/'/g,'\\\'')}')"
+            id="recipe-btn-${i}"
+            style="flex:1;padding:9px;background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.3);border-radius:8px;color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">
+            👨‍🍳 요리 방법 보기
+          </button>
+          <button onclick="event.stopPropagation();searchRecipeSite('${m.name.replace(/'/g,'\\\'')}')"
+            style="padding:9px 12px;background:var(--surface2,#f5f0e8);border:1px solid var(--border);border-radius:8px;color:var(--ink2);font-family:inherit;font-size:13px;cursor:pointer">
+            🔗 레시피 사이트
+          </button>
+        </div>
+
+        <!-- 레시피 펼침 영역 -->
+        <div id="recipe-panel-${i}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+          <div id="recipe-content-${i}">
+            <div style="text-align:center;padding:20px;color:var(--ink3);font-size:13px">
+              <div style="width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+              AI가 레시피 만드는 중...
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `).join('');
@@ -1797,14 +1820,130 @@ function renderMenus(menus) {
   window._menus = menus;
 }
 
+// ── 레시피 토글 ──
+async function toggleRecipe(idx, menuName) {
+  const panel = document.getElementById(`recipe-panel-${idx}`);
+  const btn = document.getElementById(`recipe-btn-${idx}`);
+  const content = document.getElementById(`recipe-content-${idx}`);
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    btn.textContent = '👨‍🍳 요리 방법 보기';
+    return;
+  }
+
+  panel.style.display = 'block';
+  btn.textContent = '▲ 접기';
+
+  // 이미 로드됐으면 다시 안 불러옴
+  if (content.dataset.loaded === 'true') return;
+
+  const menu = window._menus?.[idx];
+  const ingNames = (menu?.ingredients || []).map(i => i.name);
+
+  try {
+    const res = await fetch('/api/recipe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        menuName,
+        ingredients: ingNames,
+        lunchItems: state.lunchMenu,
+        deficientNutrients: state.deficientNutrients
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.ok && data.recipe) {
+      const r = data.recipe;
+      content.dataset.loaded = 'true';
+      content.innerHTML = `
+        <div style="margin-bottom:10px">
+          <div style="font-size:13px;color:var(--ink2);margin-bottom:6px;line-height:1.5">
+            💡 ${r.tip || ''}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="font-size:12px;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:3px 10px">⏱ ${r.time}</span>
+            <span style="font-size:12px;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:3px 10px">👥 ${r.servings}</span>
+            <span style="font-size:12px;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:3px 10px">⭐ ${r.difficulty}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">조리 순서</div>
+          ${(r.steps||[]).map((step, si) => `
+            <div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
+              <div style="min-width:22px;height:22px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${si+1}</div>
+              <div style="font-size:13px;color:var(--ink2);line-height:1.5;padding-top:2px">${step}</div>
+            </div>`).join('')}
+        </div>
+
+        ${r.cookTip ? `
+        <div style="background:#fff8f0;border:1px solid rgba(200,80,26,.2);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--accent)">
+          🍳 <strong>요리 팁:</strong> ${r.cookTip}
+        </div>` : ''}
+
+        ${r.nutritionTip ? `
+        <div style="background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green)">
+          💚 <strong>영양 포인트:</strong> ${r.nutritionTip}
+        </div>` : ''}
+      `;
+    } else {
+      throw new Error('레시피 생성 실패');
+    }
+  } catch(e) {
+    content.innerHTML = getSimpleRecipe(menuName, ingNames);
+    content.dataset.loaded = 'true';
+  }
+}
+
+// ── 간단 레시피 (API 실패시 fallback) ──
+function getSimpleRecipe(name, ings) {
+  const recipeMap = {
+    '된장찌개':   ['냄비에 물 600ml 끓이기','된장 2스푼 풀기','두부·애호박·대파 넣기','한소끔 끓이면 완성'],
+    '김치찌개':   ['냄비에 김치 볶기','물 500ml 붓기','두부·돼지고기 넣기','10분 끓이면 완성'],
+    '제육볶음':   ['돼지고기에 고추장 양념 재우기','팬에 기름 두르기','양파 먼저 볶기','고기 넣고 센불 볶기'],
+    '계란볶음밥': ['팬에 기름 두르기','계란 먼저 스크램블','밥 넣고 볶기','간장으로 간 맞추기'],
+    '미역국':     ['미역 불리기 10분','참기름에 소고기 볶기','물 붓고 미역 넣기','간장으로 간 맞추기'],
+    '고등어구이': ['고등어 소금 뿌리기','팬에 기름 두르기','중불에 앞뒤 7분씩','레몬즙 뿌리면 완성'],
+  };
+
+  const keys = Object.keys(recipeMap).sort((a,b)=>b.length-a.length);
+  let steps = null;
+  for (const k of keys) {
+    if (name.includes(k)) { steps = recipeMap[k]; break; }
+  }
+  if (!steps) steps = [`재료(${ings.slice(0,3).join(', ')}) 준비하기`, '재료 손질하기', '기본 양념으로 조리하기', '그릇에 담아 완성'];
+
+  return `
+    <div style="margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:8px">조리 순서</div>
+      ${steps.map((step, si) => `
+        <div style="display:flex;gap:10px;margin-bottom:7px;align-items:flex-start">
+          <div style="min-width:22px;height:22px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${si+1}</div>
+          <div style="font-size:13px;color:var(--ink2);line-height:1.5;padding-top:2px">${step}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── 레시피 사이트 연결 ──
+function searchRecipeSite(menuName) {
+  const sites = [
+    { name: '만개의레시피', url: `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}` },
+    { name: '네이버 레시피', url: `https://search.naver.com/search.naver?query=${encodeURIComponent(menuName + ' 레시피')}` },
+  ];
+  // 만개의레시피로 바로 이동
+  window.open(sites[0].url, '_blank');
+}
+
+// ── 메뉴 선택 ──
 function selectMenu(idx, name, ingredients) {
   document.querySelectorAll('.menu-card').forEach((c,i) => c.classList.toggle('selected-card', i===idx));
   state.selectedMenu = { name, ingredients: window._menus[idx].ingredients };
   document.getElementById('menu-next-btn').disabled = false;
   showToast(`"${name}" 선택됨 🎉`);
 }
-
-// ── 장보기 ──
 function goShoppingFromMenu() {
   if (!state.selectedMenu) return;
   goStep(5);
