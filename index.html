@@ -1173,93 +1173,137 @@ async function generateMenu() {
 
   // ── 추천 로직 ──
 
-  // 1. 오늘 + 이번주 점심과 겹치는 메뉴 제외
-  const todayItems = new Set(state.lunchMenu.map(i => i.toLowerCase()));
+  // 1. 이번주 + 저번주 날짜 범위 계산
+  const getWeekStart = (date, offset = 0) => {
+    const d = new Date(date);
+    const day = d.getDay(); // 0=일, 1=월
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // 월요일 기준
+    d.setDate(diff + offset * 7);
+    d.setHours(0,0,0,0);
+    return d;
+  };
+
+  const thisWeekStart = getWeekStart(today, 0);
+  const lastWeekStart = getWeekStart(today, -1);
+  const lastWeekEnd = new Date(thisWeekStart);
+  lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+
+  // 이번주 + 저번주에 나온 메뉴 수집
+  const recentMenuItems = new Set();
+  pastLunchMenus.forEach(day => {
+    const d = new Date(
+      day.date.slice(0,4),
+      parseInt(day.date.slice(4,6)) - 1,
+      day.date.slice(6,8)
+    );
+    if (d >= lastWeekStart) { // 저번주 월요일 이후
+      day.items.forEach(item => recentMenuItems.add(item.toLowerCase()));
+    }
+  });
+
+  // 2. 제외 목록 = 오늘점심 + 이번주+저번주 급식 + 사용자 제외
   const excludeItems = new Set([
     ...state.lunchMenu,
-    ...state.excludes
+    ...state.excludes,
+    ...[...recentMenuItems]
   ].map(i => i.toLowerCase()));
 
-  // 2. 과거 급식에서 후보 메뉴 추출 (개별 메뉴 단위)
-  const menuPool = {}; // menuName → { count, dates, refDate, nutrition }
+  // 기본 제외 항목
+  const basicExclude = ['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치','우유','요구르트','과일','사과','귤'];
+
+  // 3. 2주 이전 급식에서 후보 메뉴 추출
+  const menuPool = {};
 
   pastLunchMenus.forEach(day => {
+    const d = new Date(
+      day.date.slice(0,4),
+      parseInt(day.date.slice(4,6)) - 1,
+      day.date.slice(6,8)
+    );
+    // 저번주 이전 데이터만 사용
+    if (d >= lastWeekStart) return;
+
     day.items.forEach(item => {
-      // 밥류, 김치류는 제외 (너무 기본적인 것)
-      if (['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치'].includes(item)) return;
-      // 오늘 점심과 겹치는 것 제외
+      if (basicExclude.includes(item)) return;
       if (excludeItems.has(item.toLowerCase())) return;
-      // 제외 재료 포함된 것 제외
-      const hasExclude = state.excludes.some(ex => item.includes(ex.replace(/[🌶️🥩🐟🥚🧄🧅]/g,'')));
+      const hasExclude = state.excludes.some(ex =>
+        item.includes(ex.replace(/[🌶️🥩🐟🥚🧄🧅]/g,'').trim())
+      );
       if (hasExclude) return;
 
       if (!menuPool[item]) {
-        menuPool[item] = { count: 0, refDate: day.date, nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat }};
+        menuPool[item] = {
+          count: 0,
+          refDate: day.date,
+          nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat }
+        };
       }
       menuPool[item].count++;
     });
   });
 
-  // 3. 영양 균형 점수 계산
+  // 4. 영양 균형 점수
   const todayNutri = state.lunchNutrition;
   const needProtein = todayNutri.protein < 60;
-  const needCarb = todayNutri.carb < 60;
   const needVeg = todayNutri.fat > 60;
 
-  // 4. 메뉴 점수화 및 정렬
+  // 5. 점수화 — 빈도 낮은 것 우선 (count 적을수록 높은 점수)
+  const maxCount = Math.max(...Object.values(menuPool).map(v => v.count), 1);
+
   const scored = Object.entries(menuPool).map(([name, info]) => {
-    let score = info.count * 10; // 자주 나온 메뉴 우선
+    // 빈도 낮을수록 점수 높음
+    let score = (maxCount - info.count + 1) * 10;
 
-    // 냉장고 재료 활용 가능하면 점수 UP
-    const fridgeMatch = state.fridge.filter(f => name.includes(f.replace(/\s/g,''))).length;
-    score += fridgeMatch * 20;
+    // 냉장고 재료 활용 가능하면 +
+    const fridgeMatch = state.fridge.filter(f =>
+      name.includes(f.replace(/\s/g,'')) || f.includes(name.replace(/\s/g,''))
+    ).length;
+    score += fridgeMatch * 15;
 
-    // 영양 보완 점수
-    if (needProtein && (name.includes('고기') || name.includes('두부') || name.includes('계란') || name.includes('생선') || name.includes('닭') || name.includes('돼지') || name.includes('소'))) score += 15;
-    if (needVeg && (name.includes('나물') || name.includes('채소') || name.includes('볶음') || name.includes('무침'))) score += 15;
+    // 영양 보완
+    if (needProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('소')||name.includes('갈치')||name.includes('고등어'))) score += 10;
+    if (needVeg && (name.includes('나물')||name.includes('채소')||name.includes('무침')||name.includes('샐러드'))) score += 10;
 
-    // 가족 선호 반영
-    if (state.prefs.includes('🍚 한식 위주') && !name.includes('파스타') && !name.includes('피자')) score += 5;
-    if (state.prefs.includes('🍳 간단하게') && info.nutrition.cal < 300) score += 10;
+    // 가족 선호
+    if (state.prefs.includes('🍳 간단하게') && (name.includes('나물')||name.includes('무침')||name.includes('계란'))) score += 8;
+    if (state.prefs.includes('🍚 한식 위주')) score += 5;
 
-    // 이모지 매핑
-    const emoji = getMenuEmoji(name);
-
-    // 배지 결정
     const badges = [];
     if (fridgeMatch > 0) badges.push('냉장고활용');
-    if (needProtein && score > 30) badges.push('영양균형');
-    else if (info.count >= 3) badges.push('급식참고');
-    else badges.push('건강식');
+    if (needProtein && score > 20) badges.push('영양균형');
+    else badges.push('급식참고');
 
-    // 이유 생성
     const reason = fridgeMatch > 0
-      ? `냉장고 재료로 만들 수 있어요`
-      : needProtein
-      ? `오늘 점심 단백질 보완`
-      : `학교 급식에서 ${info.count}번 나온 메뉴`;
+      ? '냉장고 재료 활용'
+      : info.count === 1
+      ? '한 번만 나온 희귀 메뉴'
+      : `최근 잘 안 나온 메뉴`;
 
     return {
-      name, score, emoji, badges, reason,
+      name,
+      score,
+      emoji: getMenuEmoji(name),
+      badges,
+      reason,
       schoolRef: `급식 ${info.count}회 등장`,
-      refDate: info.refDate,
       cookTime: getCookTime(name),
       difficulty: getDifficulty(name),
       ingredients: getIngredients(name, state.fridge, state.lunchMenu),
     };
   });
 
-  // 5. 점수 내림차순 정렬 후 상위 3개
-  const top3 = scored
+  // 6. 점수 내림차순, 상위 10개
+  const top10 = scored
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .slice(0, 10);
 
-  if (top3.length === 0) {
+  if (top10.length === 0) {
+    showToast('추천 가능한 메뉴가 없어요. 샘플로 진행합니다');
     renderMenus(getSampleMenus());
     return;
   }
 
-  renderMenus(top3);
+  renderMenus(top10);
 }
 
 // ── 헬퍼 함수들 ──
