@@ -1113,48 +1113,42 @@ function renderLunch(schoolName, menu) {
 }
 
 // ── 과거 급식 데이터 수집 ──
-let pastLunchMenus = []; // 최근 30일 급식 메뉴 모음
+let pastLunchMenus = [];
 
 async function fetchPastLunch() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
+  const school = children[0].school;
 
-  const school = children[0].school; // 첫째 학교 기준
-  const results = [];
+  // 날짜 범위 계산 (최근 30일)
+  const fromDate = new Date(today);
+  fromDate.setDate(fromDate.getDate() - 30);
+  const fromStr = `${fromDate.getFullYear()}${String(fromDate.getMonth()+1).padStart(2,'0')}${String(fromDate.getDate()).padStart(2,'0')}`;
+  const toStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
 
-  // 최근 30일 날짜 생성
-  for (let i = 1; i <= 30; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    // 주말 제외
-    if (d.getDay() === 0 || d.getDay() === 6) continue;
-    const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-    results.push(dateStr);
-  }
-
-  // 한 번의 API 호출로 최근 20일치 가져오기
   try {
     const res = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=20&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${results[results.length-1]}&MLSV_TO_YMD=${results[0]}`
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=30&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`
     );
     const data = await res.json();
     const rows = data?.mealServiceDietInfo?.[1]?.row || [];
-
     pastLunchMenus = rows.map(row => ({
       date: row.MLSV_YMD,
       items: row.DDISH_NM
         .replace(/<br\/>/g, ',').split(',')
         .map(d => d.replace(/\([^)]*\)/g, '').trim())
         .filter(d => d.length > 0),
-      ntrInfo: row.NTR_INFO || ''
+      cal: parseFloat((row.NTR_INFO||'').match(/칼로리\(kcal\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      carb: parseFloat((row.NTR_INFO||'').match(/탄수화물\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      protein: parseFloat((row.NTR_INFO||'').match(/단백질\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      fat: parseFloat((row.NTR_INFO||'').match(/지방\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
     }));
-
   } catch(e) {
     pastLunchMenus = [];
   }
 }
 
-// ── 과거 급식 기반 메뉴 추천 ──
+// ── 순수 NEIS 데이터 기반 메뉴 추천 ──
 async function generateMenu() {
   goStep(4);
   document.getElementById('menu-loading').style.display = 'block';
@@ -1163,91 +1157,168 @@ async function generateMenu() {
   const fridgeText = document.getElementById('fridge-input')?.value || '';
   state.fridge = fridgeText ? fridgeText.split(/[,，\s]+/).filter(Boolean) : [];
 
+  // 로딩 메시지 업데이트
+  document.querySelector('.loading-sub').textContent = '과거 급식 데이터 분석 중...';
+
   // 과거 급식 데이터 수집
   if (pastLunchMenus.length === 0) {
     await fetchPastLunch();
   }
 
-  const lunchStr = state.lunchMenu.join(', ');
-  const fridgeStr = state.fridge.length ? state.fridge.join(', ') : '없음';
-  const prefStr = state.prefs.length ? state.prefs.join(', ') : '제한없음';
-  const excludeStr = state.excludes.length ? state.excludes.join(', ') : '없음';
-  const nutri = state.lunchNutrition;
+  // 데이터 없으면 샘플
+  if (pastLunchMenus.length === 0) {
+    renderMenus(getSampleMenus());
+    return;
+  }
 
-  // 과거 급식 메뉴 문자열 생성 (최근 10일)
-  const pastMenuStr = pastLunchMenus.slice(0, 10).map(m =>
-    `${m.date}: ${m.items.join(', ')}`
-  ).join('\n');
+  // ── 추천 로직 ──
 
-  const prompt = `
-당신은 한국 가정식 메뉴 전문 AI입니다.
-아래 학교 급식 데이터를 분석해서 오늘 저녁 메뉴 3가지를 추천해주세요.
+  // 1. 오늘 + 이번주 점심과 겹치는 메뉴 제외
+  const todayItems = new Set(state.lunchMenu.map(i => i.toLowerCase()));
+  const excludeItems = new Set([
+    ...state.lunchMenu,
+    ...state.excludes
+  ].map(i => i.toLowerCase()));
 
-[오늘 가족 점심 메뉴 (이것과 겹치면 안됨)]
-${lunchStr}
+  // 2. 과거 급식에서 후보 메뉴 추출 (개별 메뉴 단위)
+  const menuPool = {}; // menuName → { count, dates, refDate, nutrition }
 
-[최근 학교 급식 메뉴 (이 메뉴들을 참고해서 집에서 만들 수 있는 버전으로 추천)]
-${pastMenuStr || '데이터 없음'}
+  pastLunchMenus.forEach(day => {
+    day.items.forEach(item => {
+      // 밥류, 김치류는 제외 (너무 기본적인 것)
+      if (['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치'].includes(item)) return;
+      // 오늘 점심과 겹치는 것 제외
+      if (excludeItems.has(item.toLowerCase())) return;
+      // 제외 재료 포함된 것 제외
+      const hasExclude = state.excludes.some(ex => item.includes(ex.replace(/[🌶️🥩🐟🥚🧄🧅]/g,'')));
+      if (hasExclude) return;
 
-[오늘 급식 영양소 충족률]
-탄수화물 ${nutri.carb}%, 단백질 ${nutri.protein}%, 지방 ${nutri.fat}%, 칼로리 ${nutri.cal}%
+      if (!menuPool[item]) {
+        menuPool[item] = { count: 0, refDate: day.date, nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat }};
+      }
+      menuPool[item].count++;
+    });
+  });
 
-[냉장고 재료]
-${fridgeStr}
+  // 3. 영양 균형 점수 계산
+  const todayNutri = state.lunchNutrition;
+  const needProtein = todayNutri.protein < 60;
+  const needCarb = todayNutri.carb < 60;
+  const needVeg = todayNutri.fat > 60;
 
-[가족 선호]
-${prefStr}
+  // 4. 메뉴 점수화 및 정렬
+  const scored = Object.entries(menuPool).map(([name, info]) => {
+    let score = info.count * 10; // 자주 나온 메뉴 우선
 
-[제외 재료]
-${excludeStr}
+    // 냉장고 재료 활용 가능하면 점수 UP
+    const fridgeMatch = state.fridge.filter(f => name.includes(f.replace(/\s/g,''))).length;
+    score += fridgeMatch * 20;
 
-[핵심 조건]
-1. 오늘 점심(${lunchStr.split(',').slice(0,3).join(',')})과 주재료 겹치지 않도록
-2. 과거 급식 메뉴 중 아이들이 학교서 먹어봤을 메뉴 참고 (집 버전으로 변형)
-3. 영양사가 설계한 급식처럼 영양 균형 고려
-4. 냉장고 재료 최대 활용
-5. 한국 가정식 위주
+    // 영양 보완 점수
+    if (needProtein && (name.includes('고기') || name.includes('두부') || name.includes('계란') || name.includes('생선') || name.includes('닭') || name.includes('돼지') || name.includes('소'))) score += 15;
+    if (needVeg && (name.includes('나물') || name.includes('채소') || name.includes('볶음') || name.includes('무침'))) score += 15;
 
-다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
-{
-  "menus": [
-    {
-      "name": "메뉴명",
-      "emoji": "음식 이모지",
-      "reason": "추천 이유 15자 이내 (급식 참고 여부 포함)",
-      "schoolRef": "참고한 급식 메뉴명 (없으면 null)",
-      "badges": ["영양균형", "급식참고"],
-      "ingredients": [
-        {"name": "재료명", "have": true, "overlap": false}
-      ],
-      "cookTime": "20분",
-      "difficulty": "쉬움"
-    }
-  ]
+    // 가족 선호 반영
+    if (state.prefs.includes('🍚 한식 위주') && !name.includes('파스타') && !name.includes('피자')) score += 5;
+    if (state.prefs.includes('🍳 간단하게') && info.nutrition.cal < 300) score += 10;
+
+    // 이모지 매핑
+    const emoji = getMenuEmoji(name);
+
+    // 배지 결정
+    const badges = [];
+    if (fridgeMatch > 0) badges.push('냉장고활용');
+    if (needProtein && score > 30) badges.push('영양균형');
+    else if (info.count >= 3) badges.push('급식참고');
+    else badges.push('건강식');
+
+    // 이유 생성
+    const reason = fridgeMatch > 0
+      ? `냉장고 재료로 만들 수 있어요`
+      : needProtein
+      ? `오늘 점심 단백질 보완`
+      : `학교 급식에서 ${info.count}번 나온 메뉴`;
+
+    return {
+      name, score, emoji, badges, reason,
+      schoolRef: `급식 ${info.count}회 등장`,
+      refDate: info.refDate,
+      cookTime: getCookTime(name),
+      difficulty: getDifficulty(name),
+      ingredients: getIngredients(name, state.fridge, state.lunchMenu),
+    };
+  });
+
+  // 5. 점수 내림차순 정렬 후 상위 3개
+  const top3 = scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  if (top3.length === 0) {
+    renderMenus(getSampleMenus());
+    return;
+  }
+
+  renderMenus(top3);
 }
 
-badges는 "영양균형", "간편요리", "냉장고활용", "아이입맛", "건강식", "든든함", "급식참고" 중 1~2개.
-schoolRef가 있으면 "급식참고" 배지 포함.
-ingredients의 have는 냉장고 재료에 있으면 true, overlap은 오늘 점심과 겹치면 true.
-`;
+// ── 헬퍼 함수들 ──
+function getMenuEmoji(name) {
+  if (name.includes('찌개') || name.includes('국') || name.includes('탕') || name.includes('soup')) return '🥘';
+  if (name.includes('볶음') || name.includes('볶아')) return '🍳';
+  if (name.includes('구이') || name.includes('구운')) return '🔥';
+  if (name.includes('조림')) return '🍲';
+  if (name.includes('나물') || name.includes('무침')) return '🥗';
+  if (name.includes('닭') || name.includes('치킨')) return '🍗';
+  if (name.includes('돼지') || name.includes('제육')) return '🥩';
+  if (name.includes('생선') || name.includes('고등어') || name.includes('갈치')) return '🐟';
+  if (name.includes('두부')) return '🟨';
+  if (name.includes('계란') || name.includes('달걀')) return '🥚';
+  if (name.includes('김치')) return '🌶️';
+  return '🍽️';
+}
 
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content[0].text.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(text);
-    renderMenus(parsed.menus);
-  } catch(e) {
-    renderMenus(getSampleMenus());
+function getCookTime(name) {
+  if (name.includes('나물') || name.includes('무침') || name.includes('계란')) return '10분';
+  if (name.includes('볶음') || name.includes('조림')) return '20분';
+  if (name.includes('찌개') || name.includes('국') || name.includes('탕')) return '25분';
+  if (name.includes('구이')) return '15분';
+  return '20분';
+}
+
+function getDifficulty(name) {
+  if (name.includes('나물') || name.includes('무침') || name.includes('계란')) return '쉬움';
+  if (name.includes('찌개') || name.includes('볶음')) return '보통';
+  if (name.includes('탕') || name.includes('갈비')) return '어려움';
+  return '보통';
+}
+
+function getIngredients(name, fridge, lunchItems) {
+  // 메뉴명 기반 간단한 재료 추정
+  const ingredientMap = {
+    '된장': ['된장','두부','애호박','대파'],
+    '김치찌개': ['김치','돼지고기','두부','대파'],
+    '제육': ['돼지고기','고추장','양파','대파'],
+    '닭갈비': ['닭고기','고추장','양파','고구마'],
+    '고등어': ['고등어','무','대파','간장'],
+    '갈치': ['갈치','무','대파','간장'],
+    '두부': ['두부','간장','참기름','대파'],
+    '나물': ['시금치','참기름','마늘','소금'],
+    '볶음밥': ['밥','계란','당근','간장'],
+    '계란': ['계란','소금','식용유'],
+  };
+
+  let matched = [];
+  for (const [key, ings] of Object.entries(ingredientMap)) {
+    if (name.includes(key)) { matched = ings; break; }
   }
+  if (matched.length === 0) matched = ['재료1', '재료2', '재료3'];
+
+  return matched.map(ing => ({
+    name: ing,
+    have: fridge.some(f => ing.includes(f) || f.includes(ing)),
+    overlap: lunchItems.some(l => ing.includes(l) || l.includes(ing))
+  }));
 }
 
 function getSampleMenus() {
