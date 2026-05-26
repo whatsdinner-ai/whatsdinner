@@ -854,6 +854,7 @@ function addMember(type) {
 
 function removeMember(id) {
   members = members.filter(m => m.id !== id);
+  pastLunchMenus = []; // 구성원 변경시 캐시 초기화
   renderMembers();
 }
 
@@ -959,10 +960,15 @@ async function searchSchoolForMember(memberId, val) {
 function selectSchoolForMember(memberId, name, code, sido, addr) {
   const member = members.find(m => m.id === memberId);
   if (member) {
+    // 학교가 바뀌면 과거 급식 캐시 초기화
+    if (member.school?.code !== code) {
+      pastLunchMenus = [];
+    }
     member.school = { name, code, sido, addr };
     document.getElementById(`school-input-${memberId}`).value = name;
     document.getElementById(`school-dd-${memberId}`).style.display = 'none';
     renderMembers();
+    showToast(`${name} 선택됨 ✅`);
   }
 }
 
