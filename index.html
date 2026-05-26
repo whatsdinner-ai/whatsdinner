@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>왓츠디너 - 급식과 겹치지 않는 저녁</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
   --cream: #faf6f0;
@@ -67,14 +67,48 @@ body::before {
   justify-content: space-between;
   margin-bottom: 4px;
 }
-.logo {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  color: var(--ink);
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.logo span { color: var(--accent); }
+.logo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.logo-cell {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 24px;
+  color: white;
+  line-height: 1;
+}
+.logo-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.logo-text {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--ink3);
+  letter-spacing: 0.3px;
+  font-weight: 400;
+}
 .today-date {
   font-size: 12px;
   color: var(--ink3);
@@ -83,6 +117,7 @@ body::before {
   font-size: 12px;
   color: var(--ink3);
   letter-spacing: .3px;
+  margin-top: 6px;
 }
 
 /* ── 스텝 네비 ── */
@@ -568,10 +603,18 @@ body::before {
   <!-- 헤더 -->
   <div class="header">
     <div class="header-top">
-      <div class="logo">왓츠<span>디너</span></div>
+      <div class="logo-wrap">
+        <!-- 4분할 그리드 아이콘 (버전1: 크게) -->
+        <div class="logo-grid">
+          <div class="logo-cell">왓</div>
+          <div class="logo-cell">츠</div>
+          <div class="logo-cell">디</div>
+          <div class="logo-cell">너</div>
+        </div>
+      </div>
       <div class="today-date" id="today-date"></div>
     </div>
-    <div class="header-sub">급식과 겹치지 않는 저녁 · AI 맞춤 추천</div>
+    <div class="header-sub">급식과 겹치지 않는 저녁</div>
   </div>
 
   <!-- 스텝 네비 -->
@@ -2041,16 +2084,22 @@ function goShoppingFromMenu() {
 
   const el = document.getElementById('shopping-list');
 
-  // 쿠팡 검색 URL 생성 (파트너스 ID 추가 필요)
+  // 쿠팡 검색 URL 생성
   const COUPANG_ID = 'whatsdinner'; // 파트너스 ID 등록 후 여기 변경
+
+  // 개별 재료 → 리뷰 많은 순 정렬
   const coupangUrl = (keyword) =>
+    `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user&sorter=reviewCountDESC`;
+
+  // 전체 재료 → 관련도순 (여러 재료 섞이면 리뷰순 의미없음)
+  const coupangAllUrl = (keyword) =>
     `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`;
 
   // 전체 재료 합쳐서 쿠팡 검색
   const allKeyword = needed.map(i => i.name).join(' ');
   const coupangAllBtn = document.getElementById('coupang-all-btn');
   if (coupangAllBtn) {
-    coupangAllBtn.href = coupangUrl(allKeyword || menuName);
+    coupangAllBtn.href = coupangAllUrl(allKeyword || menuName);
     coupangAllBtn.innerHTML = `🚀 쿠팡에서 전체 재료 검색 (${needed.length}가지)`;
   }
 
