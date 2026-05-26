@@ -1087,11 +1087,10 @@ function renderAllLunch(cards) {
 // ── fetchLunch (하위 호환) ──
 async function fetchLunch() { await fetchAllLunch(); }
 
-// ── 주간 영양 분석 ──
+// ── 주간 영양 분석 (모든 아이) ──
 async function analyzeWeeklyNutrition() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
-  const school = children[0].school;
 
   // 이번주 월요일부터 오늘까지
   const getMonday = (d) => {
@@ -1105,152 +1104,170 @@ async function analyzeWeeklyNutrition() {
   const fromStr = `${monday.getFullYear()}${String(monday.getMonth()+1).padStart(2,'0')}${String(monday.getDate()).padStart(2,'0')}`;
   const toStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
 
-  try {
-    const res = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=7&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`
-    );
-    const data = await res.json();
-    const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+  // 모든 아이 데이터 수집
+  const allChildData = [];
 
-    if (rows.length === 0) return;
+  for (const child of children) {
+    try {
+      const res = await fetch(
+        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=7&ATPT_OFCDC_SC_CODE=${child.school.sido}&SD_SCHUL_CODE=${child.school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`
+      );
+      const data = await res.json();
+      const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+      if (rows.length > 0) {
+        allChildData.push({
+          child,
+          rows
+        });
+      }
+    } catch(e) {
+      console.log(`${child.school.name} 영양 분석 실패`);
+    }
+  }
 
-    // 누적 영양소 계산
-    let totalCal = 0, totalCarb = 0, totalProtein = 0, totalFat = 0;
-    let totalCalcium = 0, totalIron = 0, totalVitA = 0, totalVitC = 0;
-    let dayCount = rows.length;
+  if (allChildData.length === 0) return;
 
+  // 청소년 1일 권장량
+  const RDA = {
+    cal:     { val: 2000, unit: 'kcal', label: '칼로리',   icon: '🔥' },
+    carb:    { val: 130,  unit: 'g',    label: '탄수화물', icon: '🍚' },
+    protein: { val: 55,   unit: 'g',    label: '단백질',   icon: '💪' },
+    fat:     { val: 50,   unit: 'g',    label: '지방',     icon: '🥑' },
+    calcium: { val: 900,  unit: 'mg',   label: '칼슘',     icon: '🦴' },
+    iron:    { val: 14,   unit: 'mg',   label: '철분',     icon: '🩸' },
+    vitA:    { val: 750,  unit: 'RE',   label: '비타민A',  icon: '👁️' },
+    vitC:    { val: 100,  unit: 'mg',   label: '비타민C',  icon: '🍊' },
+  };
+
+  // 급식 1일 권장량의 1/3
+  const lunchRDA = Object.fromEntries(
+    Object.entries(RDA).map(([k, v]) => [k, Math.round(v.val / 3 * 10) / 10])
+  );
+
+  // 아이별 영양 분석
+  const childResults = allChildData.map(({ child, rows }) => {
+    let tot = { cal:0, carb:0, protein:0, fat:0, calcium:0, iron:0, vitA:0, vitC:0 };
     rows.forEach(row => {
       const ntr = row.NTR_INFO || '';
-      totalCal     += parseFloat(ntr.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalCarb    += parseFloat(ntr.match(/탄수화물\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalProtein += parseFloat(ntr.match(/단백질\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalFat     += parseFloat(ntr.match(/지방\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalCalcium += parseFloat(ntr.match(/칼슘\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalIron    += parseFloat(ntr.match(/철분\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalVitA    += parseFloat(ntr.match(/비타민A\(R\.E\)\s*:\s*([\d.]+)/)?.[1] || 0);
-      totalVitC    += parseFloat(ntr.match(/비타민C\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.cal     += parseFloat(ntr.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.carb    += parseFloat(ntr.match(/탄수화물\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.protein += parseFloat(ntr.match(/단백질\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.fat     += parseFloat(ntr.match(/지방\(g\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.calcium += parseFloat(ntr.match(/칼슘\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.iron    += parseFloat(ntr.match(/철분\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.vitA    += parseFloat(ntr.match(/비타민A\(R\.E\)\s*:\s*([\d.]+)/)?.[1] || 0);
+      tot.vitC    += parseFloat(ntr.match(/비타민C\(mg\)\s*:\s*([\d.]+)/)?.[1] || 0);
     });
 
-    // 하루 평균
-    const avgCal = Math.round(totalCal / dayCount);
-    const avgCarb = Math.round(totalCarb / dayCount);
-    const avgProtein = Math.round(totalProtein / dayCount);
-    const avgFat = Math.round(totalFat / dayCount);
-    const avgCalcium = Math.round(totalCalcium / dayCount);
-    const avgIron = Math.round(totalIron * 10 / dayCount) / 10;
-    const avgVitA = Math.round(totalVitA / dayCount);
-    const avgVitC = Math.round(totalVitC / dayCount);
-
-    // 청소년 1일 권장량 (중학생 기준)
-    const RDA = {
-      cal:     { val: 2000, unit: 'kcal', label: '칼로리' },
-      carb:    { val: 130,  unit: 'g',    label: '탄수화물' },
-      protein: { val: 55,   unit: 'g',    label: '단백질' },
-      fat:     { val: 50,   unit: 'g',    label: '지방' },
-      calcium: { val: 900,  unit: 'mg',   label: '칼슘' },
-      iron:    { val: 14,   unit: 'mg',   label: '철분' },
-      vitA:    { val: 750,  unit: 'RE',   label: '비타민A' },
-      vitC:    { val: 100,  unit: 'mg',   label: '비타민C' },
+    const d = rows.length;
+    const avg = {
+      cal:     Math.round(tot.cal / d),
+      carb:    Math.round(tot.carb / d),
+      protein: Math.round(tot.protein / d),
+      fat:     Math.round(tot.fat / d),
+      calcium: Math.round(tot.calcium / d),
+      iron:    Math.round(tot.iron * 10 / d) / 10,
+      vitA:    Math.round(tot.vitA / d),
+      vitC:    Math.round(tot.vitC / d),
     };
 
-    // 급식이 1일 권장량의 1/3 커버해야 함
-    const lunchRDA = {
-      cal:     Math.round(RDA.cal.val / 3),
-      carb:    Math.round(RDA.carb.val / 3),
-      protein: Math.round(RDA.protein.val / 3),
-      fat:     Math.round(RDA.fat.val / 3),
-      calcium: Math.round(RDA.calcium.val / 3),
-      iron:    Math.round(RDA.iron.val * 10 / 3) / 10,
-      vitA:    Math.round(RDA.vitA.val / 3),
-      vitC:    Math.round(RDA.vitC.val / 3),
-    };
+    const nutrients = Object.entries(RDA).map(([key, r]) => ({
+      key, icon: r.icon, label: r.label, unit: r.unit,
+      avg: avg[key],
+      rda: lunchRDA[key],
+    }));
 
-    const nutrients = [
-      { key: 'cal',     avg: avgCal,     rda: lunchRDA.cal,     icon: '🔥', label: '칼로리',   unit: 'kcal' },
-      { key: 'carb',    avg: avgCarb,    rda: lunchRDA.carb,    icon: '🍚', label: '탄수화물', unit: 'g' },
-      { key: 'protein', avg: avgProtein, rda: lunchRDA.protein, icon: '💪', label: '단백질',   unit: 'g' },
-      { key: 'fat',     avg: avgFat,     rda: lunchRDA.fat,     icon: '🥑', label: '지방',     unit: 'g' },
-      { key: 'calcium', avg: avgCalcium, rda: lunchRDA.calcium, icon: '🦴', label: '칼슘',     unit: 'mg' },
-      { key: 'iron',    avg: avgIron,    rda: lunchRDA.iron,    icon: '🩸', label: '철분',     unit: 'mg' },
-      { key: 'vitA',    avg: avgVitA,    rda: lunchRDA.vitA,    icon: '👁️', label: '비타민A',  unit: 'RE' },
-      { key: 'vitC',    avg: avgVitC,    rda: lunchRDA.vitC,    icon: '🍊', label: '비타민C',  unit: 'mg' },
-    ];
+    return { child, rows, avg, nutrients, dayCount: d };
+  });
 
-    // 부족 영양소 저장 (저녁 추천에 활용)
-    state.deficientNutrients = nutrients
-      .filter(n => n.avg > 0 && n.avg < n.rda * 0.8)
-      .map(n => n.label);
+  // 전체 부족 영양소 (모든 아이 통합)
+  const allDeficient = new Set();
+  childResults.forEach(({ nutrients }) => {
+    nutrients.filter(n => n.avg > 0 && n.avg < n.rda * 0.8)
+      .forEach(n => allDeficient.add(n.label));
+  });
+  state.deficientNutrients = [...allDeficient];
 
-    renderWeeklyNutrition(nutrients, dayCount, school.name);
-
-  } catch(e) {
-    console.log('주간 영양 분석 실패:', e);
-  }
+  renderWeeklyNutrition(childResults, RDA, lunchRDA);
 }
 
-function renderWeeklyNutrition(nutrients, dayCount, schoolName) {
+function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
   const card = document.getElementById('weekly-nutrition-card');
   const content = document.getElementById('weekly-nutrition-content');
   card.style.display = 'block';
 
-  const deficient = nutrients.filter(n => n.avg > 0 && n.avg < n.rda * 0.8);
-  const sufficient = nutrients.filter(n => n.avg >= n.rda * 0.8);
-  const noData = nutrients.filter(n => n.avg === 0);
+  // 전체 부족 영양소
+  const allDeficient = [...new Set(
+    childResults.flatMap(({ nutrients }) =>
+      nutrients.filter(n => n.avg > 0 && n.avg < n.rda * 0.8).map(n => n.label)
+    )
+  )];
 
   content.innerHTML = `
-    <div class="card" style="margin-bottom:12px">
-      <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">
-        📅 ${schoolName} · 이번주 ${dayCount}일 급식 평균
-      </div>
+    ${childResults.map(({ child, nutrients, dayCount }) => {
+      const childName = child.name || '아이';
+      const schoolName = child.school.name;
+      const deficient = nutrients.filter(n => n.avg > 0 && n.avg < n.rda * 0.8);
 
-      ${nutrients.filter(n => n.avg > 0).map(n => {
-        const pct = Math.min(Math.round(n.avg / n.rda * 100), 120);
-        const status = pct >= 100 ? 'good' : pct >= 80 ? 'ok' : 'low';
-        const color = status === 'good' ? 'var(--green)' : status === 'ok' ? 'var(--accent2)' : '#e03030';
-        const bg = status === 'good' ? 'rgba(45,106,79,.1)' : status === 'ok' ? 'rgba(232,130,42,.1)' : 'rgba(224,48,48,.1)';
-        const label = status === 'good' ? '✅ 충분' : status === 'ok' ? '⚠️ 보통' : '🔴 부족';
+      return `
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:700;font-size:14px">🧒 ${childName}</div>
+            <div style="font-size:11px;color:var(--ink3)">📅 ${schoolName} · 이번주 ${dayCount}일</div>
+          </div>
 
-        return `
-          <div style="margin-bottom:12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-              <div style="font-size:13px;font-weight:600">${n.icon} ${n.label}</div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="font-size:12px;color:var(--ink3)">${n.avg}${n.unit} / ${n.rda}${n.unit}</span>
-                <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;background:${bg};color:${color}">${label}</span>
+          ${nutrients.filter(n => n.avg > 0).map(n => {
+            const pct = Math.min(Math.round(n.avg / n.rda * 100), 120);
+            const status = pct >= 100 ? 'good' : pct >= 80 ? 'ok' : 'low';
+            const color = status === 'good' ? 'var(--green)' : status === 'ok' ? 'var(--accent2)' : '#e03030';
+            const bg = status === 'good' ? 'rgba(45,106,79,.1)' : status === 'ok' ? 'rgba(232,130,42,.1)' : 'rgba(224,48,48,.1)';
+            const statusLabel = status === 'good' ? '✅ 충분' : status === 'ok' ? '⚠️ 보통' : '🔴 부족';
+            return `
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <div style="font-size:13px;font-weight:600">${n.icon} ${n.label}</div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span style="font-size:11px;color:var(--ink3)">${n.avg}${n.unit} / ${n.rda}${n.unit}</span>
+                    <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${bg};color:${color}">${statusLabel}</span>
+                  </div>
+                </div>
+                <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden">
+                  <div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:100px;transition:width .8s ease"></div>
+                </div>
+                <div style="font-size:10px;color:var(--ink3);margin-top:2px">권장량 대비 ${pct}%</div>
+              </div>`;
+          }).join('')}
+
+          ${deficient.length > 0 ? `
+            <div style="margin-top:10px;padding:10px 12px;background:rgba(224,48,48,.07);border:1px solid rgba(224,48,48,.15);border-radius:8px">
+              <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">🔴 부족한 영양소</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px">
+                ${deficient.map(n => `
+                  <span style="background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
+                    ${n.icon} ${n.label}
+                  </span>`).join('')}
               </div>
-            </div>
-            <div style="height:8px;background:var(--border);border-radius:100px;overflow:hidden">
-              <div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:100px;transition:width .8s ease"></div>
-            </div>
-            <div style="font-size:10px;color:var(--ink3);margin-top:3px">권장량 대비 ${pct}%</div>
-          </div>`;
-      }).join('')}
-    </div>
+            </div>` : `
+            <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
+              ✅ 이번주 영양 균형 우수!
+            </div>`}
+        </div>`;
+    }).join('')}
 
-    ${deficient.length > 0 ? `
-    <div style="background:rgba(224,48,48,.08);border:1px solid rgba(224,48,48,.2);border-radius:12px;padding:14px 16px;margin-bottom:12px">
-      <div style="font-weight:700;font-size:14px;color:#e03030;margin-bottom:8px">
-        🔴 이번주 부족한 영양소
+    ${allDeficient.length > 0 ? `
+    <div style="background:rgba(200,80,26,.08);border:1px solid rgba(200,80,26,.2);border-radius:12px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-weight:700;font-size:14px;color:var(--accent);margin-bottom:8px">
+        🍽️ 오늘 저녁 추천에 반영됩니다
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-        ${deficient.map(n => `
-          <span style="background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;color:#e03030">
-            ${n.icon} ${n.label}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        ${allDeficient.map(label => `
+          <span style="background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.2);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--accent)">
+            ${label} 보완 메뉴 우선 추천
           </span>`).join('')}
       </div>
-      <div style="font-size:12px;color:var(--ink2);line-height:1.6">
-        저녁 메뉴 추천시 <strong>${deficient.map(n=>n.label).join(', ')}</strong>을 보완하는 메뉴를 우선 추천해드려요
+      <div style="font-size:12px;color:var(--ink3)">
+        메뉴 추천 단계에서 부족한 영양소를 채워주는 저녁 메뉴를 우선 보여드려요
       </div>
-    </div>` : `
-    <div style="background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:12px;padding:14px 16px;margin-bottom:12px">
-      <div style="font-weight:700;font-size:14px;color:var(--green)">
-        ✅ 이번주 영양 균형 우수해요!
-      </div>
-    </div>`}
-
-    ${noData.length > 0 ? `
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">
-      * ${noData.map(n=>n.label).join(', ')} 데이터는 급식에 포함되지 않아 분석 제외
     </div>` : ''}
   `;
 }
