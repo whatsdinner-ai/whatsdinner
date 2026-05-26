@@ -877,7 +877,9 @@ async function fetchLunch() {
       `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${sido}&SCHUL_NM=${encodeURIComponent(schoolName)}`
     );
     const schoolData = await schoolRes.json();
-    const schoolInfo = schoolData?.schoolInfo?.[1]?.row?.[0];
+    // 정확한 학교명 매칭
+    const rows = schoolData?.schoolInfo?.[1]?.row || [];
+    const schoolInfo = rows.find(r => r.SCHUL_NM === schoolName) || rows[0];
 
     if (!schoolInfo) {
       showToast('학교를 찾을 수 없어요. 정확한 이름으로 다시 입력해주세요', true);
