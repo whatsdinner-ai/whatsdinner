@@ -1112,7 +1112,49 @@ function renderLunch(schoolName, menu) {
   `;
 }
 
-// ── AI 메뉴 생성 ──
+// ── 과거 급식 데이터 수집 ──
+let pastLunchMenus = []; // 최근 30일 급식 메뉴 모음
+
+async function fetchPastLunch() {
+  const children = members.filter(m => m.type === 'child' && m.school);
+  if (children.length === 0) return;
+
+  const school = children[0].school; // 첫째 학교 기준
+  const results = [];
+
+  // 최근 30일 날짜 생성
+  for (let i = 1; i <= 30; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    // 주말 제외
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    results.push(dateStr);
+  }
+
+  // 한 번의 API 호출로 최근 20일치 가져오기
+  try {
+    const res = await fetch(
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=20&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${results[results.length-1]}&MLSV_TO_YMD=${results[0]}`
+    );
+    const data = await res.json();
+    const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+
+    pastLunchMenus = rows.map(row => ({
+      date: row.MLSV_YMD,
+      items: row.DDISH_NM
+        .replace(/<br\/>/g, ',').split(',')
+        .map(d => d.replace(/\([^)]*\)/g, '').trim())
+        .filter(d => d.length > 0),
+      ntrInfo: row.NTR_INFO || ''
+    }));
+
+  } catch(e) {
+    pastLunchMenus = [];
+  }
+}
+
+// ── 과거 급식 기반 메뉴 추천 ──
 async function generateMenu() {
   goStep(4);
   document.getElementById('menu-loading').style.display = 'block';
@@ -1121,20 +1163,33 @@ async function generateMenu() {
   const fridgeText = document.getElementById('fridge-input')?.value || '';
   state.fridge = fridgeText ? fridgeText.split(/[,，\s]+/).filter(Boolean) : [];
 
-  // Claude API 호출
+  // 과거 급식 데이터 수집
+  if (pastLunchMenus.length === 0) {
+    await fetchPastLunch();
+  }
+
   const lunchStr = state.lunchMenu.join(', ');
   const fridgeStr = state.fridge.length ? state.fridge.join(', ') : '없음';
   const prefStr = state.prefs.length ? state.prefs.join(', ') : '제한없음';
   const excludeStr = state.excludes.length ? state.excludes.join(', ') : '없음';
   const nutri = state.lunchNutrition;
 
-  const prompt = `
-당신은 한국 가정식 메뉴 전문 AI입니다. 아래 조건에 맞는 오늘 저녁 메뉴 3가지를 추천해주세요.
+  // 과거 급식 메뉴 문자열 생성 (최근 10일)
+  const pastMenuStr = pastLunchMenus.slice(0, 10).map(m =>
+    `${m.date}: ${m.items.join(', ')}`
+  ).join('\n');
 
-[오늘 학교 급식]
+  const prompt = `
+당신은 한국 가정식 메뉴 전문 AI입니다.
+아래 학교 급식 데이터를 분석해서 오늘 저녁 메뉴 3가지를 추천해주세요.
+
+[오늘 가족 점심 메뉴 (이것과 겹치면 안됨)]
 ${lunchStr}
 
-[급식 영양소 충족률]
+[최근 학교 급식 메뉴 (이 메뉴들을 참고해서 집에서 만들 수 있는 버전으로 추천)]
+${pastMenuStr || '데이터 없음'}
+
+[오늘 급식 영양소 충족률]
 탄수화물 ${nutri.carb}%, 단백질 ${nutri.protein}%, 지방 ${nutri.fat}%, 칼로리 ${nutri.cal}%
 
 [냉장고 재료]
@@ -1146,11 +1201,12 @@ ${prefStr}
 [제외 재료]
 ${excludeStr}
 
-[조건]
-1. 급식에 나온 주재료(${lunchStr.split(',').slice(0,3).join(',')})와 겹치지 않도록
-2. 급식에서 부족한 영양소를 보완하도록
-3. 냉장고 재료를 최대한 활용하도록
-4. 한국 가정식 위주로
+[핵심 조건]
+1. 오늘 점심(${lunchStr.split(',').slice(0,3).join(',')})과 주재료 겹치지 않도록
+2. 과거 급식 메뉴 중 아이들이 학교서 먹어봤을 메뉴 참고 (집 버전으로 변형)
+3. 영양사가 설계한 급식처럼 영양 균형 고려
+4. 냉장고 재료 최대 활용
+5. 한국 가정식 위주
 
 다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
 {
@@ -1158,10 +1214,11 @@ ${excludeStr}
     {
       "name": "메뉴명",
       "emoji": "음식 이모지",
-      "reason": "이 메뉴를 추천하는 이유 (급식과 안 겹치는 점, 영양 보완 등 15자 이내)",
-      "badges": ["영양균형", "간편요리"],
+      "reason": "추천 이유 15자 이내 (급식 참고 여부 포함)",
+      "schoolRef": "참고한 급식 메뉴명 (없으면 null)",
+      "badges": ["영양균형", "급식참고"],
       "ingredients": [
-        {"name": "재료명", "have": true/false, "overlap": false}
+        {"name": "재료명", "have": true, "overlap": false}
       ],
       "cookTime": "20분",
       "difficulty": "쉬움"
@@ -1169,8 +1226,9 @@ ${excludeStr}
   ]
 }
 
-badges는 "영양균형", "간편요리", "냉장고활용", "아이입맛", "건강식", "든든함" 중 해당하는 것 1~2개.
-ingredients의 have는 냉장고 재료에 있으면 true, overlap은 급식과 겹치면 true.
+badges는 "영양균형", "간편요리", "냉장고활용", "아이입맛", "건강식", "든든함", "급식참고" 중 1~2개.
+schoolRef가 있으면 "급식참고" 배지 포함.
+ingredients의 have는 냉장고 재료에 있으면 true, overlap은 오늘 점심과 겹치면 true.
 `;
 
   try {
@@ -1188,7 +1246,6 @@ ingredients의 have는 냉장고 재료에 있으면 true, overlap은 급식과 
     const parsed = JSON.parse(text);
     renderMenus(parsed.menus);
   } catch(e) {
-    // API 실패시 샘플 데이터
     renderMenus(getSampleMenus());
   }
 }
@@ -1260,6 +1317,7 @@ function renderMenus(menus) {
             ${(m.badges||[]).map(b => `<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
             <span class="badge badge-orange">⏱ ${m.cookTime}</span>
             <span class="badge badge-blue">${m.difficulty}</span>
+            ${m.schoolRef ? `<span class="badge badge-green">📚 ${m.schoolRef} 참고</span>` : ''}
           </div>
         </div>
       </div>
@@ -1366,6 +1424,7 @@ function resetAll() {
   state.checkedItems.clear();
   members = [];
   memberIdCounter = 0;
+  pastLunchMenus = [];
   currentStep = 1;
   goStep(1);
   document.getElementById('lunch-display').innerHTML = '';
