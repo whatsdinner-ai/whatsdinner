@@ -67,58 +67,9 @@ body::before {
   justify-content: space-between;
   margin-bottom: 4px;
 }
-.logo-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  flex-shrink: 0;
-}
-.logo-cell {
-  width: 44px;
-  height: 44px;
-  background: var(--accent);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Black Han Sans', sans-serif;
-  font-size: 24px;
-  color: white;
-  line-height: 1;
-}
-.logo-text-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.logo-text {
-  font-family: 'Black Han Sans', sans-serif;
-  font-size: 20px;
-  color: var(--ink);
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
-.logo-sub {
-  font-size: 10px;
-  color: var(--ink3);
-  letter-spacing: 0.3px;
-  font-weight: 400;
-}
-.today-date {
-  font-size: 12px;
-  color: var(--ink3);
-}
-.header-sub {
-  font-size: 12px;
-  color: var(--ink3);
-  letter-spacing: .3px;
-  margin-top: 6px;
-}
+.logo-wrap { display:flex; align-items:center; gap:10px; }
+.today-date { font-size:12px; color:var(--ink3); }
+.header-sub { font-size:12px; color:var(--ink3); letter-spacing:.3px; margin-top:4px; }
 
 /* ── 스텝 네비 ── */
 .step-nav {
@@ -603,18 +554,20 @@ body::before {
   <!-- 헤더 -->
   <div class="header">
     <div class="header-top">
-      <div class="logo-wrap">
-        <!-- 4분할 그리드 아이콘 (버전1: 크게) -->
-        <div class="logo-grid">
-          <div class="logo-cell">왓</div>
-          <div class="logo-cell">츠</div>
-          <div class="logo-cell">디</div>
-          <div class="logo-cell">너</div>
-        </div>
-      </div>
+      <svg width="210" height="44" viewBox="0 0 210 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 식판 아이콘 (44×44 정사각형) -->
+        <rect x="1" y="1" width="42" height="42" rx="9" stroke="#FF6B00" stroke-width="2" fill="none"/>
+        <line x1="1" y1="22" x2="43" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
+        <line x1="22" y1="1" x2="22" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
+        <path d="M26 10 L29.5 14 L36 7.5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- 브랜드명 + 슬로건 (세로 중앙 정렬) -->
+        <text x="54" y="17" font-family="'Black Han Sans', sans-serif" font-size="18" fill="#1a1208" letter-spacing="-0.5">왓츠디너</text>
+        <line x1="54" y1="24" x2="206" y2="24" stroke="#e8ddd0" stroke-width="0.8"/>
+        <text x="54" y="37" font-family="'Noto Sans KR', sans-serif" font-size="10" font-weight="400" fill="#9a8a75" letter-spacing="0.5">급식과 겹치지 않는 저녁</text>
+      </svg>
       <div class="today-date" id="today-date"></div>
     </div>
-    <div class="header-sub">급식과 겹치지 않는 저녁</div>
   </div>
 
   <!-- 스텝 네비 -->
@@ -1549,6 +1502,52 @@ async function generateMenu() {
     });
   });
 
+  // ── 15년차 주부 직관 엔진 ──
+  const lunchItems = state.lunchMenu;
+
+  const lunchProfile = {
+    isSpicy:      lunchItems.some(m => ['떡볶이','제육','닭갈비','김치찌개','육개장','순두부','마라','볶음밥','라볶이'].some(k => m.includes(k))),
+    isSweet:      lunchItems.some(m => ['강정','조림','탕수','불고기','케첩'].some(k => m.includes(k))),
+    isGreasy:     lunchItems.some(m => ['튀김','돈까스','치킨','탕수육','후라이드','너겟','까스'].some(k => m.includes(k))),
+    isHeavy:      lunchItems.some(m => ['갈비','불고기','제육','삼겹','보쌈','소고기'].some(k => m.includes(k))),
+    hasClearSoup: lunchItems.some(m => ['콩나물국','북어국','미역국','계란국','황태국','무국'].some(k => m.includes(k))),
+    hasRichSoup:  lunchItems.some(m => ['된장찌개','김치찌개','순두부','부대찌개','육개장','설렁탕','갈비탕'].some(k => m.includes(k))),
+    hasSoupAtAll: lunchItems.some(m => ['국','찌개','탕','국물'].some(k => m.includes(k))),
+    hasPork:      lunchItems.some(m => ['돼지','제육','삼겹','보쌈'].some(k => m.includes(k))),
+    hasChicken:   lunchItems.some(m => ['닭','치킨','강정'].some(k => m.includes(k))),
+    hasBeef:      lunchItems.some(m => ['소고기','불고기','갈비','육'].some(k => m.includes(k))),
+    hasGochujang: lunchItems.some(m => ['떡볶이','제육','닭갈비','순두부','김치찌개','육개장'].some(k => m.includes(k))),
+    hasDoenjang:  lunchItems.some(m => ['된장찌개','된장국','청국장'].some(k => m.includes(k))),
+    hasNoodle:    lunchItems.some(m => ['국수','라면','우동','냉면','파스타'].some(k => m.includes(k))),
+    isSoft:       lunchItems.some(m => ['두부','계란','순두부','죽'].some(k => m.includes(k))),
+  };
+
+  function getConflictPenalty(name) {
+    let penalty = 0;
+    if (lunchProfile.hasGochujang && ['떡볶이','제육','닭갈비','고추장','김치찌개','순두부','육개장'].some(k => name.includes(k))) penalty += 50;
+    if (lunchProfile.hasDoenjang  && name.includes('된장')) penalty += 40;
+    if (lunchProfile.hasPork      && ['제육','돼지','삼겹','보쌈'].some(k => name.includes(k))) penalty += 35;
+    if (lunchProfile.hasChicken   && ['닭','치킨','강정'].some(k => name.includes(k))) penalty += 35;
+    if (lunchProfile.hasBeef      && ['불고기','갈비','소고기볶음'].some(k => name.includes(k))) penalty += 35;
+    if (lunchProfile.isGreasy     && ['튀김','돈까스','치킨','탕수육','너겟'].some(k => name.includes(k))) penalty += 40;
+    if (lunchProfile.hasRichSoup  && ['된장찌개','김치찌개','순두부','부대'].some(k => name.includes(k))) penalty += 30;
+    if (lunchProfile.hasClearSoup && ['콩나물국','미역국','북어국'].some(k => name.includes(k))) penalty += 20;
+    if (lunchProfile.hasNoodle    && ['국수','라면','우동','냉면'].some(k => name.includes(k))) penalty += 35;
+    return penalty;
+  }
+
+  function getComplementBonus(name) {
+    let bonus = 0;
+    let reason = '';
+    if (lunchProfile.isGreasy   && ['나물','무침','찜','두부','된장'].some(k => name.includes(k))) { bonus += 30; reason = '기름진 점심 후 담백한 저녁'; }
+    if (lunchProfile.isSpicy    && ['미역국','계란','두부','나물','무침','조림'].some(k => name.includes(k))) { bonus += 25; reason = '매운 점심 후 순한 저녁'; }
+    if (lunchProfile.isHeavy    && ['나물','무침','생선','고등어','갈치','두부'].some(k => name.includes(k))) { bonus += 25; reason = '육류 점심 후 채소/생선 저녁'; }
+    if (lunchProfile.hasClearSoup && !lunchProfile.hasRichSoup && ['찌개','된장','김치찌개','순두부'].some(k => name.includes(k))) { bonus += 20; reason = '맑은국 점심 후 진한 국 저녁'; }
+    if (!lunchProfile.hasSoupAtAll && ['국','찌개','탕'].some(k => name.includes(k))) { bonus += 20; reason = '점심에 국 없어 저녁 국 추천'; }
+    if (lunchProfile.isSoft && ['볶음','구이','조림','전'].some(k => name.includes(k))) { bonus += 15; reason = '부드러운 점심 후 씹는 저녁'; }
+    return { bonus, reason };
+  }
+
   // 4. 영양 균형 점수 — 주간 부족 영양소 반영
   const todayNutri = state.lunchNutrition;
   const needProtein = todayNutri.protein < 60;
@@ -1566,69 +1565,54 @@ async function generateMenu() {
   const maxCount = Math.max(...Object.values(menuPool).map(v => v.count), 1);
 
   const scored = Object.entries(menuPool).map(([name, info]) => {
-    // 빈도 낮을수록 점수 높음
     let score = (maxCount - info.count + 1) * 10;
 
-    // 냉장고 재료 활용 가능하면 +
+    // 🍳 주부 직관 패널티/보너스
+    score -= getConflictPenalty(name);
+    const { bonus, reason: complementReason } = getComplementBonus(name);
+    score += bonus;
+
+    // 냉장고 재료
     const fridgeMatch = state.fridge.filter(f =>
       name.includes(f.replace(/\s/g,'')) || f.includes(name.replace(/\s/g,''))
     ).length;
     score += fridgeMatch * 15;
 
-    // 오늘 영양 보완
+    // 영양 보완
     if (needProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('소')||name.includes('갈치')||name.includes('고등어'))) score += 10;
-    if (needVeg && (name.includes('나물')||name.includes('채소')||name.includes('무침')||name.includes('샐러드'))) score += 10;
-
-    // 주간 부족 영양소 보완 (더 높은 가중치)
-    if (needWeeklyProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('소')||name.includes('갈치')||name.includes('고등어'))) score += 25;
-    if (needWeeklyCalcium && (name.includes('멸치')||name.includes('미역')||name.includes('두부')||name.includes('우유')||name.includes('뱅어포')||name.includes('뼈'))) score += 25;
-    if (needWeeklyIron    && (name.includes('시금치')||name.includes('소고기')||name.includes('간')||name.includes('굴')||name.includes('콩')||name.includes('두부'))) score += 25;
-    if (needWeeklyVitA    && (name.includes('당근')||name.includes('시금치')||name.includes('호박')||name.includes('브로콜리')||name.includes('나물'))) score += 20;
-    if (needWeeklyVitC    && (name.includes('브로콜리')||name.includes('피망')||name.includes('파프리카')||name.includes('무침')||name.includes('나물'))) score += 20;
-
-    // 가족 선호
+    if (needVeg && (name.includes('나물')||name.includes('채소')||name.includes('무침'))) score += 10;
+    if (needWeeklyProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('갈치')||name.includes('고등어'))) score += 25;
+    if (needWeeklyCalcium && (name.includes('멸치')||name.includes('미역')||name.includes('두부')||name.includes('뱅어포'))) score += 25;
+    if (needWeeklyIron    && (name.includes('시금치')||name.includes('소고기')||name.includes('굴')||name.includes('콩'))) score += 25;
+    if (needWeeklyVitA    && (name.includes('당근')||name.includes('시금치')||name.includes('호박')||name.includes('나물'))) score += 20;
+    if (needWeeklyVitC    && (name.includes('브로콜리')||name.includes('피망')||name.includes('무침')||name.includes('나물'))) score += 20;
     if (state.prefs.includes('🍳 간단하게') && (name.includes('나물')||name.includes('무침')||name.includes('계란'))) score += 8;
     if (state.prefs.includes('🍚 한식 위주')) score += 5;
 
-    // 배지 결정 — 주간 부족 영양소 반영
+    // 배지
     const badges = [];
     if (fridgeMatch > 0) badges.push('냉장고활용');
-
-    const nutriBadge = needWeeklyCalcium && (name.includes('멸치')||name.includes('두부')||name.includes('미역')) ? '🦴칼슘보완'
-      : needWeeklyIron && (name.includes('시금치')||name.includes('소고기')) ? '🩸철분보완'
-      : needWeeklyVitC && (name.includes('무침')||name.includes('나물')) ? '🍊비타민C보완'
-      : needWeeklyProtein ? '💪단백질보완'
-      : needProtein ? '영양균형'
-      : null;
-    if (nutriBadge) badges.push(nutriBadge);
+    if (bonus >= 25) badges.push('균형식단');
+    else if (needWeeklyCalcium && (name.includes('멸치')||name.includes('두부')||name.includes('미역'))) badges.push('🦴칼슘보완');
+    else if (needWeeklyIron && (name.includes('시금치')||name.includes('소고기'))) badges.push('🩸철분보완');
+    else if (needWeeklyProtein) badges.push('💪단백질보완');
     else badges.push('급식참고');
 
-    // 추천 이유
-    const weeklyReason = needWeeklyCalcium && (name.includes('멸치')||name.includes('두부'))
-      ? '이번주 칼슘 부족 보완'
-      : needWeeklyIron && (name.includes('시금치')||name.includes('소고기'))
-      ? '이번주 철분 부족 보완'
-      : needWeeklyProtein
-      ? '이번주 단백질 부족 보완'
-      : null;
-
-    const reason = weeklyReason || (fridgeMatch > 0
-      ? '냉장고 재료 활용'
-      : info.count === 1
-      ? '한 번만 나온 메뉴'
+    const reason = complementReason
+      || (fridgeMatch > 0 ? '냉장고 재료 활용'
+      : needWeeklyCalcium && (name.includes('멸치')||name.includes('두부')) ? '이번주 칼슘 부족 보완'
+      : needWeeklyIron && (name.includes('시금치')||name.includes('소고기')) ? '이번주 철분 부족 보완'
+      : needWeeklyProtein ? '이번주 단백질 부족 보완'
+      : info.count === 1 ? '한 번만 나온 메뉴'
       : '최근 잘 안 나온 메뉴');
 
     return {
-      name,
-      score,
-      emoji: getMenuEmoji(name),
-      badges,
-      reason,
-      schoolRef: `급식 ${info.count}회 등장`,
+      name, score, emoji: getMenuEmoji(name), badges, reason,
+      schoolRef: `급식 ${info.count}회`,
       cookTime: getCookTime(name),
       difficulty: getDifficulty(name),
       ingredients: getIngredients(name, state.fridge, state.lunchMenu),
-      category: getMenuCategory(name), // 밥/국/반찬 분류
+      category: getMenuCategory(name),
     };
   });
 
