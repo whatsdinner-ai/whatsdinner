@@ -852,7 +852,8 @@ function toggleExclude(el) {
 }
 
 // ── 급식 불러오기 ──
-// 실제 NEIS API 키가 없으면 샘플 데이터로 동작
+const NEIS_KEY = '58d4bcecc01d485d9b6b7f0edbf14fad';
+
 async function fetchLunch() {
   const sido = document.getElementById('sido').value;
   const schoolName = document.getElementById('school-name').value.trim();
@@ -862,23 +863,83 @@ async function fetchLunch() {
   if (!state.schoolType) { showToast('학교 종류를 선택해주세요', true); return; }
 
   goStep(2);
+  document.getElementById('lunch-display').innerHTML = `
+    <div style="text-align:center; padding:40px 20px">
+      <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
+      <div style="color:var(--ink2)">급식 메뉴 불러오는 중...</div>
+    </div>`;
 
-  // NEIS 급식 API 호출 시도 (CORS 이슈로 실제 환경에선 서버 필요)
-  // 데모에서는 학교명 기반 샘플 데이터 제공
   const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
 
-  // 샘플 급식 데이터 (실제 서비스에선 NEIS API 연동)
-  const sampleMenus = [
-    { items: ['쌀밥', '된장찌개', '닭갈비', '시금치나물', '깍두기', '우유'], nutrition: { cal: 68, carb: 75, protein: 55, fat: 40 }},
-    { items: ['잡곡밥', '미역국', '돼지불고기', '콩나물무침', '배추김치', '과일'], nutrition: { cal: 72, carb: 70, protein: 60, fat: 38 }},
-    { items: ['현미밥', '순두부찌개', '고등어구이', '도라지무침', '총각김치', '요구르트'], nutrition: { cal: 65, carb: 65, protein: 65, fat: 42 }},
-    { items: ['쌀밥', '육개장', '제육볶음', '호박나물', '열무김치', '사과'], nutrition: { cal: 70, carb: 72, protein: 58, fat: 45 }},
-  ];
-  const menu = sampleMenus[today.getDay() % sampleMenus.length];
-  state.lunchMenu = menu.items;
-  state.lunchNutrition = menu.nutrition;
+  try {
+    // 1단계: 학교 코드 검색
+    const schoolRes = await fetch(
+      `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${sido}&SCHUL_NM=${encodeURIComponent(schoolName)}`
+    );
+    const schoolData = await schoolRes.json();
+    const schoolInfo = schoolData?.schoolInfo?.[1]?.row?.[0];
 
-  renderLunch(schoolName, menu);
+    if (!schoolInfo) {
+      showToast('학교를 찾을 수 없어요. 정확한 이름으로 다시 입력해주세요', true);
+      document.getElementById('lunch-display').innerHTML = '';
+      return;
+    }
+
+    const schoolCode = schoolInfo.SD_SCHUL_CODE;
+
+    // 2단계: 급식 메뉴 조회
+    const mealRes = await fetch(
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${sido}&SD_SCHUL_CODE=${schoolCode}&MLSV_YMD=${dateStr}`
+    );
+    const mealData = await mealRes.json();
+    const mealRow = mealData?.mealServiceDietInfo?.[1]?.row?.[0];
+
+    if (!mealRow) {
+      // 오늘 급식 없으면 샘플로 대체
+      showToast('오늘 급식 정보가 없어요. 샘플 데이터로 진행합니다');
+      const sampleMenus = [
+        { items: ['쌀밥', '된장찌개', '닭갈비', '시금치나물', '깍두기', '우유'], nutrition: { cal: 68, carb: 75, protein: 55, fat: 40 }},
+        { items: ['잡곡밥', '미역국', '돼지불고기', '콩나물무침', '배추김치', '과일'], nutrition: { cal: 72, carb: 70, protein: 60, fat: 38 }},
+      ];
+      const menu = sampleMenus[today.getDay() % sampleMenus.length];
+      state.lunchMenu = menu.items;
+      state.lunchNutrition = menu.nutrition;
+      renderLunch(schoolName, menu);
+      return;
+    }
+
+    // 급식 메뉴 파싱
+    const dishNames = mealRow.DDISH_NM
+      .replace(/<br\/>/g, ',')
+      .split(',')
+      .map(d => d.replace(/\([^)]*\)/g, '').trim())
+      .filter(d => d.length > 0);
+
+    // 영양소 파싱
+    const ntrInfo = mealRow.NTR_INFO || '';
+    const calMatch = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/);
+    const carbMatch = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/);
+    const proteinMatch = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/);
+    const fatMatch = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/);
+
+    const cal = calMatch ? Math.min(Math.round(parseFloat(calMatch[1]) / 10), 100) : 65;
+    const carb = carbMatch ? Math.min(Math.round(parseFloat(carbMatch[1]) / 1.5), 100) : 70;
+    const protein = proteinMatch ? Math.min(Math.round(parseFloat(proteinMatch[1]) / 0.6), 100) : 60;
+    const fat = fatMatch ? Math.min(Math.round(parseFloat(fatMatch[1]) / 0.5), 100) : 45;
+
+    state.lunchMenu = dishNames;
+    state.lunchNutrition = { cal, carb, protein, fat };
+
+    renderLunch(schoolName, { items: dishNames, nutrition: { cal, carb, protein, fat } });
+
+  } catch(e) {
+    // 네트워크 오류시 샘플로 대체
+    showToast('네트워크 오류. 샘플 데이터로 진행합니다');
+    const menu = { items: ['쌀밥', '된장찌개', '제육볶음', '나물', '김치', '우유'], nutrition: { cal: 68, carb: 72, protein: 58, fat: 42 }};
+    state.lunchMenu = menu.items;
+    state.lunchNutrition = menu.nutrition;
+    renderLunch(schoolName, menu);
+  }
 }
 
 function renderLunch(schoolName, menu) {
