@@ -755,14 +755,14 @@ body::before {
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">밥·국·반찬을 각각 골라주세요!</div>
+      <div class="section-sub">밥 1가지 · 국 1가지 · 반찬을 골라주세요!</div>
 
       <!-- 밥 -->
       <div style="margin-bottom:20px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <div style="width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🍚</div>
           <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">밥</div>
-          <div style="font-size:12px;color:var(--ink3)">하나 선택</div>
+          <div style="font-size:12px;color:var(--ink3)">오늘의 추천</div>
         </div>
         <div id="menu-list-bap"></div>
       </div>
@@ -772,7 +772,7 @@ body::before {
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <div style="width:28px;height:28px;background:#2d6a4f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🥘</div>
           <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">국/찌개</div>
-          <div style="font-size:12px;color:var(--ink3)">하나 선택</div>
+          <div style="font-size:12px;color:var(--ink3)">오늘의 추천</div>
         </div>
         <div id="menu-list-guk"></div>
       </div>
@@ -1632,39 +1632,22 @@ async function generateMenu() {
     };
   });
 
-  // 6. 카테고리별 분류 후 각각 상위 추출
-  const bapList    = scored.filter(m => m.category === '밥').sort((a,b) => b.score-a.score).slice(0,3);
-  const gukList    = scored.filter(m => m.category === '국').sort((a,b) => b.score-a.score).slice(0,4);
-  const banchanList= scored.filter(m => m.category === '반찬').sort((a,b) => b.score-a.score).slice(0,6);
+  // 6. 카테고리별 1개씩만 추출 (점수 최상위)
+  const allSorted = scored.sort((a,b) => b.score - a.score);
 
-  // 데이터 부족하면 기본 메뉴 보충
-  const defaultBap = [
-    { name:'쌀밥', emoji:'🍚', category:'밥', reason:'기본 쌀밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('쌀밥', state.fridge, state.lunchMenu) },
-    { name:'잡곡밥', emoji:'🌾', category:'밥', reason:'영양 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) },
-    { name:'현미밥', emoji:'🍚', category:'밥', reason:'건강 현미밥', badges:['건강식'], schoolRef:'', cookTime:'35분', difficulty:'쉬움', score:0, ingredients:getIngredients('현미밥', state.fridge, state.lunchMenu) },
-  ];
-  const defaultGuk = [
-    { name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) },
-    { name:'미역국', emoji:'🥣', category:'국', reason:'칼슘 보충', badges:['영양균형'], schoolRef:'', cookTime:'20분', difficulty:'쉬움', score:0, ingredients:getIngredients('미역국', state.fridge, state.lunchMenu) },
-    { name:'콩나물국', emoji:'🥘', category:'국', reason:'간단한 국', badges:['간편요리'], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('콩나물국', state.fridge, state.lunchMenu) },
-  ];
-  const defaultBanchan = [
+  const topBap     = allSorted.find(m => m.category === '밥')
+    || { name:'잡곡밥', emoji:'🌾', category:'밥', reason:'기본 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) };
+
+  const topGuk     = allSorted.find(m => m.category === '국')
+    || { name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) };
+
+  const topBanchan = allSorted.filter(m => m.category === '반찬').slice(0, 3);
+  const finalBanchan = topBanchan.length > 0 ? topBanchan : [
     { name:'계란후라이', emoji:'🥚', category:'반찬', reason:'간단 반찬', badges:['간편요리'], schoolRef:'', cookTime:'5분', difficulty:'쉬움', score:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) },
     { name:'시금치나물', emoji:'🥗', category:'반찬', reason:'철분 보충', badges:['건강식'], schoolRef:'', cookTime:'10분', difficulty:'쉬움', score:0, ingredients:getIngredients('시금치나물', state.fridge, state.lunchMenu) },
-    { name:'멸치볶음', emoji:'🐟', category:'반찬', reason:'칼슘 보충', badges:['영양균형'], schoolRef:'', cookTime:'10분', difficulty:'쉬움', score:0, ingredients:getIngredients('멸치볶음', state.fridge, state.lunchMenu) },
   ];
 
-  const finalBap     = bapList.length > 0     ? bapList     : defaultBap;
-  const finalGuk     = gukList.length > 0     ? gukList     : defaultGuk;
-  const finalBanchan = banchanList.length > 0 ? banchanList : defaultBanchan;
-
-  if (finalBap.length === 0 && finalGuk.length === 0 && finalBanchan.length === 0) {
-    showToast('추천 가능한 메뉴가 없어요. 샘플로 진행합니다');
-    renderMenus(getSampleMenus());
-    return;
-  }
-
-  renderMenusByCat(finalBap, finalGuk, finalBanchan);
+  renderMenusByCat([topBap], [topGuk], finalBanchan);
 }
 
 // ── 메뉴 카테고리 분류 ──
