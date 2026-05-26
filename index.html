@@ -706,14 +706,52 @@ body::before {
   <div class="section" id="section4">
     <div id="menu-loading" class="loading" style="display:none">
       <div class="loading-spinner"></div>
-      <div class="loading-text">AI가 메뉴를 고르는 중...</div>
+      <div class="loading-text">급식 데이터 분석 중...</div>
       <div class="loading-sub">급식 메뉴 분석 · 영양 균형 계산 · 재료 중복 제거</div>
     </div>
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">급식과 겹치지 않고 영양 균형을 맞춘 메뉴예요.<br>하나를 골라주세요!</div>
-      <div id="menu-list"></div>
+      <div class="section-sub">밥·국·반찬을 각각 골라주세요!</div>
+
+      <!-- 밥 -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🍚</div>
+          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">밥</div>
+          <div style="font-size:12px;color:var(--ink3)">하나 선택</div>
+        </div>
+        <div id="menu-list-bap"></div>
+      </div>
+
+      <!-- 국 -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:28px;height:28px;background:#2d6a4f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🥘</div>
+          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">국/찌개</div>
+          <div style="font-size:12px;color:var(--ink3)">하나 선택</div>
+        </div>
+        <div id="menu-list-guk"></div>
+      </div>
+
+      <!-- 반찬 -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:28px;height:28px;background:#e8832a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🍳</div>
+          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">반찬</div>
+          <div style="font-size:12px;color:var(--ink3)">여러 개 선택 가능</div>
+        </div>
+        <div id="menu-list-banchan"></div>
+      </div>
+
+      <!-- 선택된 오늘 저녁 -->
+      <div id="selected-dinner-summary" style="display:none;margin-bottom:16px">
+        <div style="background:linear-gradient(135deg,var(--warm),#fff8f0);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px">
+          <div style="font-family:'Noto Serif KR',serif;font-size:14px;font-weight:700;margin-bottom:10px">🍽️ 오늘 저녁 식단</div>
+          <div id="dinner-summary-content"></div>
+        </div>
+      </div>
+
       <button class="btn-primary" id="menu-next-btn" onclick="goShoppingFromMenu()" disabled>
         선택한 메뉴로 장보기 →
       </button>
@@ -726,16 +764,23 @@ body::before {
     <div class="done-header">
       <div class="done-icon">🛒</div>
       <div class="done-title" id="shop-title">오늘의 장보기 목록</div>
-      <div class="done-sub" id="shop-sub">집에 없는 재료만 골랐어요</div>
+      <div class="done-sub" id="shop-sub">재료를 클릭하면 쿠팡에서 바로 검색돼요</div>
     </div>
 
     <div id="shopping-list"></div>
 
-    <div class="card">
-      <div class="form-label" style="margin-bottom:10px">바로 주문하기</div>
-      <div class="shop-platform">
-        <button class="platform-btn coupang" onclick="orderPlatform('쿠팡')">🚀 쿠팡로켓</button>
-        <button class="platform-btn kurly" onclick="orderPlatform('컬리')">🟣 마켓컬리</button>
+    <!-- 쿠팡 전체 장보기 버튼 -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="form-label" style="margin-bottom:10px">한 번에 장보기</div>
+      <a id="coupang-all-btn"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="display:block;text-align:center;padding:14px;background:#c00;border-radius:10px;color:white;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:8px">
+        🚀 쿠팡에서 전체 재료 검색
+      </a>
+      <div style="font-size:11px;color:var(--ink3);text-align:center">
+        이 링크는 쿠팡 파트너스 제휴 링크입니다
       </div>
     </div>
 
@@ -1540,24 +1585,200 @@ async function generateMenu() {
       cookTime: getCookTime(name),
       difficulty: getDifficulty(name),
       ingredients: getIngredients(name, state.fridge, state.lunchMenu),
+      category: getMenuCategory(name), // 밥/국/반찬 분류
     };
   });
 
-  // 6. 점수 내림차순, 상위 10개
-  const top10 = scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
+  // 6. 카테고리별 분류 후 각각 상위 추출
+  const bapList    = scored.filter(m => m.category === '밥').sort((a,b) => b.score-a.score).slice(0,3);
+  const gukList    = scored.filter(m => m.category === '국').sort((a,b) => b.score-a.score).slice(0,4);
+  const banchanList= scored.filter(m => m.category === '반찬').sort((a,b) => b.score-a.score).slice(0,6);
 
-  if (top10.length === 0) {
+  // 데이터 부족하면 기본 메뉴 보충
+  const defaultBap = [
+    { name:'쌀밥', emoji:'🍚', category:'밥', reason:'기본 쌀밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('쌀밥', state.fridge, state.lunchMenu) },
+    { name:'잡곡밥', emoji:'🌾', category:'밥', reason:'영양 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) },
+    { name:'현미밥', emoji:'🍚', category:'밥', reason:'건강 현미밥', badges:['건강식'], schoolRef:'', cookTime:'35분', difficulty:'쉬움', score:0, ingredients:getIngredients('현미밥', state.fridge, state.lunchMenu) },
+  ];
+  const defaultGuk = [
+    { name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) },
+    { name:'미역국', emoji:'🥣', category:'국', reason:'칼슘 보충', badges:['영양균형'], schoolRef:'', cookTime:'20분', difficulty:'쉬움', score:0, ingredients:getIngredients('미역국', state.fridge, state.lunchMenu) },
+    { name:'콩나물국', emoji:'🥘', category:'국', reason:'간단한 국', badges:['간편요리'], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('콩나물국', state.fridge, state.lunchMenu) },
+  ];
+  const defaultBanchan = [
+    { name:'계란후라이', emoji:'🥚', category:'반찬', reason:'간단 반찬', badges:['간편요리'], schoolRef:'', cookTime:'5분', difficulty:'쉬움', score:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) },
+    { name:'시금치나물', emoji:'🥗', category:'반찬', reason:'철분 보충', badges:['건강식'], schoolRef:'', cookTime:'10분', difficulty:'쉬움', score:0, ingredients:getIngredients('시금치나물', state.fridge, state.lunchMenu) },
+    { name:'멸치볶음', emoji:'🐟', category:'반찬', reason:'칼슘 보충', badges:['영양균형'], schoolRef:'', cookTime:'10분', difficulty:'쉬움', score:0, ingredients:getIngredients('멸치볶음', state.fridge, state.lunchMenu) },
+  ];
+
+  const finalBap     = bapList.length > 0     ? bapList     : defaultBap;
+  const finalGuk     = gukList.length > 0     ? gukList     : defaultGuk;
+  const finalBanchan = banchanList.length > 0 ? banchanList : defaultBanchan;
+
+  if (finalBap.length === 0 && finalGuk.length === 0 && finalBanchan.length === 0) {
     showToast('추천 가능한 메뉴가 없어요. 샘플로 진행합니다');
     renderMenus(getSampleMenus());
     return;
   }
 
-  renderMenus(top10);
+  renderMenusByCat(finalBap, finalGuk, finalBanchan);
 }
 
-// ── 헬퍼 함수들 ──
+// ── 메뉴 카테고리 분류 ──
+function getMenuCategory(name) {
+  // 밥류
+  if (name.includes('밥') || name.includes('죽') || name.includes('볶음밥') ||
+      name.includes('비빔밥') || name.includes('덮밥') || name.includes('오므라이스') ||
+      name.includes('리조또') || name.includes('김밥') || name.includes('주먹밥')) return '밥';
+
+  // 국/찌개/탕
+  if (name.includes('국') || name.includes('찌개') || name.includes('탕') ||
+      name.includes('전골') || name.includes('국물') || name.includes('라면') ||
+      name.includes('우동') || name.includes('칼국수') || name.includes('수제비') ||
+      name.includes('냉면') || name.includes('국수') || name.includes('쌀국수')) return '국';
+
+  // 반찬 (나머지)
+  return '반찬';
+}
+
+// ── 카테고리별 렌더링 ──
+const selectedDinner = { bap: null, guk: null, banchan: [] };
+
+function renderMenusByCat(bapList, gukList, banchanList) {
+  document.getElementById('menu-loading').style.display = 'none';
+  document.getElementById('menu-results').style.display = 'block';
+
+  // 초기화
+  selectedDinner.bap = null;
+  selectedDinner.guk = null;
+  selectedDinner.banchan = [];
+  document.getElementById('menu-next-btn').disabled = true;
+  document.getElementById('selected-dinner-summary').style.display = 'none';
+
+  window._bapList = bapList;
+  window._gukList = gukList;
+  window._banchanList = banchanList;
+
+  renderCatList('menu-list-bap', bapList, 'bap');
+  renderCatList('menu-list-guk', gukList, 'guk');
+  renderCatList('menu-list-banchan', banchanList, 'banchan');
+}
+
+function renderCatList(containerId, menus, cat) {
+  const badgeClass = {
+    '영양균형':'badge-green','간편요리':'badge-orange','냉장고활용':'badge-blue',
+    '아이입맛':'badge-green','건강식':'badge-green','든든함':'badge-orange','급식참고':'badge-green'
+  };
+
+  document.getElementById(containerId).innerHTML = menus.map((m, i) => `
+    <div class="menu-card" id="mcard-${cat}-${i}"
+      onclick="selectCatMenu('${cat}', ${i})"
+      style="margin-bottom:10px;cursor:pointer">
+      <div class="menu-card-header">
+        <div class="menu-emoji" style="font-size:28px">${m.emoji}</div>
+        <div class="menu-info">
+          <div class="menu-name">${m.name}</div>
+          <div class="menu-reason">${m.reason}</div>
+          <div class="menu-badges">
+            ${(m.badges||[]).map(b=>`<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
+            <span class="badge badge-orange">⏱ ${m.cookTime}</span>
+            <span class="badge badge-blue">${m.difficulty}</span>
+            ${m.schoolRef ? `<span class="badge badge-green">📚 ${m.schoolRef}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="menu-card-body">
+        <div class="ingredients-title">필요 재료</div>
+        <div class="ingredients">
+          ${(m.ingredients||[]).map(ing=>`
+            <span class="ingredient ${ing.overlap?'overlap':ing.have?'have':''}">
+              ${ing.overlap?'❌':ing.have?'✓':''} ${ing.name}
+            </span>`).join('')}
+        </div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:6px">✓ 있는 재료 &nbsp; ❌ 급식과 겹침</div>
+        <div style="margin-top:10px">
+          <a href="https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(m.name)}"
+            target="_blank" rel="noopener noreferrer"
+            onclick="event.stopPropagation()"
+            style="display:inline-block;padding:6px 12px;background:rgba(200,80,26,.08);border:1px solid rgba(200,80,26,.2);border-radius:6px;color:var(--accent);font-size:12px;text-decoration:none">
+            👨‍🍳 레시피 보기
+          </a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectCatMenu(cat, idx) {
+  if (cat === 'bap') {
+    // 밥은 하나만
+    document.querySelectorAll('[id^="mcard-bap-"]').forEach(c => c.classList.remove('selected-card'));
+    document.getElementById(`mcard-bap-${idx}`).classList.add('selected-card');
+    selectedDinner.bap = window._bapList[idx];
+
+  } else if (cat === 'guk') {
+    // 국도 하나만
+    document.querySelectorAll('[id^="mcard-guk-"]').forEach(c => c.classList.remove('selected-card'));
+    document.getElementById(`mcard-guk-${idx}`).classList.add('selected-card');
+    selectedDinner.guk = window._gukList[idx];
+
+  } else if (cat === 'banchan') {
+    // 반찬은 여러 개
+    const card = document.getElementById(`mcard-banchan-${idx}`);
+    const menu = window._banchanList[idx];
+    if (card.classList.contains('selected-card')) {
+      card.classList.remove('selected-card');
+      selectedDinner.banchan = selectedDinner.banchan.filter(m => m.name !== menu.name);
+    } else {
+      card.classList.add('selected-card');
+      selectedDinner.banchan.push(menu);
+    }
+  }
+
+  updateDinnerSummary();
+}
+
+function updateDinnerSummary() {
+  const summary = document.getElementById('selected-dinner-summary');
+  const content = document.getElementById('dinner-summary-content');
+  const btn = document.getElementById('menu-next-btn');
+
+  const hasSelection = selectedDinner.bap || selectedDinner.guk || selectedDinner.banchan.length > 0;
+
+  if (!hasSelection) {
+    summary.style.display = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  summary.style.display = 'block';
+
+  const items = [
+    selectedDinner.bap   ? `<span style="background:rgba(200,80,26,.1);border-radius:6px;padding:3px 10px;font-size:13px;margin:2px">🍚 ${selectedDinner.bap.name}</span>` : '',
+    selectedDinner.guk   ? `<span style="background:rgba(45,106,79,.1);border-radius:6px;padding:3px 10px;font-size:13px;margin:2px">🥘 ${selectedDinner.guk.name}</span>` : '',
+    ...selectedDinner.banchan.map(m => `<span style="background:rgba(232,130,42,.1);border-radius:6px;padding:3px 10px;font-size:13px;margin:2px">🍳 ${m.name}</span>`),
+  ].filter(Boolean);
+
+  content.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:4px">${items.join('')}</div>`;
+
+  // 밥이나 국 중 하나라도 선택되면 장보기 활성화
+  btn.disabled = !(selectedDinner.bap || selectedDinner.guk);
+
+  // 선택된 메뉴 전체 재료 합산
+  const allMenus = [
+    selectedDinner.bap,
+    selectedDinner.guk,
+    ...selectedDinner.banchan
+  ].filter(Boolean);
+
+  const allIngredients = allMenus.flatMap(m => m.ingredients || []);
+  const menuNames = allMenus.map(m => m.name).join(' + ');
+
+  state.selectedMenu = {
+    name: menuNames,
+    ingredients: allIngredients,
+  };
+}
 function getMenuEmoji(name) {
   if (name.includes('찌개') || name.includes('국') || name.includes('탕') || name.includes('soup')) return '🥘';
   if (name.includes('볶음') || name.includes('볶아')) return '🍳';
@@ -1776,47 +1997,16 @@ function getSampleMenus() {
 }
 
 function renderMenus(menus) {
-  document.getElementById('menu-loading').style.display = 'none';
-  document.getElementById('menu-results').style.display = 'block';
-
-  const badgeClass = {
-    '영양균형':'badge-green', '간편요리':'badge-orange', '냉장고활용':'badge-blue',
-    '아이입맛':'badge-green', '건강식':'badge-green', '든든함':'badge-orange'
-  };
-
-  document.getElementById('menu-list').innerHTML = menus.map((m, i) => `
-    <div class="menu-card" id="mcard-${i}" onclick="selectMenu(${i}, '${m.name}', ${JSON.stringify(m.ingredients).replace(/"/g,'&quot;')})">
-      <div class="menu-card-header">
-        <div class="menu-emoji">${m.emoji}</div>
-        <div class="menu-info">
-          <div class="menu-name">${m.name}</div>
-          <div class="menu-reason">${m.reason}</div>
-          <div class="menu-badges">
-            ${(m.badges||[]).map(b => `<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
-            <span class="badge badge-orange">⏱ ${m.cookTime}</span>
-            <span class="badge badge-blue">${m.difficulty}</span>
-            ${m.schoolRef ? `<span class="badge badge-green">📚 ${m.schoolRef} 참고</span>` : ''}
-          </div>
-        </div>
-      </div>
-      <div class="menu-card-body">
-        <div class="ingredients-title">필요 재료</div>
-        <div class="ingredients">
-          ${(m.ingredients||[]).map(ing => `
-            <span class="ingredient ${ing.overlap ? 'overlap' : ing.have ? 'have' : ''}">
-              ${ing.overlap ? '❌' : ing.have ? '✓' : ''} ${ing.name}
-            </span>
-          `).join('')}
-        </div>
-        <div style="font-size:11px; color:var(--ink3); margin-top:8px">
-          ✓ 있는 재료 &nbsp; ❌ 급식과 겹침
-        </div>
-      </div>
-    </div>
-  `).join('');
-
-  // 메뉴 데이터 저장
-  window._menus = menus;
+  // 샘플 메뉴도 카테고리 분류해서 표시
+  menus.forEach(m => { if (!m.category) m.category = getMenuCategory(m.name); if (!m.emoji) m.emoji = getMenuEmoji(m.name); });
+  const bap     = menus.filter(m => m.category === '밥');
+  const guk     = menus.filter(m => m.category === '국');
+  const banchan = menus.filter(m => m.category === '반찬');
+  renderMenusByCat(
+    bap.length     > 0 ? bap     : [{ name:'쌀밥',    emoji:'🍚', category:'밥',  reason:'기본 쌀밥',    badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('쌀밥', state.fridge, state.lunchMenu) }],
+    guk.length     > 0 ? guk     : [{ name:'된장찌개', emoji:'🥘', category:'국',  reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) }],
+    banchan.length > 0 ? banchan : [{ name:'계란후라이',emoji:'🥚', category:'반찬',reason:'간단 반찬',    badges:[], schoolRef:'', cookTime:'5분',  difficulty:'쉬움', score:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) }]
+  );
 }
 
 // ── 만개의레시피 연결 ──
@@ -1842,27 +2032,40 @@ function goShoppingFromMenu() {
   const recipeCard = document.getElementById('recipe-link-card');
   if (recipeCard) recipeCard.style.display = 'none';
 
-  document.getElementById('shop-title').textContent = `"${state.selectedMenu.name}" 장보기`;
+  const menuName = state.selectedMenu.name;
+  document.getElementById('shop-title').textContent = `오늘의 장보기 목록`;
+  document.getElementById('shop-sub').textContent = `재료를 클릭하면 쿠팡에서 바로 검색돼요`;
 
   const needed = state.selectedMenu.ingredients.filter(i => !i.have && !i.overlap);
-  const have = state.selectedMenu.ingredients.filter(i => i.have);
+  const have   = state.selectedMenu.ingredients.filter(i => i.have);
 
   const el = document.getElementById('shopping-list');
 
+  // 쿠팡 검색 URL 생성 (파트너스 ID 추가 필요)
+  const COUPANG_ID = 'whatsdinner'; // 파트너스 ID 등록 후 여기 변경
+  const coupangUrl = (keyword) =>
+    `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`;
+
+  // 전체 재료 합쳐서 쿠팡 검색
+  const allKeyword = needed.map(i => i.name).join(' ');
+  const coupangAllBtn = document.getElementById('coupang-all-btn');
+  if (coupangAllBtn) {
+    coupangAllBtn.href = coupangUrl(allKeyword || menuName);
+    coupangAllBtn.innerHTML = `🚀 쿠팡에서 전체 재료 검색 (${needed.length}가지)`;
+  }
+
   if (needed.length === 0) {
     el.innerHTML = `
-      <div class="done-header" style="padding:20px">
-        <div class="done-icon">🎉</div>
-        <div class="done-title" style="font-size:18px">이미 다 있어요!</div>
-        <div class="done-sub">냉장고 재료로 바로 만들 수 있어요</div>
-      </div>
-    `;
-    // 재료 다 있으면 바로 레시피 카드 보여주기
-    const menuName = state.selectedMenu.name;
+      <div style="text-align:center;padding:28px 20px">
+        <div style="font-size:48px;margin-bottom:12px">🎉</div>
+        <div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;margin-bottom:6px">이미 다 있어요!</div>
+        <div style="font-size:13px;color:var(--ink3)">냉장고 재료로 바로 만들 수 있어요</div>
+      </div>`;
+    // 재료 다 있으면 레시피 바로 표시
     const recipeLink = document.getElementById('recipe-external-link');
     if (recipeCard && recipeLink) {
       recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
-      recipeLink.textContent = `만개의레시피에서 "${menuName}" 레시피 보기 →`;
+      recipeLink.textContent = `만개의레시피에서 레시피 보기 →`;
       recipeCard.style.display = 'block';
     }
     return;
@@ -1871,60 +2074,95 @@ function goShoppingFromMenu() {
   document.getElementById('shop-sub').textContent = `${needed.length}가지 재료가 필요해요`;
 
   el.innerHTML = `
-    <div class="shopping-section">
-      <div class="shop-group">
-        <div class="shop-group-title">사야 할 재료 (${needed.length}가지)</div>
-        ${needed.map((item, i) => `
-          <div class="shop-item" id="sitem-${i}">
-            <div class="shop-check" id="scheck-${i}" onclick="toggleCheck(${i}, '${item.name}')"></div>
-            <div class="shop-name" id="sname-${i}">${item.name}</div>
-            <div class="shop-amount">적당량</div>
-          </div>
-        `).join('')}
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--accent)">
+        사야 할 재료 (${needed.length}가지) — 클릭하면 쿠팡 검색
       </div>
-      ${have.length > 0 ? `
-      <div class="shop-group">
-        <div class="shop-group-title" style="border-color:var(--green)">이미 있는 재료 (${have.length}가지)</div>
-        ${have.map(item => `
-          <div class="shop-item" style="opacity:.6">
-            <div class="shop-check checked">✓</div>
-            <div class="shop-name">${item.name}</div>
-            <div class="shop-amount" style="color:var(--green)">있음</div>
+      ${needed.map((item, i) => `
+        <div style="margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+            <div id="scheck-${i}" onclick="toggleCheck(${i},'${item.name}')"
+              style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
+            <div id="sname-${i}" style="flex:1;font-size:14px;font-weight:500">${item.name}</div>
+            <a href="${coupangUrl(item.name)}"
+              target="_blank" rel="noopener noreferrer"
+              onclick="handleCoupangClick('${item.name}')"
+              style="display:flex;align-items:center;gap:4px;padding:6px 12px;background:#c00;border-radius:8px;color:white;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0">
+              쿠팡 🛒
+            </a>
           </div>
-        `).join('')}
-      </div>
-      ` : ''}
+        </div>
+      `).join('')}
     </div>
+
+    ${have.length > 0 ? `
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--green)">
+        이미 있는 재료 (${have.length}가지)
+      </div>
+      ${have.map(item => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6">
+          <div style="width:22px;height:22px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">✓</div>
+          <div style="font-size:14px;color:var(--ink2)">${item.name}</div>
+          <div style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600">있음</div>
+        </div>
+      `).join('')}
+    </div>` : ''}
   `;
 }
+
+function handleCoupangClick(itemName) {
+  // 쿠팡 클릭 후 레시피 카드 표시
+  setTimeout(() => {
+    const menuName = state.selectedMenu?.name || '';
+    const recipeCard = document.getElementById('recipe-link-card');
+    const recipeLink = document.getElementById('recipe-external-link');
+    if (recipeCard && recipeLink && menuName) {
+      recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
+      recipeLink.textContent = `만개의레시피에서 레시피 보기 →`;
+      recipeCard.style.display = 'block';
+    }
+  }, 500);
+}
+
+function orderPlatform(platform) {
+  const menuName = state.selectedMenu?.name || '';
+  const recipeCard = document.getElementById('recipe-link-card');
+  const recipeLink = document.getElementById('recipe-external-link');
+  if (recipeCard && recipeLink && menuName) {
+    recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
+    recipeLink.textContent = `만개의레시피에서 레시피 보기 →`;
+    recipeCard.style.display = 'block';
+    recipeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 
 function toggleCheck(i, name) {
   const check = document.getElementById(`scheck-${i}`);
   const nameEl = document.getElementById(`sname-${i}`);
-  const isChecked = check.classList.toggle('checked');
-  check.textContent = isChecked ? '✓' : '';
-  nameEl.classList.toggle('checked-text', isChecked);
-  if (isChecked) state.checkedItems.add(name);
-  else state.checkedItems.delete(name);
-}
-
-function orderPlatform(platform) {
-  // 선택한 메뉴명으로 레시피 링크 설정
-  const menuName = state.selectedMenu?.name || '';
-  const recipeUrl = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
-
-  // 레시피 카드 표시
-  const recipeCard = document.getElementById('recipe-link-card');
-  const recipeLink = document.getElementById('recipe-external-link');
-  if (recipeCard && recipeLink && menuName) {
-    recipeLink.href = recipeUrl;
-    recipeLink.textContent = `만개의레시피에서 "${menuName}" 레시피 보기 →`;
-    recipeCard.style.display = 'block';
-    recipeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const isChecked = check.classList.contains('checked');
+  if (isChecked) {
+    check.style.background = '';
+    check.style.borderColor = 'var(--border)';
+    check.textContent = '';
+    nameEl.style.textDecoration = '';
+    nameEl.style.color = '';
+    state.checkedItems.delete(name);
+  } else {
+    check.style.background = 'var(--green)';
+    check.style.borderColor = 'var(--green)';
+    check.textContent = '✓';
+    check.style.color = 'white';
+    check.style.fontSize = '11px';
+    check.style.fontWeight = '700';
+    nameEl.style.textDecoration = 'line-through';
+    nameEl.style.color = 'var(--ink3)';
+    state.checkedItems.add(name);
   }
-
-  showToast(`${platform} 연동은 실제 서비스에서 제공됩니다 🚀`);
+  check.classList.toggle('checked');
 }
+
 
 function resetAll() {
   state.selectedMenu = null;
