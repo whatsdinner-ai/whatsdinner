@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>집밥 큐레이터</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --cream: #faf6f0;
+  --warm: #f5ede0;
+  --paper: #fffdf9;
+  --ink: #1a1208;
+  --ink2: #5a4a35;
+  --ink3: #9a8a75;
+  --accent: #c8501a;
+  --accent2: #e8832a;
+  --green: #2d6a4f;
+  --green-light: #e8f5ee;
+  --border: #e8ddd0;
+  --shadow: rgba(90,60,20,.12);
+  --radius: 16px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* 배경 텍스처 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(200,80,26,.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(45,106,79,.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 헤더 ── */
+.header {
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+  padding: 20px 24px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.logo {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+.logo span { color: var(--accent); }
+.today-date {
+  font-size: 12px;
+  color: var(--ink3);
+}
+.header-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  letter-spacing: .3px;
+}
+
+/* ── 스텝 네비 ── */
+.step-nav {
+  display: flex;
+  padding: 16px 24px 0;
+  gap: 0;
+  overflow-x: auto;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--ink3);
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  margin-right: 20px;
+}
+.step.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.step.done { color: var(--green); }
+.step-num {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.step.active .step-num { background: var(--accent); color: white; }
+.step.done .step-num { background: var(--green); color: white; }
+
+/* ── 섹션 ── */
+.section {
+  display: none;
+  padding: 20px 20px 0;
+  animation: fadeUp .3s ease;
+}
+.section.active { display: block; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.section-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.section-sub {
+  font-size: 13px;
+  color: var(--ink3);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* ── 카드 ── */
+.card {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: 0 4px 16px var(--shadow); }
+
+/* ── 폼 ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.form-input, .form-select {
+  width: 100%;
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--ink3); }
+
+/* ── 태그 선택 ── */
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  font-size: 13px;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--paper);
+  user-select: none;
+}
+.tag:hover { border-color: var(--accent2); }
+.tag.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+.tag.selected-green {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+  font-weight: 600;
+}
+
+/* ── 버튼 ── */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--ink);
+  border: none;
+  border-radius: 12px;
+  color: var(--cream);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: -.3px;
+  margin-top: 8px;
+}
+.btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled {
+  background: var(--border);
+  color: var(--ink3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 8px;
+}
+.btn-secondary:hover { border-color: var(--ink2); }
+
+/* ── 급식 카드 ── */
+.lunch-card {
+  background: linear-gradient(135deg, #1a3a2a, #2d6a4f);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.lunch-card::after {
+  content: '🥗';
+  position: absolute;
+  right: -8px; top: -8px;
+  font-size: 64px;
+  opacity: .15;
+  transform: rotate(15deg);
+}
+.lunch-school {
+  font-size: 11px;
+  opacity: .7;
+  margin-bottom: 6px;
+  font-weight: 500;
+  letter-spacing: .5px;
+}
+.lunch-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.lunch-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lunch-item {
+  background: rgba(255,255,255,.15);
+  border-radius: 100px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.lunch-item.highlight {
+  background: rgba(255,200,50,.25);
+  border: 1px solid rgba(255,200,50,.4);
+}
+
+/* ── 영양 바 ── */
+.nutrition-bar {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+.nutrition-label {
+  font-size: 11px;
+  opacity: .7;
+  margin-bottom: 8px;
+}
+.nutrition-items {
+  display: flex;
+  gap: 12px;
+}
+.nutrition-item { flex: 1; }
+.nutrition-name { font-size: 10px; opacity: .6; margin-bottom: 4px; }
+.nutrition-track {
+  height: 4px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.nutrition-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(255,200,50,.8);
+  transition: width .8s ease;
+}
+.nutrition-val { font-size: 10px; margin-top: 3px; opacity: .7; }
+
+/* ── 메뉴 추천 카드 ── */
+.menu-card {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all .2s;
+}
+.menu-card:hover { box-shadow: 0 6px 24px var(--shadow); transform: translateY(-2px); }
+.menu-card.selected-card {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,80,26,.1);
+}
+
+.menu-card-header {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.menu-emoji { font-size: 36px; flex-shrink: 0; }
+.menu-info { flex: 1; }
+.menu-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.menu-reason {
+  font-size: 12px;
+  color: var(--ink3);
+  line-height: 1.5;
+}
+.menu-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-orange { background: #fff0e8; color: var(--accent); }
+.badge-blue { background: #e8f0ff; color: #3060c8; }
+
+.menu-card-body {
+  padding: 12px 18px 16px;
+}
+.ingredients-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ingredient {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+.ingredient.have {
+  background: var(--green-light);
+  border-color: rgba(45,106,79,.2);
+  color: var(--green);
+}
+.ingredient.overlap {
+  background: #fff0e8;
+  border-color: rgba(200,80,26,.2);
+  color: var(--accent);
+  text-decoration: line-through;
+  opacity: .6;
+}
+
+/* ── 장보기 리스트 ── */
+.shopping-section {
+  margin-top: 4px;
+}
+.shop-group {
+  margin-bottom: 16px;
+}
+.shop-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  transition: all .15s;
+}
+.shop-item:hover { border-color: var(--accent2); }
+.shop-check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.shop-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+  font-size: 11px;
+}
+.shop-name { flex: 1; font-size: 14px; }
+.shop-name.checked-text { text-decoration: line-through; color: var(--ink3); }
+.shop-amount { font-size: 12px; color: var(--ink3); }
+
+.shop-platform {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.platform-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  color: var(--ink);
+}
+.platform-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow); }
+.platform-btn.coupang:hover { border-color: #c00; color: #c00; }
+.platform-btn.kurly:hover { border-color: #5f0080; color: #5f0080; }
+
+/* ── 로딩 ── */
+.loading {
+  text-align: center;
+  padding: 48px 20px;
+}
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 16px;
+  color: var(--ink2);
+  margin-bottom: 6px;
+}
+.loading-sub { font-size: 13px; color: var(--ink3); }
+
+/* ── 토스트 ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 100px;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── 구분선 ── */
+.divider {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 16px 0;
+}
+
+/* ── 완료 화면 ── */
+.done-header {
+  text-align: center;
+  padding: 32px 20px 20px;
+}
+.done-icon { font-size: 56px; margin-bottom: 12px; }
+.done-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.done-sub { font-size: 14px; color: var(--ink3); }
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">집밥<span>큐레이터</span></div>
+      <div class="today-date" id="today-date"></div>
+    </div>
+    <div class="header-sub">급식 기반 · 영양 맞춤 · 저녁 메뉴 추천</div>
+  </div>
+
+  <!-- 스텝 네비 -->
+  <div class="step-nav">
+    <div class="step active" id="step1" onclick="goStep(1)">
+      <div class="step-num">1</div> 학교 설정
+    </div>
+    <div class="step" id="step2" onclick="goStep(2)">
+      <div class="step-num">2</div> 오늘 급식
+    </div>
+    <div class="step" id="step3" onclick="goStep(3)">
+      <div class="step-num">3</div> 가족 설정
+    </div>
+    <div class="step" id="step4" onclick="goStep(4)">
+      <div class="step-num">4</div> 메뉴 추천
+    </div>
+    <div class="step" id="step5" onclick="goStep(5)">
+      <div class="step-num">5</div> 장보기
+    </div>
+  </div>
+
+  <!-- ══ STEP 1: 학교 설정 ══ -->
+  <div class="section active" id="section1">
+    <div class="section-title">우리 아이 학교를<br>알려주세요</div>
+    <div class="section-sub">학교 급식 메뉴를 실시간으로 가져와<br>저녁 메뉴와 겹치지 않게 추천해요</div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">시도 선택</label>
+        <select class="form-select" id="sido" onchange="updateSigun()">
+          <option value="">시도를 선택하세요</option>
+          <option value="B10">서울특별시</option>
+          <option value="C10">부산광역시</option>
+          <option value="D10">대구광역시</option>
+          <option value="E10">인천광역시</option>
+          <option value="F10">광주광역시</option>
+          <option value="G10">대전광역시</option>
+          <option value="H10">울산광역시</option>
+          <option value="I10">세종특별자치시</option>
+          <option value="J10">경기도</option>
+          <option value="K10">강원도</option>
+          <option value="M10">충청북도</option>
+          <option value="N10">충청남도</option>
+          <option value="P10">전라북도</option>
+          <option value="Q10">전라남도</option>
+          <option value="R10">경상북도</option>
+          <option value="S10">경상남도</option>
+          <option value="T10">제주특별자치도</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">학교 이름</label>
+        <input type="text" class="form-input" id="school-name" placeholder="예: 의정부중학교" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">학교 종류</label>
+        <div class="tag-group">
+          <div class="tag" onclick="selectSchoolType(this,'초등학교')">🏫 초등학교</div>
+          <div class="tag" onclick="selectSchoolType(this,'중학교')">📚 중학교</div>
+          <div class="tag" onclick="selectSchoolType(this,'고등학교')">🎓 고등학교</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">직장 구내식당이 있으신가요?</label>
+        <div class="tag-group">
+          <div class="tag" onclick="selectTag(this,'work','있어요')">있어요</div>
+          <div class="tag" onclick="selectTag(this,'work','없어요')">없어요</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="fetchLunch()">급식 메뉴 가져오기 →</button>
+  </div>
+
+  <!-- ══ STEP 2: 오늘 급식 ══ -->
+  <div class="section" id="section2">
+    <div class="section-title">오늘 급식 메뉴예요</div>
+    <div class="section-sub">이 재료들은 저녁 추천에서 <strong>자동으로 제외</strong>됩니다</div>
+
+    <div id="lunch-display"></div>
+
+    <div class="card">
+      <div class="form-label" style="margin-bottom:10px">저녁에 특별히 빼고 싶은 재료가 있나요?</div>
+      <div class="tag-group" id="exclude-tags">
+        <div class="tag" onclick="toggleExclude(this)">🌶️ 매운 것</div>
+        <div class="tag" onclick="toggleExclude(this)">🥩 고기류</div>
+        <div class="tag" onclick="toggleExclude(this)">🐟 생선류</div>
+        <div class="tag" onclick="toggleExclude(this)">🥚 달걀</div>
+        <div class="tag" onclick="toggleExclude(this)">🧄 마늘</div>
+        <div class="tag" onclick="toggleExclude(this)">🧅 양파</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="goStep(3)">다음: 가족 설정 →</button>
+  </div>
+
+  <!-- ══ STEP 3: 가족 설정 ══ -->
+  <div class="section" id="section3">
+    <div class="section-title">가족 입맛을<br>알려주세요</div>
+    <div class="section-sub">맞춤 추천을 위해 딱 한 번만 설정하면 돼요</div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">가족 인원</label>
+        <div class="tag-group">
+          <div class="tag" onclick="selectTag(this,'people','2명')">2명</div>
+          <div class="tag" onclick="selectTag(this,'people','3명')">3명</div>
+          <div class="tag" onclick="selectTag(this,'people','4명')">4명</div>
+          <div class="tag" onclick="selectTag(this,'people','5명+')">5명+</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label class="form-label">선호하는 식사 스타일</label>
+        <div class="tag-group">
+          <div class="tag" onclick="togglePref(this)">🍚 한식 위주</div>
+          <div class="tag" onclick="togglePref(this)">🍝 양식도 좋아</div>
+          <div class="tag" onclick="togglePref(this)">🍜 면류 좋아함</div>
+          <div class="tag" onclick="togglePref(this)">🥗 채소 위주</div>
+          <div class="tag" onclick="togglePref(this)">🍳 간단하게</div>
+          <div class="tag" onclick="togglePref(this)">👨‍🍳 요리 즐겨요</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">알레르기 또는 못 먹는 것</label>
+        <div class="tag-group">
+          <div class="tag" onclick="toggleAllergy(this)">🥜 견과류</div>
+          <div class="tag" onclick="toggleAllergy(this)">🦐 갑각류</div>
+          <div class="tag" onclick="toggleAllergy(this)">🥛 유제품</div>
+          <div class="tag" onclick="toggleAllergy(this)">🌾 밀가루</div>
+          <div class="tag" onclick="toggleAllergy(this)">없음</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">냉장고에 있는 재료 (선택)</label>
+        <input type="text" class="form-input" id="fridge-input"
+          placeholder="예: 두부, 계란, 대파, 감자" />
+        <div style="font-size:11px; color:var(--ink3); margin-top:6px">
+          있는 재료를 활용하는 메뉴를 우선 추천해요
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="generateMenu()">AI 메뉴 추천받기 ✨</button>
+  </div>
+
+  <!-- ══ STEP 4: 메뉴 추천 ══ -->
+  <div class="section" id="section4">
+    <div id="menu-loading" class="loading" style="display:none">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">AI가 메뉴를 고르는 중...</div>
+      <div class="loading-sub">급식 메뉴 분석 · 영양 균형 계산 · 재료 중복 제거</div>
+    </div>
+
+    <div id="menu-results" style="display:none">
+      <div class="section-title">오늘 저녁 추천</div>
+      <div class="section-sub">급식과 겹치지 않고 영양 균형을 맞춘 메뉴예요.<br>하나를 골라주세요!</div>
+      <div id="menu-list"></div>
+      <button class="btn-primary" id="menu-next-btn" onclick="goShoppingFromMenu()" disabled>
+        선택한 메뉴로 장보기 →
+      </button>
+      <button class="btn-secondary" onclick="generateMenu()">🔄 다시 추천받기</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 5: 장보기 ══ -->
+  <div class="section" id="section5">
+    <div class="done-header">
+      <div class="done-icon">🛒</div>
+      <div class="done-title" id="shop-title">오늘의 장보기 목록</div>
+      <div class="done-sub" id="shop-sub">집에 없는 재료만 골랐어요</div>
+    </div>
+
+    <div id="shopping-list"></div>
+
+    <div class="card">
+      <div class="form-label" style="margin-bottom:10px">바로 주문하기</div>
+      <div class="shop-platform">
+        <button class="platform-btn coupang" onclick="orderPlatform('쿠팡')">🚀 쿠팡로켓</button>
+        <button class="platform-btn kurly" onclick="orderPlatform('컬리')">🟣 마켓컬리</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="resetAll()">🍽️ 내일 메뉴도 추천받기</button>
+  </div>
+
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 상태 ──
+const state = {
+  schoolType: '',
+  workCanteen: '',
+  people: '',
+  prefs: [],
+  allergies: [],
+  excludes: [],
+  fridge: [],
+  lunchMenu: [],
+  lunchNutrition: {},
+  selectedMenu: null,
+  checkedItems: new Set(),
+};
+
+// ── 날짜 ──
+const today = new Date();
+document.getElementById('today-date').textContent =
+  `${today.getMonth()+1}월 ${today.getDate()}일 ${['일','월','화','수','목','금','토'][today.getDay()]}요일`;
+
+// ── 스텝 이동 ──
+let currentStep = 1;
+function goStep(n) {
+  if (n > currentStep + 1) { showToast('순서대로 진행해주세요'); return; }
+  currentStep = Math.max(currentStep, n);
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i === n-1));
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if (i === n-1) s.classList.add('active');
+    else if (i < n-1) s.classList.add('done');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── 태그 선택 ──
+function selectSchoolType(el, val) {
+  document.querySelectorAll('#section1 .tag').forEach(t => {
+    if (['초등학교','중학교','고등학교'].includes(t.textContent.replace(/[🏫📚🎓 ]/g,''))) t.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  state.schoolType = val;
+}
+
+function selectTag(el, group, val) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  state[group] = val;
+}
+
+function togglePref(el) {
+  el.classList.toggle('selected');
+  const val = el.textContent.trim();
+  state.prefs = state.prefs.includes(val)
+    ? state.prefs.filter(v => v !== val)
+    : [...state.prefs, val];
+}
+
+function toggleAllergy(el) {
+  el.classList.toggle('selected');
+  const val = el.textContent.trim();
+  state.allergies = state.allergies.includes(val)
+    ? state.allergies.filter(v => v !== val)
+    : [...state.allergies, val];
+}
+
+function toggleExclude(el) {
+  el.classList.toggle('selected');
+  const val = el.textContent.trim();
+  state.excludes = state.excludes.includes(val)
+    ? state.excludes.filter(v => v !== val)
+    : [...state.excludes, val];
+}
+
+// ── 급식 불러오기 ──
+// 실제 NEIS API 키가 없으면 샘플 데이터로 동작
+async function fetchLunch() {
+  const sido = document.getElementById('sido').value;
+  const schoolName = document.getElementById('school-name').value.trim();
+
+  if (!sido) { showToast('시도를 선택해주세요', true); return; }
+  if (!schoolName) { showToast('학교 이름을 입력해주세요', true); return; }
+  if (!state.schoolType) { showToast('학교 종류를 선택해주세요', true); return; }
+
+  goStep(2);
+
+  // NEIS 급식 API 호출 시도 (CORS 이슈로 실제 환경에선 서버 필요)
+  // 데모에서는 학교명 기반 샘플 데이터 제공
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+
+  // 샘플 급식 데이터 (실제 서비스에선 NEIS API 연동)
+  const sampleMenus = [
+    { items: ['쌀밥', '된장찌개', '닭갈비', '시금치나물', '깍두기', '우유'], nutrition: { cal: 68, carb: 75, protein: 55, fat: 40 }},
+    { items: ['잡곡밥', '미역국', '돼지불고기', '콩나물무침', '배추김치', '과일'], nutrition: { cal: 72, carb: 70, protein: 60, fat: 38 }},
+    { items: ['현미밥', '순두부찌개', '고등어구이', '도라지무침', '총각김치', '요구르트'], nutrition: { cal: 65, carb: 65, protein: 65, fat: 42 }},
+    { items: ['쌀밥', '육개장', '제육볶음', '호박나물', '열무김치', '사과'], nutrition: { cal: 70, carb: 72, protein: 58, fat: 45 }},
+  ];
+  const menu = sampleMenus[today.getDay() % sampleMenus.length];
+  state.lunchMenu = menu.items;
+  state.lunchNutrition = menu.nutrition;
+
+  renderLunch(schoolName, menu);
+}
+
+function renderLunch(schoolName, menu) {
+  const d = document.getElementById('lunch-display');
+  d.innerHTML = `
+    <div class="lunch-card">
+      <div class="lunch-school">🏫 ${schoolName} · ${state.schoolType} · ${today.getMonth()+1}월 ${today.getDate()}일</div>
+      <div class="lunch-title">오늘 점심 급식</div>
+      <div class="lunch-items">
+        ${menu.items.map((item,i) => `
+          <div class="lunch-item ${i < 2 ? 'highlight' : ''}">${item}</div>
+        `).join('')}
+      </div>
+      <div class="nutrition-bar">
+        <div class="nutrition-label">영양소 충족률 (권장량 대비)</div>
+        <div class="nutrition-items">
+          ${[
+            {n:'탄수화물', v: menu.nutrition.carb},
+            {n:'단백질', v: menu.nutrition.protein},
+            {n:'지방', v: menu.nutrition.fat},
+            {n:'칼로리', v: menu.nutrition.cal},
+          ].map(item => `
+            <div class="nutrition-item">
+              <div class="nutrition-name">${item.n}</div>
+              <div class="nutrition-track">
+                <div class="nutrition-fill" style="width:${item.v}%"></div>
+              </div>
+              <div class="nutrition-val">${item.v}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="font-size:12px; color:var(--ink3); text-align:center; margin-bottom:12px">
+      ✅ 위 메뉴의 주재료는 저녁 추천에서 자동 제외됩니다
+    </div>
+  `;
+}
+
+// ── AI 메뉴 생성 ──
+async function generateMenu() {
+  goStep(4);
+  document.getElementById('menu-loading').style.display = 'block';
+  document.getElementById('menu-results').style.display = 'none';
+
+  const fridgeText = document.getElementById('fridge-input')?.value || '';
+  state.fridge = fridgeText ? fridgeText.split(/[,，\s]+/).filter(Boolean) : [];
+
+  // Claude API 호출
+  const lunchStr = state.lunchMenu.join(', ');
+  const fridgeStr = state.fridge.length ? state.fridge.join(', ') : '없음';
+  const prefStr = state.prefs.length ? state.prefs.join(', ') : '제한없음';
+  const excludeStr = state.excludes.length ? state.excludes.join(', ') : '없음';
+  const nutri = state.lunchNutrition;
+
+  const prompt = `
+당신은 한국 가정식 메뉴 전문 AI입니다. 아래 조건에 맞는 오늘 저녁 메뉴 3가지를 추천해주세요.
+
+[오늘 학교 급식]
+${lunchStr}
+
+[급식 영양소 충족률]
+탄수화물 ${nutri.carb}%, 단백질 ${nutri.protein}%, 지방 ${nutri.fat}%, 칼로리 ${nutri.cal}%
+
+[냉장고 재료]
+${fridgeStr}
+
+[가족 선호]
+${prefStr}
+
+[제외 재료]
+${excludeStr}
+
+[조건]
+1. 급식에 나온 주재료(${lunchStr.split(',').slice(0,3).join(',')})와 겹치지 않도록
+2. 급식에서 부족한 영양소를 보완하도록
+3. 냉장고 재료를 최대한 활용하도록
+4. 한국 가정식 위주로
+
+다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
+{
+  "menus": [
+    {
+      "name": "메뉴명",
+      "emoji": "음식 이모지",
+      "reason": "이 메뉴를 추천하는 이유 (급식과 안 겹치는 점, 영양 보완 등 15자 이내)",
+      "badges": ["영양균형", "간편요리"],
+      "ingredients": [
+        {"name": "재료명", "have": true/false, "overlap": false}
+      ],
+      "cookTime": "20분",
+      "difficulty": "쉬움"
+    }
+  ]
+}
+
+badges는 "영양균형", "간편요리", "냉장고활용", "아이입맛", "건강식", "든든함" 중 해당하는 것 1~2개.
+ingredients의 have는 냉장고 재료에 있으면 true, overlap은 급식과 겹치면 true.
+`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content[0].text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    renderMenus(parsed.menus);
+  } catch(e) {
+    // API 실패시 샘플 데이터
+    renderMenus(getSampleMenus());
+  }
+}
+
+function getSampleMenus() {
+  return [
+    {
+      name: "두부김치찌개",
+      emoji: "🥘",
+      reason: "급식 된장찌개와 달리 두부로 단백질 보완",
+      badges: ["영양균형", "냉장고활용"],
+      ingredients: [
+        {name:"두부", have:true, overlap:false},
+        {name:"김치", have:true, overlap:false},
+        {name:"돼지고기", have:false, overlap:false},
+        {name:"대파", have:true, overlap:false},
+        {name:"고춧가루", have:false, overlap:false},
+      ],
+      cookTime: "20분", difficulty: "쉬움"
+    },
+    {
+      name: "계란볶음밥",
+      emoji: "🍳",
+      reason: "간단하고 급식 탄수화물 부족분 보완",
+      badges: ["간편요리", "냉장고활용"],
+      ingredients: [
+        {name:"계란", have:true, overlap:false},
+        {name:"밥", have:true, overlap:false},
+        {name:"당근", have:false, overlap:false},
+        {name:"양파", have:false, overlap:false},
+        {name:"간장", have:true, overlap:false},
+      ],
+      cookTime: "15분", difficulty: "쉬움"
+    },
+    {
+      name: "감자조림",
+      emoji: "🥔",
+      reason: "급식 단백질 과다 → 채소로 균형 맞춤",
+      badges: ["건강식", "아이입맛"],
+      ingredients: [
+        {name:"감자", have:false, overlap:false},
+        {name:"간장", have:true, overlap:false},
+        {name:"설탕", have:true, overlap:false},
+        {name:"참기름", have:true, overlap:false},
+        {name:"깨", have:false, overlap:false},
+      ],
+      cookTime: "25분", difficulty: "쉬움"
+    }
+  ];
+}
+
+function renderMenus(menus) {
+  document.getElementById('menu-loading').style.display = 'none';
+  document.getElementById('menu-results').style.display = 'block';
+
+  const badgeClass = {
+    '영양균형':'badge-green', '간편요리':'badge-orange', '냉장고활용':'badge-blue',
+    '아이입맛':'badge-green', '건강식':'badge-green', '든든함':'badge-orange'
+  };
+
+  document.getElementById('menu-list').innerHTML = menus.map((m, i) => `
+    <div class="menu-card" id="mcard-${i}" onclick="selectMenu(${i}, '${m.name}', ${JSON.stringify(m.ingredients).replace(/"/g,'&quot;')})">
+      <div class="menu-card-header">
+        <div class="menu-emoji">${m.emoji}</div>
+        <div class="menu-info">
+          <div class="menu-name">${m.name}</div>
+          <div class="menu-reason">${m.reason}</div>
+          <div class="menu-badges">
+            ${(m.badges||[]).map(b => `<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
+            <span class="badge badge-orange">⏱ ${m.cookTime}</span>
+            <span class="badge badge-blue">${m.difficulty}</span>
+          </div>
+        </div>
+      </div>
+      <div class="menu-card-body">
+        <div class="ingredients-title">필요 재료</div>
+        <div class="ingredients">
+          ${(m.ingredients||[]).map(ing => `
+            <span class="ingredient ${ing.overlap ? 'overlap' : ing.have ? 'have' : ''}">
+              ${ing.overlap ? '❌' : ing.have ? '✓' : ''} ${ing.name}
+            </span>
+          `).join('')}
+        </div>
+        <div style="font-size:11px; color:var(--ink3); margin-top:8px">
+          ✓ 있는 재료 &nbsp; ❌ 급식과 겹침
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // 메뉴 데이터 저장
+  window._menus = menus;
+}
+
+function selectMenu(idx, name, ingredients) {
+  document.querySelectorAll('.menu-card').forEach((c,i) => c.classList.toggle('selected-card', i===idx));
+  state.selectedMenu = { name, ingredients: window._menus[idx].ingredients };
+  document.getElementById('menu-next-btn').disabled = false;
+  showToast(`"${name}" 선택됨 🎉`);
+}
+
+// ── 장보기 ──
+function goShoppingFromMenu() {
+  if (!state.selectedMenu) return;
+  goStep(5);
+
+  document.getElementById('shop-title').textContent = `"${state.selectedMenu.name}" 장보기`;
+
+  const needed = state.selectedMenu.ingredients.filter(i => !i.have && !i.overlap);
+  const have = state.selectedMenu.ingredients.filter(i => i.have);
+
+  const el = document.getElementById('shopping-list');
+
+  if (needed.length === 0) {
+    el.innerHTML = `
+      <div class="done-header" style="padding:20px">
+        <div class="done-icon">🎉</div>
+        <div class="done-title" style="font-size:18px">이미 다 있어요!</div>
+        <div class="done-sub">냉장고 재료로 바로 만들 수 있어요</div>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById('shop-sub').textContent = `${needed.length}가지 재료가 필요해요`;
+
+  el.innerHTML = `
+    <div class="shopping-section">
+      <div class="shop-group">
+        <div class="shop-group-title">사야 할 재료 (${needed.length}가지)</div>
+        ${needed.map((item, i) => `
+          <div class="shop-item" id="sitem-${i}">
+            <div class="shop-check" id="scheck-${i}" onclick="toggleCheck(${i}, '${item.name}')"></div>
+            <div class="shop-name" id="sname-${i}">${item.name}</div>
+            <div class="shop-amount">적당량</div>
+          </div>
+        `).join('')}
+      </div>
+      ${have.length > 0 ? `
+      <div class="shop-group">
+        <div class="shop-group-title" style="border-color:var(--green)">이미 있는 재료 (${have.length}가지)</div>
+        ${have.map(item => `
+          <div class="shop-item" style="opacity:.6">
+            <div class="shop-check checked">✓</div>
+            <div class="shop-name">${item.name}</div>
+            <div class="shop-amount" style="color:var(--green)">있음</div>
+          </div>
+        `).join('')}
+      </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function toggleCheck(i, name) {
+  const check = document.getElementById(`scheck-${i}`);
+  const nameEl = document.getElementById(`sname-${i}`);
+  const isChecked = check.classList.toggle('checked');
+  check.textContent = isChecked ? '✓' : '';
+  nameEl.classList.toggle('checked-text', isChecked);
+  if (isChecked) state.checkedItems.add(name);
+  else state.checkedItems.delete(name);
+}
+
+function orderPlatform(platform) {
+  showToast(`${platform} 연동은 실제 서비스에서 제공됩니다 🚀`);
+}
+
+function resetAll() {
+  state.selectedMenu = null;
+  state.lunchMenu = [];
+  state.prefs = [];
+  state.excludes = [];
+  state.fridge = [];
+  state.checkedItems.clear();
+  currentStep = 1;
+  goStep(1);
+  document.getElementById('lunch-display').innerHTML = '';
+  document.getElementById('menu-list').innerHTML = '';
+  document.getElementById('shopping-list').innerHTML = '';
+  document.getElementById('school-name').value = '';
+  document.getElementById('sido').value = '';
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+  showToast('내일 메뉴 추천을 시작해요 🍚');
+}
+
+// ── 토스트 ──
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#c00' : 'var(--ink)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
