@@ -593,80 +593,36 @@ body::before {
     </div>
   </div>
 
-  <!-- ══ STEP 1: 학교 설정 ══ -->
+  <!-- ══ STEP 1: 가족 구성원 설정 ══ -->
   <div class="section active" id="section1">
-    <div class="section-title">우리 아이 학교를<br>알려주세요</div>
-    <div class="section-sub">학교 급식 메뉴를 실시간으로 가져와<br>저녁 메뉴와 겹치지 않게 추천해요</div>
+    <div class="section-title">가족 구성원을<br>설정해주세요</div>
+    <div class="section-sub">학교·직장 점심을 모두 고려해서<br>겹치지 않는 저녁을 추천해드려요</div>
 
-    <div class="card">
-      <div class="form-group" style="position:relative">
-        <label class="form-label">학교 이름 검색</label>
-        <input type="text" class="form-input" id="school-name"
-          placeholder="학교 이름 2글자 이상 입력..."
-          oninput="searchSchool(this.value)"
-          autocomplete="off" />
-        <div id="school-dropdown" style="
-          display:none;
-          position:absolute;
-          top:100%; left:0; right:0;
-          background:var(--paper);
-          border:1.5px solid var(--accent);
-          border-radius:10px;
-          z-index:50;
-          max-height:200px;
-          overflow-y:auto;
-          box-shadow:0 8px 24px var(--shadow);
-          margin-top:4px;
-        "></div>
-      </div>
+    <!-- 구성원 목록 -->
+    <div id="members-list"></div>
 
-      <div id="selected-school-info" style="display:none">
-        <div style="
-          background:var(--green-light);
-          border:1px solid rgba(45,106,79,.2);
-          border-radius:10px;
-          padding:12px 14px;
-          display:flex;
-          align-items:center;
-          gap:10px;
-        ">
-          <span style="font-size:20px">🏫</span>
-          <div>
-            <div style="font-weight:600;font-size:14px" id="selected-school-name"></div>
-            <div style="font-size:12px;color:var(--ink3)" id="selected-school-addr"></div>
-          </div>
-          <button onclick="clearSchool()" style="
-            margin-left:auto;
-            background:none;border:none;
-            color:var(--ink3);cursor:pointer;
-            font-size:16px;
-          ">✕</button>
-        </div>
-      </div>
+    <!-- 구성원 추가 버튼 -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-secondary" style="margin-top:0;flex:1" onclick="addMember('child')">
+        🧒 아이 추가
+      </button>
+      <button class="btn-secondary" style="margin-top:0;flex:1" onclick="addMember('adult')">
+        👨 어른 추가
+      </button>
     </div>
 
-    <div class="card">
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">직장 구내식당이 있으신가요?</label>
-        <div class="tag-group">
-          <div class="tag" onclick="selectTag(this,'work','있어요')">있어요</div>
-          <div class="tag" onclick="selectTag(this,'work','없어요')">없어요</div>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-primary" onclick="fetchLunch()">급식 메뉴 가져오기 →</button>
+    <button class="btn-primary" onclick="fetchAllLunch()">점심 메뉴 가져오기 →</button>
   </div>
 
-  <!-- ══ STEP 2: 오늘 급식 ══ -->
+  <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
   <div class="section" id="section2">
-    <div class="section-title">오늘 급식 메뉴예요</div>
-    <div class="section-sub">이 재료들은 저녁 추천에서 <strong>자동으로 제외</strong>됩니다</div>
+    <div class="section-title">오늘 점심 현황</div>
+    <div class="section-sub">가족 모두의 점심을 분석했어요<br>이 재료들은 저녁 추천에서 <strong>자동 제외</strong>돼요</div>
 
     <div id="lunch-display"></div>
 
     <div class="card">
-      <div class="form-label" style="margin-bottom:10px">저녁에 특별히 빼고 싶은 재료가 있나요?</div>
+      <div class="form-label" style="margin-bottom:10px">저녁에 특별히 빼고 싶은 재료</div>
       <div class="tag-group" id="exclude-tags">
         <div class="tag" onclick="toggleExclude(this)">🌶️ 매운 것</div>
         <div class="tag" onclick="toggleExclude(this)">🥩 고기류</div>
@@ -858,111 +814,266 @@ function toggleExclude(el) {
     : [...state.excludes, val];
 }
 
-// ── 학교 검색 자동완성 ──
+// ── 가족 구성원 관리 ──
 const NEIS_KEY = '58d4bcecc01d485d9b6b7f0edbf14fad';
-let searchTimer = null;
-let selectedSchool = null;
+let members = []; // { id, type, name, school, workMenu, lunchItems }
+let memberIdCounter = 0;
+let searchTimers = {};
+let selectedSchools = {};
 
-async function searchSchool(val) {
-  const dropdown = document.getElementById('school-dropdown');
+function addMember(type) {
+  const id = memberIdCounter++;
+  members.push({ id, type, name: '', school: null, workMenu: '', lunchItems: [] });
+  renderMembers();
+}
+
+function removeMember(id) {
+  members = members.filter(m => m.id !== id);
+  renderMembers();
+}
+
+function renderMembers() {
+  const list = document.getElementById('members-list');
+
+  if (members.length === 0) {
+    list.innerHTML = `
+      <div class="card" style="text-align:center;padding:28px;color:var(--ink3)">
+        <div style="font-size:32px;margin-bottom:8px">👨‍👩‍👧‍👦</div>
+        <div style="font-size:14px">아이 또는 어른을 추가해주세요</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = members.map(m => `
+    <div class="card" style="margin-bottom:12px" id="member-card-${m.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-weight:700;font-size:15px">
+          ${m.type === 'child' ? '🧒 아이' : '👨 어른'}
+        </div>
+        <button onclick="removeMember(${m.id})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">이름 (선택)</label>
+        <input type="text" class="form-input" placeholder="${m.type === 'child' ? '예: 첫째, 둘째' : '예: 아빠, 엄마'}"
+          value="${m.name}"
+          oninput="members.find(x=>x.id===${m.id}).name=this.value"
+          style="margin-bottom:0" />
+      </div>
+
+      ${m.type === 'child' ? `
+        <div class="form-group" style="position:relative;margin-bottom:0">
+          <label class="form-label">학교 검색</label>
+          <input type="text" class="form-input"
+            placeholder="학교 이름 2글자 이상..."
+            oninput="searchSchoolForMember(${m.id}, this.value)"
+            autocomplete="off"
+            id="school-input-${m.id}"
+            value="${m.school ? m.school.name : ''}" />
+          <div id="school-dd-${m.id}" style="
+            display:none;position:absolute;top:100%;left:0;right:0;
+            background:var(--paper);border:1.5px solid var(--accent);
+            border-radius:10px;z-index:50;max-height:180px;overflow-y:auto;
+            box-shadow:0 8px 24px var(--shadow);margin-top:4px;
+          "></div>
+          ${m.school ? `
+            <div style="margin-top:8px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
+              ✅ ${m.school.name}
+            </div>` : ''}
+        </div>
+      ` : `
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">직장 점심 메뉴 (오늘)</label>
+          <input type="text" class="form-input"
+            placeholder="예: 된장찌개, 제육볶음 (없으면 비워두세요)"
+            value="${m.workMenu}"
+            oninput="members.find(x=>x.id===${m.id}).workMenu=this.value" />
+          <div style="font-size:11px;color:var(--ink3);margin-top:4px">
+            직장 구내식당 메뉴를 입력하면 저녁 추천에서 제외돼요
+          </div>
+        </div>
+      `}
+    </div>
+  `).join('');
+}
+
+async function searchSchoolForMember(memberId, val) {
+  const dropdown = document.getElementById(`school-dd-${memberId}`);
   if (val.length < 2) { dropdown.style.display = 'none'; return; }
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">검색 중...</div>`;
+
+  clearTimeout(searchTimers[memberId]);
+  searchTimers[memberId] = setTimeout(async () => {
+    dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 중...</div>`;
     dropdown.style.display = 'block';
     try {
       const res = await fetch(
-        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10&SCHUL_NM=${encodeURIComponent(val)}`
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(val)}`
       );
       const data = await res.json();
       const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
         ['초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
       );
       if (rows.length === 0) {
-        dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
+        dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
         return;
       }
       dropdown.innerHTML = rows.map(r => `
-        <div onclick="selectSchool('${r.SCHUL_NM}','${r.SD_SCHUL_CODE}','${r.ATPT_OFCDC_SC_CODE}','${(r.ORG_RDNMA||'').replace(/'/g,'')}')"
-          style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border)"
+        <div onclick="selectSchoolForMember(${memberId},'${r.SCHUL_NM}','${r.SD_SCHUL_CODE}','${r.ATPT_OFCDC_SC_CODE}','${(r.ORG_RDNMA||'').replace(/'/g,'')}')"
+          style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border)"
           onmouseover="this.style.background='var(--cream)'"
           onmouseout="this.style.background=''">
-          <div style="font-weight:600;font-size:14px">${r.SCHUL_NM}</div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:2px">${r.ORG_RDNMA||''}</div>
+          <div style="font-weight:600;font-size:13px">${r.SCHUL_NM}</div>
+          <div style="font-size:11px;color:var(--ink3)">${r.ORG_RDNMA||''}</div>
         </div>`).join('');
     } catch(e) {
-      dropdown.innerHTML = `<div style="padding:12px;text-align:center;color:var(--ink3);font-size:13px">오류. 다시 시도해주세요</div>`;
+      dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">오류. 다시 시도해주세요</div>`;
     }
   }, 400);
 }
 
-function selectSchool(name, code, sido, addr) {
-  selectedSchool = { name, code, sido, addr };
-  document.getElementById('school-name').value = name;
-  document.getElementById('school-dropdown').style.display = 'none';
-  document.getElementById('selected-school-name').textContent = name;
-  document.getElementById('selected-school-addr').textContent = addr;
-  document.getElementById('selected-school-info').style.display = 'block';
-  if (name.includes('초등')) state.schoolType = '초등학교';
-  else if (name.includes('중학')) state.schoolType = '중학교';
-  else state.schoolType = '고등학교';
+function selectSchoolForMember(memberId, name, code, sido, addr) {
+  const member = members.find(m => m.id === memberId);
+  if (member) {
+    member.school = { name, code, sido, addr };
+    document.getElementById(`school-input-${memberId}`).value = name;
+    document.getElementById(`school-dd-${memberId}`).style.display = 'none';
+    renderMembers();
+  }
 }
 
-function clearSchool() {
-  selectedSchool = null;
-  document.getElementById('school-name').value = '';
-  document.getElementById('selected-school-info').style.display = 'none';
-}
+// ── 전체 가족 점심 불러오기 ──
+async function fetchAllLunch() {
+  if (members.length === 0) {
+    showToast('가족 구성원을 추가해주세요', true);
+    return;
+  }
 
-// ── 급식 불러오기 ──
-async function fetchLunch() {
-  if (!selectedSchool) { showToast('학교를 검색해서 선택해주세요', true); return; }
+  const children = members.filter(m => m.type === 'child');
+  const unset = children.filter(m => !m.school);
+  if (unset.length > 0) {
+    showToast('아이 학교를 모두 선택해주세요', true);
+    return;
+  }
 
   goStep(2);
   document.getElementById('lunch-display').innerHTML = `
     <div style="text-align:center;padding:40px 20px">
       <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-      <div style="color:var(--ink2);font-size:14px">${selectedSchool.name} 급식 불러오는 중...</div>
+      <div style="color:var(--ink2);font-size:14px">가족 점심 메뉴 불러오는 중...</div>
     </div>`;
 
   const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  let allLunchItems = [];
+  let cards = [];
 
-  try {
-    const mealRes = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${selectedSchool.sido}&SD_SCHUL_CODE=${selectedSchool.code}&MLSV_YMD=${dateStr}`
-    );
-    const mealData = await mealRes.json();
-    const mealRow = mealData?.mealServiceDietInfo?.[1]?.row?.[0];
+  // 아이들 급식 조회
+  for (const member of children) {
+    try {
+      const res = await fetch(
+        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`
+      );
+      const data = await res.json();
+      const row = data?.mealServiceDietInfo?.[1]?.row?.[0];
 
-    if (!mealRow) {
-      showToast('오늘 급식 정보가 없어요. 샘플로 진행합니다');
-      const menu = { items: ['쌀밥', '된장찌개', '제육볶음', '나물', '김치'], nutrition: { cal: 68, carb: 72, protein: 58, fat: 42 }};
-      state.lunchMenu = menu.items;
-      state.lunchNutrition = menu.nutrition;
-      renderLunch(selectedSchool.name, menu);
-      return;
+      if (row) {
+        const items = row.DDISH_NM
+          .replace(/<br\/>/g, ',').split(',')
+          .map(d => d.replace(/\([^)]*\)/g, '').trim())
+          .filter(d => d.length > 0);
+        member.lunchItems = items;
+        allLunchItems = [...allLunchItems, ...items];
+
+        // 영양소 파싱
+        const ntrInfo = row.NTR_INFO || '';
+        const cal = (() => { const m = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/10),100) : 65; })();
+        const carb = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/1.5),100) : 70; })();
+        const protein = (() => { const m = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.6),100) : 60; })();
+        const fat = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.5),100) : 45; })();
+
+        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat } });
+      } else {
+        member.lunchItems = [];
+        cards.push({ type: 'nodata', name: member.name || '아이', school: member.school.name });
+      }
+    } catch(e) {
+      member.lunchItems = [];
     }
-
-    const dishNames = mealRow.DDISH_NM
-      .replace(/<br\/>/g, ',').split(',')
-      .map(d => d.replace(/\([^)]*\)/g, '').trim())
-      .filter(d => d.length > 0);
-
-    const ntrInfo = mealRow.NTR_INFO || '';
-    const cal = (() => { const m = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/10),100) : 65; })();
-    const carb = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/1.5),100) : 70; })();
-    const protein = (() => { const m = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.6),100) : 60; })();
-    const fat = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.5),100) : 45; })();
-
-    state.lunchMenu = dishNames;
-    state.lunchNutrition = { cal, carb, protein, fat };
-    renderLunch(selectedSchool.name, { items: dishNames, nutrition: { cal, carb, protein, fat } });
-
-  } catch(e) {
-    showToast('오류가 발생했어요. 다시 시도해주세요', true);
-    document.getElementById('lunch-display').innerHTML = '';
   }
+
+  // 어른들 직장 메뉴
+  for (const member of members.filter(m => m.type === 'adult')) {
+    if (member.workMenu.trim()) {
+      const items = member.workMenu.split(/[,，\s]+/).filter(Boolean);
+      member.lunchItems = items;
+      allLunchItems = [...allLunchItems, ...items];
+      cards.push({ type: 'work', name: member.name || '어른', items });
+    } else {
+      member.lunchItems = [];
+    }
+  }
+
+  // 중복 제거
+  state.lunchMenu = [...new Set(allLunchItems)];
+  state.lunchNutrition = { cal: 68, carb: 72, protein: 60, fat: 42 };
+
+  renderAllLunch(cards);
 }
+
+function renderAllLunch(cards) {
+  const d = document.getElementById('lunch-display');
+
+  if (cards.length === 0) {
+    d.innerHTML = `
+      <div class="card" style="text-align:center;padding:28px;color:var(--ink3)">
+        <div style="font-size:32px;margin-bottom:8px">🍱</div>
+        <div>점심 데이터가 없어요. 샘플로 진행합니다</div>
+      </div>`;
+    state.lunchMenu = ['쌀밥', '된장찌개', '제육볶음', '나물', '김치'];
+    return;
+  }
+
+  d.innerHTML = cards.map(card => {
+    if (card.type === 'nodata') return `
+      <div class="card" style="margin-bottom:12px;opacity:.6">
+        <div style="font-size:13px;color:var(--ink3)">🏫 ${card.name} · ${card.school}</div>
+        <div style="font-size:13px;color:var(--ink3);margin-top:6px">오늘 급식 정보 없음</div>
+      </div>`;
+
+    if (card.type === 'work') return `
+      <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#1a2a3a,#2a3a4a);color:white">
+        <div style="font-size:12px;opacity:.7;margin-bottom:6px">💼 ${card.name} 직장 점심</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${card.items.map(i => `<span style="background:rgba(255,255,255,.15);border-radius:100px;padding:3px 10px;font-size:12px">${i}</span>`).join('')}
+        </div>
+      </div>`;
+
+    return `
+      <div class="lunch-card" style="margin-bottom:12px">
+        <div class="lunch-school">🏫 ${card.name} · ${card.school} · ${today.getMonth()+1}월 ${today.getDate()}일</div>
+        <div class="lunch-title">오늘 점심 급식</div>
+        <div class="lunch-items">
+          ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
+        </div>
+        <div class="nutrition-bar">
+          <div class="nutrition-label">영양소 충족률</div>
+          <div class="nutrition-items">
+            ${[{n:'탄수화물',v:card.nutrition.carb},{n:'단백질',v:card.nutrition.protein},{n:'지방',v:card.nutrition.fat},{n:'칼로리',v:card.nutrition.cal}].map(item=>`
+              <div class="nutrition-item">
+                <div class="nutrition-name">${item.n}</div>
+                <div class="nutrition-track"><div class="nutrition-fill" style="width:${item.v}%"></div></div>
+                <div class="nutrition-val">${item.v}%</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('') + `
+    <div style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:12px;padding:8px;background:var(--green-light);border-radius:8px">
+      ✅ 총 ${state.lunchMenu.length}가지 재료가 저녁 추천에서 자동 제외돼요
+    </div>`;
+}
+
+// ── fetchLunch (하위 호환) ──
+async function fetchLunch() { await fetchAllLunch(); }
 
 function renderLunch(schoolName, menu) {
   const d = document.getElementById('lunch-display');
@@ -1253,14 +1364,15 @@ function resetAll() {
   state.excludes = [];
   state.fridge = [];
   state.checkedItems.clear();
+  members = [];
+  memberIdCounter = 0;
   currentStep = 1;
   goStep(1);
   document.getElementById('lunch-display').innerHTML = '';
   document.getElementById('menu-list').innerHTML = '';
   document.getElementById('shopping-list').innerHTML = '';
-  document.getElementById('school-name').value = '';
-  document.getElementById('sido').value = '';
   document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+  renderMembers();
   showToast('내일 메뉴 추천을 시작해요 🍚');
 }
 
@@ -1272,6 +1384,9 @@ function showToast(msg, isError=false) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ── 초기화 ──
+renderMembers();
 </script>
 </body>
 </html>
