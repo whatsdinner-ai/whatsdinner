@@ -579,26 +579,43 @@ body {
 
   <!-- 헤더 (항상 표시) -->
   <div class="header">
-    <div class="header-top">
+    <!-- 1행: 로고 | 오늘↔내일 토글 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+
       <!-- 로고 -->
-      <div style="display:flex;align-items:center;gap:10px">
-        <!-- 식판 아이콘 SVG -->
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;padding-top:2px">
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
           <rect x="1" y="1" width="42" height="42" rx="9" stroke="#FF6B00" stroke-width="2" fill="none"/>
           <line x1="1" y1="22" x2="43" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
           <line x1="22" y1="1" x2="22" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
           <path d="M26 10 L29.5 14 L36 7.5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <!-- 브랜드 텍스트 -->
-        <div>
-          <div style="font-family:'Noto Sans KR','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:19px;font-weight:700;color:#1a1208;letter-spacing:-1px;line-height:1.2">왓츠디너</div>
-          <div style="font-size:10px;color:#9a8a75;letter-spacing:0.5px;margin-top:1px">급식과 다른 저녁</div>
+        <div style="padding-top:2px">
+          <div style="display:flex;align-items:flex-start;gap:3px">
+            <div style="font-family:'Noto Sans KR','맑은 고딕',sans-serif;font-size:22px;font-weight:700;color:#1a1208;letter-spacing:-1px;line-height:1.2">왓츠디너</div>
+            <span onclick="showInfoModal()" style="font-size:9px;font-weight:700;color:var(--ink3);margin-top:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0">TM</span>
+          </div>
+          <div style="font-size:10px;color:#9a8a75;letter-spacing:0.3px;margin-top:1px">급식과 다른 저녁</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="today-date" id="today-date"></div>
-        <button onclick="showInfoModal()" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0;position:relative;z-index:200;-webkit-tap-highlight-color:transparent">ⓘ</button>
+
+      <!-- 오늘↔내일 토글 -->
+      <div style="display:flex;align-items:center;background:#f0f0f0;border-radius:100px;padding:3px;gap:1px">
+        <button id="today-toggle" onclick="goToday()"
+          style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
+          오늘
+        </button>
+        <span id="toggle-arrow" style="font-size:12px;color:var(--ink3);padding:0 3px;transition:all .2s">→</span>
+        <button id="tomorrow-toggle" onclick="goTomorrow()"
+          style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:transparent;color:var(--ink3)">
+          내일
+        </button>
       </div>
+    </div>
+
+    <!-- 2행: 날짜 우측 정렬 -->
+    <div style="display:flex;align-items:center;justify-content:flex-end">
+      <div class="today-date" id="today-date"></div>
     </div>
   </div>
 
@@ -684,65 +701,12 @@ body {
     <button class="btn-primary" onclick="generateMenu()">메뉴 추천받기 ✨</button>
   </div>
 
-    <div class="card">
-      <div class="form-group">
-        <label class="form-label">가족 인원</label>
-        <div class="tag-group">
-          <div class="tag" onclick="selectTag(this,'people','2명')">2명</div>
-          <div class="tag" onclick="selectTag(this,'people','3명')">3명</div>
-          <div class="tag" onclick="selectTag(this,'people','4명')">4명</div>
-          <div class="tag" onclick="selectTag(this,'people','5명+')">5명+</div>
-        </div>
-      </div>
-
-      <hr class="divider">
-
-      <div class="form-group">
-        <label class="form-label">선호하는 식사 스타일</label>
-        <div class="tag-group">
-          <div class="tag" onclick="togglePref(this)">🍚 한식 위주</div>
-          <div class="tag" onclick="togglePref(this)">🍝 양식도 좋아</div>
-          <div class="tag" onclick="togglePref(this)">🍜 면류 좋아함</div>
-          <div class="tag" onclick="togglePref(this)">🥗 채소 위주</div>
-          <div class="tag" onclick="togglePref(this)">🍳 간단하게</div>
-          <div class="tag" onclick="togglePref(this)">👨‍🍳 요리 즐겨요</div>
-        </div>
-      </div>
-
-      <hr class="divider">
-
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">알레르기 또는 못 먹는 것</label>
-        <div class="tag-group">
-          <div class="tag" onclick="toggleAllergy(this)">🥜 견과류</div>
-          <div class="tag" onclick="toggleAllergy(this)">🦐 갑각류</div>
-          <div class="tag" onclick="toggleAllergy(this)">🥛 유제품</div>
-          <div class="tag" onclick="toggleAllergy(this)">🌾 밀가루</div>
-          <div class="tag" onclick="toggleAllergy(this)">없음</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">냉장고에 있는 재료 (선택)</label>
-        <input type="text" class="form-input" id="fridge-input"
-          placeholder="예: 두부, 계란, 대파, 감자" />
-        <div style="font-size:11px; color:var(--ink3); margin-top:6px">
-          있는 재료를 활용하는 메뉴를 우선 추천해요
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-primary" onclick="generateMenu()">AI 메뉴 추천받기 ✨</button>
-  </div>
-
-  <!-- ══ STEP 4: 메뉴 추천 ══ -->
+  <!-- ══ STEP 3: 메뉴 추천 ══ -->
   <div class="section" id="section3">
     <div id="menu-loading" class="loading" style="display:none">
       <div class="loading-spinner"></div>
-      <div class="loading-text">급식 데이터 분석 중...</div>
-      <div class="loading-sub">급식 메뉴 분석 · 영양 균형 계산 · 재료 중복 제거</div>
+      <div class="loading-text">메뉴 추천 중...</div>
+      <div class="loading-sub">급식 메뉴 분석 중...</div>
     </div>
 
     <div id="menu-results" style="display:none">
@@ -1023,8 +987,14 @@ body {
   onclick="if(event.target===this)hideInfoModal()">
   <div style="position:absolute;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px;overflow-y:auto;max-height:90vh">
 
-    <!-- 핸들 -->
-    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px"></div>
+    <!-- 핸들 + 닫기 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:auto"></div>
+      <button onclick="hideInfoModal()"
+        style="width:32px;height:32px;border-radius:50%;border:none;background:#f4f4f4;color:var(--ink3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0">
+        ✕
+      </button>
+    </div>
 
     <!-- 로고 -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
@@ -1094,10 +1064,16 @@ body {
     </div>
 
     <!-- 저작권 -->
-    <div style="text-align:center;font-size:11px;color:var(--ink3);line-height:1.6">
+    <div style="text-align:center;font-size:11px;color:var(--ink3);line-height:1.6;margin-bottom:16px">
       © 2026 왓츠디너. All rights reserved.<br>
       본 서비스의 알고리즘 및 UI는 저작권법의 보호를 받습니다.
     </div>
+
+    <!-- 닫기 버튼 -->
+    <button onclick="hideInfoModal()"
+      style="width:100%;padding:14px;border-radius:12px;border:none;background:#f4f4f4;color:var(--ink2);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
+      닫기
+    </button>
 
   </div>
 </div>
@@ -1106,6 +1082,35 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
+// ── 내일 메뉴 바로 보기 ──
+function goTomorrow() {
+  targetDate = new Date(today);
+  targetDate.setDate(targetDate.getDate() + 1);
+  if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
+  if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
+  updateDateDisplay();
+  const children = members.filter(m => m.type === 'child' && m.school);
+  if (children.length === 0) {
+    showToast('먼저 아이 학교를 설정해주세요', true);
+    goStep(1);
+    return;
+  }
+  fetchAllLunch();
+}
+
+// ── 오늘 메뉴로 돌아가기 ──
+function goToday() {
+  targetDate = new Date(today);
+  updateDateDisplay();
+  const children = members.filter(m => m.type === 'child' && m.school);
+  if (children.length === 0) {
+    showToast('먼저 아이 학교를 설정해주세요', true);
+    goStep(1);
+    return;
+  }
+  fetchAllLunch();
+}
+
 // ── 앱 정보 모달 ──
 function showInfoModal() {
   document.getElementById('info-modal').style.display = 'block';
@@ -1143,16 +1148,47 @@ function formatDate(d) {
 function updateDateDisplay() {
   const d = targetDate;
   const isToday = d.toDateString() === today.toDateString();
-  const label = isToday ? '오늘' : '내일';
   const el = document.getElementById('today-date');
   const dateText = `${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
 
+  // 날짜 표시
   if (isToday) {
-    el.innerHTML = `${label} ${dateText}`;
-    el.style.cssText = 'font-size:12px;color:var(--ink3);background:none;padding:0;border-radius:0;font-weight:400';
+    el.innerHTML = dateText;
+    el.style.cssText = 'font-size:12px;color:var(--ink3)';
   } else {
-    el.innerHTML = `<span style="color:white;background:var(--accent);padding:2px 8px;border-radius:100px;font-weight:700;font-size:11px">내일</span> <span style="font-weight:700;color:var(--accent)">${dateText}</span>`;
+    el.innerHTML = `<span style="font-weight:700;color:var(--accent)">${dateText}</span>`;
     el.style.cssText = 'font-size:12px;display:flex;align-items:center;gap:4px';
+  }
+
+  // 토글 버튼 상태
+  const todayToggle    = document.getElementById('today-toggle');
+  const tomorrowToggle = document.getElementById('tomorrow-toggle');
+  const arrow          = document.getElementById('toggle-arrow');
+
+  if (isToday) {
+    if (todayToggle) {
+      todayToggle.style.background = 'white';
+      todayToggle.style.color = 'var(--accent)';
+      todayToggle.style.boxShadow = '0 1px 4px rgba(0,0,0,.1)';
+    }
+    if (tomorrowToggle) {
+      tomorrowToggle.style.background = 'transparent';
+      tomorrowToggle.style.color = 'var(--ink3)';
+      tomorrowToggle.style.boxShadow = 'none';
+    }
+    if (arrow) arrow.textContent = '→';
+  } else {
+    if (todayToggle) {
+      todayToggle.style.background = 'transparent';
+      todayToggle.style.color = 'var(--ink3)';
+      todayToggle.style.boxShadow = 'none';
+    }
+    if (tomorrowToggle) {
+      tomorrowToggle.style.background = 'var(--accent)';
+      tomorrowToggle.style.color = 'white';
+      tomorrowToggle.style.boxShadow = '0 1px 4px rgba(0,0,0,.1)';
+    }
+    if (arrow) arrow.textContent = '←';
   }
 }
 updateDateDisplay();
@@ -1178,21 +1214,6 @@ function selectSchoolType(el, val) {
   });
   el.classList.add('selected');
   state.schoolType = val;
-}
-
-function selectTag(el, group, val) {
-  const parent = el.parentElement;
-  parent.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
-  el.classList.add('selected');
-  state[group] = val;
-}
-
-function togglePref(el) {
-  el.classList.toggle('selected');
-  const val = el.textContent.trim();
-  state.prefs = state.prefs.includes(val)
-    ? state.prefs.filter(v => v !== val)
-    : [...state.prefs, val];
 }
 
 function toggleAllergy(el) {
@@ -1875,7 +1896,7 @@ async function fetchPastLunch() {
 
   const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
 
-  document.querySelector('.loading-sub').textContent = '3달치 급식 데이터 수집 중...';
+  
 
   try {
     // 타임아웃 8초
@@ -1926,10 +1947,9 @@ async function generateMenu() {
   document.getElementById('menu-loading').style.display = 'block';
   document.getElementById('menu-results').style.display = 'none';
 
-  const fridgeText = document.getElementById('fridge-input')?.value || '';
-  state.fridge = fridgeText ? fridgeText.split(/[,，\s]+/).filter(Boolean) : [];
+  state.fridge = [];
 
-  document.querySelector('.loading-sub').textContent = '1달치 급식 인기 메뉴 분석 중...';
+  
 
   try {
     if (pastLunchMenus.length === 0) {
@@ -2835,6 +2855,14 @@ function clearLocal() {
 // ── 초기화 ──
 const restored = loadFromLocal();
 renderMembers();
+
+// 항상 1번 화면으로 시작
+currentStep = 1;
+document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === 0));
+document.querySelectorAll('.step').forEach((s, i) => {
+  s.classList.remove('active', 'done');
+  if (i === 0) s.classList.add('active');
+});
 
 if (restored) {
   setTimeout(() => {
