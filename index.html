@@ -626,27 +626,17 @@ body {
   <!-- ══ STEP 1: 가족 구성원 설정 ══ -->
   <div class="section active" id="section1">
 
-    <!-- 구성원 추가 버튼 (토스 스타일) -->
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <!-- 구성원 추가 버튼 -->
+    <div style="margin-bottom:12px">
       <button onclick="addMember('child')"
-        style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s"
+        style="width:100%;display:flex;align-items:center;gap:10px;padding:16px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s"
         onmouseover="this.style.borderColor='#FF6B00'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="width:38px;height:38px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧒👧</div>
+        <div style="width:42px;height:42px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🧒👧</div>
         <div>
-          <div style="font-size:14px;font-weight:700;color:var(--ink)">아이 추가</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:2px">학교 급식 연동</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">아이 추가</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px">학교 급식 연동 · 알레르기 · 건강 설정</div>
         </div>
-        <div style="margin-left:auto;color:var(--ink3);font-size:16px">›</div>
-      </button>
-      <button onclick="addMember('adult')"
-        style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s"
-        onmouseover="this.style.borderColor='#FF6B00'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="width:38px;height:38px;background:#f0f4ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👨👩</div>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--ink)">어른 추가</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:2px">직장 점심 입력</div>
-        </div>
-        <div style="margin-left:auto;color:var(--ink3);font-size:16px">›</div>
+        <div style="margin-left:auto;color:var(--ink3);font-size:18px">›</div>
       </button>
     </div>
 
@@ -1234,6 +1224,19 @@ let memberIdCounter = 0;
 let searchTimers = {};
 let selectedSchools = {};
 
+function toggleAllergy(memberId, no) {
+  const m = members.find(x => x.id === memberId);
+  if (!m) return;
+  if (!m.allergyNos) m.allergyNos = [];
+  if (m.allergyNos.includes(no)) {
+    m.allergyNos = m.allergyNos.filter(n => n !== no);
+  } else {
+    m.allergyNos.push(no);
+  }
+  renderMembers();
+  saveToLocal();
+}
+
 function toggleHealthOption(memberId, key) {
   const m = members.find(x => x.id === memberId);
   if (!m) return;
@@ -1249,7 +1252,7 @@ function toggleHealthOption(memberId, key) {
 
 function addMember(type) {
   const id = memberIdCounter++;
-  members.push({ id, type, name: '', school: null, workMenu: '', lunchItems: [], healthFlags: [] });
+  members.push({ id, type: 'child', name: '', school: null, lunchItems: [], healthFlags: [], allergyNos: [] });
   renderMembers();
   saveToLocal();
 }
@@ -1305,61 +1308,68 @@ function renderMembers() {
     <div class="card" style="margin-bottom:12px" id="member-card-${m.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <div style="font-weight:700;font-size:15px">
-            ${m.type === 'child' ? '🧒👧 아이' : '👨👩 어른'}
-          </div>
+          <div style="font-weight:700;font-size:15px">🧒👧 아이</div>
           ${m.name ? `<span style="font-size:12px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:100px;font-weight:600">${m.name}</span>` : ''}
         </div>
         <button onclick="removeMember(${m.id})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px">✕</button>
       </div>
 
-      ${m.type === 'child' ? `
-        <div class="form-group" style="position:relative;margin-bottom:8px">
-          <label class="form-label">학교 검색</label>
-          <input type="text" class="form-input"
-            placeholder="학교 이름 2글자 이상..."
-            oninput="searchSchoolForMember(${m.id}, this.value)"
-            autocomplete="off"
-            id="school-input-${m.id}"
-            value="${m.school ? m.school.name : ''}" />
-          <div id="school-dd-${m.id}" style="
-            display:none;position:absolute;top:100%;left:0;right:0;
-            background:var(--paper);border:1.5px solid var(--accent);
-            border-radius:10px;z-index:50;max-height:180px;overflow-y:auto;
-            box-shadow:0 8px 24px var(--shadow);margin-top:4px;
-          "></div>
-          ${m.school ? `
-            <div style="margin-top:8px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
-              ✅ ${m.school.name}
-            </div>` : ''}
+      <div class="form-group" style="position:relative;margin-bottom:8px">
+        <label class="form-label">학교 검색</label>
+        <input type="text" class="form-input"
+          placeholder="학교 이름 2글자 이상..."
+          oninput="searchSchoolForMember(${m.id}, this.value)"
+          autocomplete="off"
+          id="school-input-${m.id}"
+          value="${m.school ? m.school.name : ''}" />
+        <div id="school-dd-${m.id}" style="
+          display:none;position:absolute;top:100%;left:0;right:0;
+          background:var(--paper);border:1.5px solid var(--accent);
+          border-radius:10px;z-index:50;max-height:180px;overflow-y:auto;
+          box-shadow:0 8px 24px var(--shadow);margin-top:4px;
+        "></div>
+        ${m.school ? `
+          <div style="margin-top:8px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
+            ✅ ${m.school.name}
+          </div>` : ''}
+      </div>
+      <div class="form-group" style="margin-bottom:8px">
+        <label class="form-label" style="margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${[
+            {key:'sugar',  label:'🍬 당류 제한',   desc:'인슐린·당뇨'},
+            {key:'sodium', label:'🧂 나트륨 제한', desc:'고혈압·신장'},
+            {key:'flour',  label:'🌾 밀가루 제한', desc:'글루텐 프리'},
+            {key:'fat',    label:'🥓 지방 제한',   desc:'비만·고지혈'},
+          ].map(opt => `
+            <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
+              style="padding:6px 12px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
+              ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
+            </div>`).join('')}
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label" style="margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</label>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">
-            ${[
-              {key:'sugar',    label:'🍬 당류 제한',   desc:'인슐린·당뇨'},
-              {key:'sodium',   label:'🧂 나트륨 제한', desc:'고혈압·신장'},
-              {key:'flour',    label:'🌾 밀가루 제한', desc:'글루텐 프리'},
-              {key:'fat',      label:'🥓 지방 제한',   desc:'비만·고지혈'},
-            ].map(opt => `
-              <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
-                style="padding:6px 12px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
-                ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
-              </div>`).join('')}
-          </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="margin-bottom:6px">🚨 알레르기 설정 (선택)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${[
+            {no:'1', label:'🥚 난류'},{no:'2', label:'🥛 우유'},{no:'3', label:'🦐 메밀'},
+            {no:'4', label:'🥜 땅콩'},{no:'5', label:'🌾 대두'},{no:'6', label:'🌿 밀'},
+            {no:'7', label:'🐟 고등어'},{no:'8', label:'🦀 게'},{no:'9', label:'🦐 새우'},
+            {no:'10', label:'🐷 돼지고기'},{no:'11', label:'🍑 복숭아'},{no:'12', label:'🍅 토마토'},
+            {no:'13', label:'🥜 아황산류'},{no:'14', label:'🥚 호두'},{no:'15', label:'🐄 소고기'},
+            {no:'16', label:'🐔 닭고기'},{no:'17', label:'🦑 오징어'},{no:'18', label:'🦪 조개류'},
+          ].map(a => {
+            const checked = (m.allergyNos||[]).includes(a.no);
+            return `<div onclick="toggleAllergy(${m.id},'${a.no}')"
+              style="padding:5px 10px;border-radius:100px;border:1.5px solid ${checked ? '#dc3545' : 'var(--border)'};background:${checked ? 'rgba(220,53,69,.08)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${checked ? '#dc3545' : 'var(--ink3)'}">
+              ${a.label}
+            </div>`;
+          }).join('')}
         </div>
-      ` : `
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">직장 점심 메뉴 (오늘)</label>
-          <input type="text" class="form-input"
-            placeholder="예: 된장찌개, 제육볶음 (없으면 비워두세요)"
-            value="${m.workMenu}"
-            oninput="members.find(x=>x.id===${m.id}).workMenu=this.value" />
-          <div style="font-size:11px;color:var(--ink3);margin-top:4px">
-            직장 구내식당 메뉴를 입력하면 저녁 추천에서 제외돼요
-          </div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:6px">
+          ⓘ NEIS 급식 알레르기 번호 기준 · 급식에 포함 시 즉시 경고
         </div>
-      `}
+      </div>
     </div>
   `).join('');
 }
@@ -1406,10 +1416,16 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     }
     member.school = { name, code, sido, addr };
 
-    // 학교명에서 닉네임 자동 생성 (항상 업데이트)
+    // 학교명에서 닉네임 자동 생성 (학교약칭-초/중/고)
+    let schoolType = '';
+    if (name.includes('초등학교') || name.endsWith('초')) schoolType = '초';
+    else if (name.includes('중학교') || name.endsWith('중')) schoolType = '중';
+    else if (name.includes('고등학교') || name.endsWith('고')) schoolType = '고';
+
     const shortName = name
       .replace('초등학교','').replace('중학교','').replace('고등학교','')
-      .replace('초','').trim();
+      .trim() + (schoolType ? `-${schoolType}` : '');
+
     member.name = shortName;
 
     document.getElementById(`school-input-${memberId}`).value = name;
@@ -1459,11 +1475,52 @@ async function fetchAllLunch() {
       const row = data?.mealServiceDietInfo?.[1]?.row?.[0];
 
       if (row) {
-        const items = row.DDISH_NM
+        // 원본 메뉴명 (알레르기 번호 포함)
+        const rawDdish = row.DDISH_NM || '';
+
+        // 알레르기 번호 맵
+        const allergyMap = {
+          '1':'난류','2':'우유','3':'메밀','4':'땅콩','5':'대두',
+          '6':'밀','7':'고등어','8':'게','9':'새우','10':'돼지고기',
+          '11':'복숭아','12':'토마토','13':'아황산류','14':'호두',
+          '15':'소고기','16':'닭고기','17':'오징어','18':'조개류'
+        };
+
+        // 급식 전체에서 알레르기 번호 추출
+        const foundNos = [...new Set(
+          [...rawDdish.matchAll(/\(([^)]+)\)/g)]
+            .flatMap(m => m[1].split('.').map(s => s.trim()))
+            .filter(s => /^\d+$/.test(s))
+        )];
+
+        // 아이 알레르기 설정과 교차
+        const allergyNos = member.allergyNos || [];
+        const allergyHits = allergyNos
+          .filter(no => foundNos.includes(no))
+          .map(no => {
+            // 어떤 메뉴에 들어있는지 찾기
+            const menuWithAllergy = rawDdish
+              .replace(/<br\/>/g, ',').split(',')
+              .filter(d => {
+                const nos = [...d.matchAll(/\(([^)]+)\)/g)]
+                  .flatMap(m => m[1].split('.').map(s => s.trim()));
+                return nos.includes(no);
+              })
+              .map(d => d.replace(/\([^)]*\)/g, '').trim())
+              .filter(Boolean);
+            return {
+              no,
+              name: allergyMap[no] || `알레르기${no}`,
+              menus: menuWithAllergy,
+            };
+          });
+
+        const items = rawDdish
           .replace(/<br\/>/g, ',').split(',')
           .map(d => d.replace(/\([^)]*\)/g, '').trim())
           .filter(d => d.length > 0);
         member.lunchItems = items;
+        member.allergyHits = allergyHits;
         allLunchItems = [...allLunchItems, ...items];
 
         // 영양소 파싱
@@ -1490,24 +1547,12 @@ async function fetchAllLunch() {
         member.lunchNutritionRaw = { sugar: sugarRaw, sodium: sodiumRaw, carb: carbRaw, fat: fatRaw };
         member.healthWarnings = warnings;
 
-        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat }, warnings, healthFlags: flags, lunchNutritionRaw: member.lunchNutritionRaw });
+        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat }, warnings, healthFlags: flags, lunchNutritionRaw: member.lunchNutritionRaw, allergyHits: member.allergyHits || [] });
       } else {
         member.lunchItems = [];
         cards.push({ type: 'nodata', name: member.name || '아이', school: member.school.name });
       }
     } catch(e) {
-      member.lunchItems = [];
-    }
-  }
-
-  // 어른들 직장 메뉴
-  for (const member of members.filter(m => m.type === 'adult')) {
-    if (member.workMenu.trim()) {
-      const items = member.workMenu.split(/[,，\s]+/).filter(Boolean);
-      member.lunchItems = items;
-      allLunchItems = [...allLunchItems, ...items];
-      cards.push({ type: 'work', name: member.name || '어른', items });
-    } else {
       member.lunchItems = [];
     }
   }
@@ -1540,14 +1585,6 @@ function renderAllLunch(cards) {
       <div class="card" style="margin-bottom:12px;opacity:.6">
         <div style="font-size:13px;color:var(--ink3)">🏫 ${card.name} · ${card.school}</div>
         <div style="font-size:13px;color:var(--ink3);margin-top:6px">오늘 급식 정보 없음</div>
-      </div>`;
-
-    if (card.type === 'work') return `
-      <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#1a2a3a,#2a3a4a);color:white">
-        <div style="font-size:12px;opacity:.7;margin-bottom:6px">💼 ${card.name} 직장 점심</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${card.items.map(i => `<span style="background:rgba(255,255,255,.15);border-radius:100px;padding:3px 10px;font-size:12px">${i}</span>`).join('')}
-        </div>
       </div>`;
 
     return `
@@ -1595,6 +1632,26 @@ function renderAllLunch(cards) {
               </div>` : ''}
             </div>`;
           }).join('')}
+        </div>` : ''}
+
+        ${card.allergyHits && card.allergyHits.length > 0 ? `
+        <div style="margin-top:10px;padding:12px 14px;background:#fde8e8;border:2px solid #dc3545;border-radius:12px">
+          <div style="font-size:13px;font-weight:800;color:#dc3545;margin-bottom:8px">
+            🚨 ${card.name} 알레르기 주의!
+          </div>
+          ${card.allergyHits.map(hit => `
+            <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:8px;border:1px solid rgba(220,53,69,.3)">
+              <div style="font-size:12px;font-weight:700;color:#dc3545;margin-bottom:4px">
+                ⑩ ${hit.name} (알레르기 ${hit.no}번)
+              </div>
+              <div style="font-size:11px;color:#666">
+                포함 메뉴:
+                ${hit.menus.map(m => `<span style="background:rgba(220,53,69,.1);padding:1px 6px;border-radius:4px;font-weight:600">${m}</span>`).join(' ')}
+              </div>
+            </div>`).join('')}
+          <div style="font-size:11px;color:#dc3545;margin-top:4px;font-weight:600">
+            💊 학교에 미리 알리거나 대체식을 요청하세요
+          </div>
         </div>` : ''}
       </div>`;
   }).join('') + `
@@ -2767,8 +2824,8 @@ function saveToLocal() {
         type: m.type,
         name: m.name,
         school: m.school,
-        workMenu: m.workMenu,
         healthFlags: m.healthFlags || [],
+        allergyNos: m.allergyNos || [],
       })),
       memberIdCounter,
     };
@@ -2784,16 +2841,26 @@ function loadFromLocal() {
     if (!data.members || data.members.length === 0) return false;
 
     members = data.members
-      .filter(m => m.type === 'child' || m.type === 'adult')
-      .map(m => ({
-        ...m,
-        name: m.name || (m.school
-          ? m.school.name.replace('초등학교','').replace('중학교','').replace('고등학교','').replace('초','').trim()
-          : ''),
-        lunchItems: [],
-        workMenu: m.workMenu || '',
-        healthFlags: m.healthFlags || [],
-      }));
+      .filter(m => m.type === 'child')
+      .map(m => {
+        let name = m.name;
+        // 이름이 없거나 구형식(학교명 앞글자)이면 새 형식으로 재생성
+        if (!name && m.school) {
+          const sn = m.school.name;
+          let st = '';
+          if (sn.includes('초등학교') || sn.endsWith('초')) st = '초';
+          else if (sn.includes('중학교') || sn.endsWith('중')) st = '중';
+          else if (sn.includes('고등학교') || sn.endsWith('고')) st = '고';
+          name = sn.replace('초등학교','').replace('중학교','').replace('고등학교','').trim() + (st ? `-${st}` : '');
+        }
+        return {
+          ...m,
+          name: name || '',
+          lunchItems: [],
+          healthFlags: m.healthFlags || [],
+          allergyNos: m.allergyNos || [],
+        };
+      });
 
     if (members.length === 0) return false;
     memberIdCounter = data.memberIdCounter || members.length;
@@ -2814,7 +2881,7 @@ renderMembers();
 
 if (restored) {
   setTimeout(async () => {
-    const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
+    const names = members.map(m => m.name || '아이').join(', ');
     showToast(`✅ ${names} 설정을 불러왔어요!`);
     renderMembers();
 
