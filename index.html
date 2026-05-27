@@ -1340,52 +1340,44 @@ function renderMembers() {
       </div>
 
       ${m.school ? `
-      <!-- 건강/알레르기 설정 토글 -->
-      <div style="margin-top:8px">
-        <button onclick="toggleHealthPanel(${m.id})" id="health-toggle-${m.id}"
-          style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:#fafafa;font-size:12px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;-webkit-tap-highlight-color:transparent">
-          <span>⚙️ 건강·알레르기 설정 ${(m.healthFlags||[]).length > 0 || (m.allergyNos||[]).length > 0 ? '<span style="color:var(--accent)">●</span>' : ''}</span>
-          <span id="health-toggle-arrow-${m.id}">▼</span>
-        </button>
-
-        <div id="health-panel-${m.id}" style="display:none;margin-top:8px">
-          <!-- 건강 주의 -->
-          <div style="margin-bottom:10px">
-            <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 건강 주의 설정</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
-              ${[
-                {key:'sugar',  label:'🍬 당류',   desc:'인슐린·당뇨'},
-                {key:'sodium', label:'🧂 나트륨', desc:'고혈압·신장'},
-                {key:'flour',  label:'🌾 밀가루', desc:'글루텐 프리'},
-                {key:'fat',    label:'🥓 지방',   desc:'비만·고지혈'},
-              ].map(opt => `
-                <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
-                  style="padding:5px 10px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
-                  ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
-                </div>`).join('')}
-            </div>
+      <!-- 건강/알레르기 설정 -->
+      <div style="margin-top:12px">
+        <!-- 건강 주의 -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${[
+              {key:'sugar',  label:'🍬 당류',   desc:'인슐린·당뇨'},
+              {key:'sodium', label:'🧂 나트륨', desc:'고혈압·신장'},
+              {key:'flour',  label:'🌾 밀가루', desc:'글루텐 프리'},
+              {key:'fat',    label:'🥓 지방',   desc:'비만·고지혈'},
+            ].map(opt => `
+              <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
+                style="padding:5px 10px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
+                ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
+              </div>`).join('')}
           </div>
-          <!-- 알레르기 -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:#dc3545;margin-bottom:6px">🚨 알레르기 설정</div>
-            <div style="display:flex;flex-wrap:wrap;gap:5px">
-              ${[
-                {no:'1',label:'🥚 난류'},{no:'2',label:'🥛 우유'},{no:'3',label:'🌿 메밀'},
-                {no:'4',label:'🥜 땅콩'},{no:'5',label:'🫘 대두'},{no:'6',label:'🌾 밀'},
-                {no:'7',label:'🐟 고등어'},{no:'8',label:'🦀 게'},{no:'9',label:'🦐 새우'},
-                {no:'10',label:'🐷 돼지고기'},{no:'11',label:'🍑 복숭아'},{no:'12',label:'🍅 토마토'},
-                {no:'13',label:'아황산류'},{no:'14',label:'호두'},{no:'15',label:'🐄 소고기'},
-                {no:'16',label:'🐔 닭고기'},{no:'17',label:'🦑 오징어'},{no:'18',label:'🦪 조개류'},
-              ].map(a => {
-                const checked = (m.allergyNos||[]).includes(a.no);
-                return `<div onclick="toggleAllergy(${m.id},'${a.no}')"
-                  style="padding:4px 9px;border-radius:100px;border:1.5px solid ${checked ? '#dc3545' : 'var(--border)'};background:${checked ? 'rgba(220,53,69,.08)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${checked ? '#dc3545' : 'var(--ink3)'}">
-                  ${a.label}
-                </div>`;
-              }).join('')}
-            </div>
-            <div style="font-size:10px;color:var(--ink3);margin-top:5px">NEIS 급식 알레르기 번호 기준 · 급식에 포함 시 즉시 경고</div>
+        </div>
+        <!-- 알레르기 -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#dc3545;margin-bottom:6px">🚨 알레르기 설정 (선택)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${[
+              {no:'1',label:'🥚 난류'},{no:'2',label:'🥛 우유'},{no:'3',label:'🌿 메밀'},
+              {no:'4',label:'🥜 땅콩'},{no:'5',label:'🫘 대두'},{no:'6',label:'🌾 밀'},
+              {no:'7',label:'🐟 고등어'},{no:'8',label:'🦀 게'},{no:'9',label:'🦐 새우'},
+              {no:'10',label:'🐷 돼지고기'},{no:'11',label:'🍑 복숭아'},{no:'12',label:'🍅 토마토'},
+              {no:'13',label:'아황산류'},{no:'14',label:'호두'},{no:'15',label:'🐄 소고기'},
+              {no:'16',label:'🐔 닭고기'},{no:'17',label:'🦑 오징어'},{no:'18',label:'🦪 조개류'},
+            ].map(a => {
+              const checked = (m.allergyNos||[]).includes(a.no);
+              return `<div onclick="toggleAllergy(${m.id},'${a.no}')"
+                style="padding:4px 9px;border-radius:100px;border:1.5px solid ${checked ? '#dc3545' : 'var(--border)'};background:${checked ? 'rgba(220,53,69,.08)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${checked ? '#dc3545' : 'var(--ink3)'}">
+                ${a.label}
+              </div>`;
+            }).join('')}
           </div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:5px">NEIS 급식 알레르기 번호 기준 · 급식에 포함 시 즉시 경고</div>
         </div>
       </div>` : ''}
     </div>
