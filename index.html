@@ -1420,15 +1420,8 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     }
     member.school = { name, code, sido, addr };
 
-    // 학교명에서 닉네임 자동 생성 (학교약칭-초/중/고)
-    let schoolType = '';
-    if (name.includes('초등학교') || name.endsWith('초')) schoolType = '초';
-    else if (name.includes('중학교') || name.endsWith('중')) schoolType = '중';
-    else if (name.includes('고등학교') || name.endsWith('고')) schoolType = '고';
-
-    const shortName = name
-      .replace('초등학교','').replace('중학교','').replace('고등학교','')
-      .trim() + (schoolType ? `-${schoolType}` : '');
+    // 학교명에서 "학교" 두 글자만 제거해서 닉네임 생성
+    const shortName = name.replace('학교', '').trim();
 
     member.name = shortName;
 
@@ -2721,26 +2714,60 @@ function goShoppingFromMenu() {
 function openDeliveryApp(app) {
   const menu = state.selectedMenu;
   const query = menu ? encodeURIComponent(menu.name) : '';
-  const urls = {
+
+  const deepLinks = {
+    'baemin':         `baemin://search?query=${query}`,
+    'yogiyo':         `yogiyo://search?keyword=${query}`,
+    'baemin-special': `baemin://search?query=${query}&tab=baemin_special`,
+  };
+  const webUrls = {
     'baemin':         `https://baemin.com/search?q=${query}`,
     'yogiyo':         `https://www.yogiyo.co.kr/search/?search=${query}`,
-    'baemin-special': `https://baemin.com/search?q=${query}&tab=baemin_special`,
+    'baemin-special': `https://baemin.com/search?q=${query}`,
   };
-  window.open(urls[app], '_blank');
+
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = deepLinks[app];
+  document.body.appendChild(iframe);
+
+  const timer = setTimeout(() => {
+    window.open(webUrls[app], '_blank');
+  }, 1500);
+
+  window.addEventListener('blur', () => {
+    clearTimeout(timer);
+    setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2000);
+  }, { once: true });
+
+  setTimeout(() => {
+    if (document.body.contains(iframe)) document.body.removeChild(iframe);
+  }, 3000);
 }
 
 function handleCoupangClick(itemName) {
-  // 쿠팡 클릭 후 레시피 카드 표시
+  // 쿠팡 앱 딥링크 시도 → 앱 없으면 웹으로 fallback
+  const appUrl = `coupang://search?q=${encodeURIComponent(itemName)}`;
+  const webUrl = `https://www.coupang.com/np/search?q=${encodeURIComponent(itemName)}&channel=user&sorter=reviewCountDESC`;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = appUrl;
+  document.body.appendChild(iframe);
+
+  // 앱 실행 안 되면 웹으로 이동
+  const timer = setTimeout(() => {
+    window.open(webUrl, '_blank');
+  }, 1500);
+
+  window.addEventListener('blur', () => {
+    clearTimeout(timer); // 앱이 열렸으면 타이머 취소
+    setTimeout(() => document.body.removeChild(iframe), 2000);
+  }, { once: true });
+
   setTimeout(() => {
-    const menuName = state.selectedMenu?.name || '';
-    const recipeCard = document.getElementById('recipe-link-card');
-    const recipeLink = document.getElementById('recipe-external-link');
-    if (recipeCard && recipeLink && menuName) {
-      recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
-      recipeLink.textContent = `만개의레시피에서 레시피 보기 →`;
-      recipeCard.style.display = 'block';
-    }
-  }, 500);
+    if (document.body.contains(iframe)) document.body.removeChild(iframe);
+  }, 3000);
 }
 
 function orderPlatform(platform) {
@@ -2937,14 +2964,9 @@ function loadFromLocal() {
       .filter(m => m.type === 'child')
       .map(m => {
         let name = m.name;
-        // 이름이 없거나 구형식(학교명 앞글자)이면 새 형식으로 재생성
+        // 이름이 없으면 "학교" 두 글자만 제거해서 닉네임 생성
         if (!name && m.school) {
-          const sn = m.school.name;
-          let st = '';
-          if (sn.includes('초등학교') || sn.endsWith('초')) st = '초';
-          else if (sn.includes('중학교') || sn.endsWith('중')) st = '중';
-          else if (sn.includes('고등학교') || sn.endsWith('고')) st = '고';
-          name = sn.replace('초등학교','').replace('중학교','').replace('고등학교','').trim() + (st ? `-${st}` : '');
+          name = m.school.name.replace('학교', '').trim();
         }
         return {
           ...m,
