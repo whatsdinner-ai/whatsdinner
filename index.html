@@ -1148,30 +1148,39 @@ function renderMembers() {
     return;
   }
 
-  // 버튼 활성화
+  // 버튼 활성화 조건
+  // 아이가 있으면 학교 선택 필수
+  const children = members.filter(m => m.type === 'child');
+  const allSchoolSet = children.every(m => m.school);
+  const canStart = members.length > 0 && (children.length === 0 || allSchoolSet);
+
   if (btn) {
-    btn.textContent = '점심 메뉴 가져오기 →';
-    btn.style.background = 'var(--accent)';
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
+    if (canStart) {
+      btn.textContent = '점심 메뉴 가져오기 →';
+      btn.style.background = 'var(--accent)';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    } else {
+      btn.textContent = children.length > 0 && !allSchoolSet
+        ? '학교를 먼저 선택해주세요'
+        : '점심 메뉴 가져오기';
+      btn.style.background = '#cccccc';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'none';
+    }
   }
-  if (guide) guide.style.display = 'none';
+  if (guide) guide.style.display = canStart ? 'none' : 'flex';
 
   list.innerHTML = members.map(m => `
     <div class="card" style="margin-bottom:12px" id="member-card-${m.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-weight:700;font-size:15px">
-          ${m.type === 'child' ? '🧒👧 아이' : '👨👩 어른'}
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-weight:700;font-size:15px">
+            ${m.type === 'child' ? '🧒👧 아이' : '👨👩 어른'}
+          </div>
+          ${m.name ? `<span style="font-size:12px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:100px;font-weight:600">${m.name}</span>` : ''}
         </div>
         <button onclick="removeMember(${m.id})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px">✕</button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">닉네임 (학교 선택 시 자동 설정)</label>
-        <input type="text" class="form-input" placeholder="${m.type === 'child' ? '예: 의정부, 첫째' : '예: 아빠, 엄마'}"
-          value="${m.name}"
-          oninput="members.find(x=>x.id===${m.id}).name=this.value; saveToLocal()"
-          style="margin-bottom:0" />
       </div>
 
       ${m.type === 'child' ? `
@@ -1252,20 +1261,17 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     }
     member.school = { name, code, sido, addr };
 
-    // 닉네임 자동 설정 (이름 없을 때만)
-    // 예: "의정부중학교" → "의정부"
-    if (!member.name) {
-      const schoolShort = name
-        .replace('초등학교','').replace('중학교','').replace('고등학교','')
-        .replace('초','').trim();
-      member.name = schoolShort;
-    }
+    // 학교명에서 닉네임 자동 생성 (항상 업데이트)
+    const shortName = name
+      .replace('초등학교','').replace('중학교','').replace('고등학교','')
+      .replace('초','').trim();
+    member.name = shortName;
 
     document.getElementById(`school-input-${memberId}`).value = name;
     document.getElementById(`school-dd-${memberId}`).style.display = 'none';
     renderMembers();
     saveToLocal();
-    showToast(`${name} 선택됨 ✅`);
+    showToast(`${shortName} ✅`);
   }
 }
 
@@ -2505,13 +2511,21 @@ function loadFromLocal() {
     const data = JSON.parse(raw);
     if (!data.members || data.members.length === 0) return false;
 
-    members = data.members.map(m => ({
-      ...m,
-      lunchItems: [],
-    }));
+    members = data.members
+      .filter(m => m.type === 'child' || m.type === 'adult')
+      .map(m => ({
+        ...m,
+        name: m.school
+          ? m.school.name.replace('초등학교','').replace('중학교','').replace('고등학교','').replace('초','').trim()
+          : '',
+        lunchItems: [],
+      }));
+
+    if (members.length === 0) return false;
     memberIdCounter = data.memberIdCounter || members.length;
     return true;
   } catch(e) {
+    localStorage.removeItem('whatsdinner_members');
     return false;
   }
 }
