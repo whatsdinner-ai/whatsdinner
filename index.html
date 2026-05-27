@@ -121,6 +121,10 @@ body {
   animation: fadeUp .3s ease;
 }
 .section.active { display: block; }
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(12px); }
   to { opacity:1; transform:translateY(0); }
@@ -581,7 +585,10 @@ body {
         <line x1="54" y1="24" x2="206" y2="24" stroke="#e8ddd0" stroke-width="0.8"/>
         <text x="54" y="37" font-family="'Noto Sans KR', sans-serif" font-weight="400" font-size="10" fill="#9a8a75" letter-spacing="0.5">급식과 다른 저녁</text>
       </svg>
-      <div class="today-date" id="today-date"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="today-date" id="today-date"></div>
+        <button onclick="showInfoModal()" style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0">ⓘ</button>
+      </div>
     </div>
   </div>
 
@@ -837,6 +844,10 @@ body {
     </div>
 
     <button class="btn-primary" onclick="resetAll()">🍽️ 내일 메뉴도 추천받기</button>
+    <div style="margin-top:10px;padding:10px 14px;background:#f8f8f8;border-radius:10px;font-size:11px;color:var(--ink3);line-height:1.6;text-align:center">
+      📌 학교 급식 일정은 변경·취소될 수 있어요<br>
+      오후 2시 이후 조회 시 내일 급식이 더 정확해요
+    </div>
   </div>
 
 </div><!-- /main-content -->
@@ -1029,6 +1040,85 @@ body {
   </div>
   <button onclick="installApp()" style="padding:8px 14px;background:#FF6B00;border:none;border-radius:8px;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">설치</button>
   <button onclick="dismissBanner()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;padding:0 4px">×</button>
+</div>
+
+<!-- 앱 정보 모달 -->
+<div id="info-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center"
+  onclick="if(event.target===this)hideInfoModal()">
+  <div style="background:white;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:24px 24px 40px;animation:slideUp .25s ease">
+
+    <!-- 핸들 -->
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px"></div>
+
+    <!-- 로고 -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:52px;height:52px;background:#FF6B00;border-radius:14px;display:flex;align-items:center;justify-content:center">
+        <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
+          <rect x="1" y="1" width="42" height="42" rx="9" stroke="white" stroke-width="2" fill="none"/>
+          <line x1="1" y1="22" x2="43" y2="22" stroke="white" stroke-width="1.6"/>
+          <line x1="22" y1="1" x2="22" y2="22" stroke="white" stroke-width="1.6"/>
+          <path d="M26 10 L29.5 14 L36 7.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--ink)">왓츠디너</div>
+        <div style="font-size:12px;color:var(--ink3)">급식과 다른 저녁</div>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+
+    <!-- 지식재산권 -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">지식재산권</div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border-radius:12px;margin-bottom:8px">
+        <div style="width:32px;height:32px;background:#fff3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">™</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--ink)">상표권 등록</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:1px">등록번호 제 0000-0000000 호</div>
+        </div>
+        <div style="margin-left:auto;font-size:10px;color:white;background:#2d6a4f;padding:2px 8px;border-radius:100px;font-weight:700">등록</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border-radius:12px">
+        <div style="width:32px;height:32px;background:#fff3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">⚙️</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--ink)">특허 출원 중</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:1px">출원번호 제 0000-0000000 호</div>
+        </div>
+        <div style="margin-left:auto;font-size:10px;color:white;background:#FF6B00;padding:2px 8px;border-radius:100px;font-weight:700">출원중</div>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+
+    <!-- 앱 정보 -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">앱 정보</div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;color:var(--ink2)">버전</span>
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">1.0.0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;color:var(--ink2)">서비스</span>
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">whatsdinner.co.kr</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0">
+        <span style="font-size:13px;color:var(--ink2)">데이터</span>
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">교육부 NEIS Open API</span>
+      </div>
+    </div>
+
+    <!-- 저작권 -->
+    <div style="text-align:center;font-size:11px;color:var(--ink3);line-height:1.6">
+      © 2026 왓츠디너. All rights reserved.<br>
+      본 서비스의 알고리즘 및 UI는 저작권법의 보호를 받습니다.
+    </div>
+
+  </div>
 </div>
 
 <!-- 토스트 -->
@@ -2484,151 +2574,4 @@ function showMain() {
 
   document.getElementById('nav-main-bar').style.background = '#FF6B00';
   document.getElementById('nav-main-label').style.color = '#FF6B00';
-  document.getElementById('nav-main-label').style.fontWeight = '700';
-  document.getElementById('nav-cafe-bar').style.background = 'transparent';
-  document.getElementById('nav-cafe-label').style.color = '#bbbbbb';
-  document.getElementById('nav-cafe-label').style.fontWeight = '500';
-  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
-    p.setAttribute('stroke', '#bbbbbb');
-  });
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function showCafe() {
-  document.getElementById('main-content').style.display = 'none';
-  document.getElementById('section-cafe').style.display = 'block';
-
-  document.getElementById('nav-cafe-bar').style.background = '#FF6B00';
-  document.getElementById('nav-cafe-label').style.color = '#FF6B00';
-  document.getElementById('nav-cafe-label').style.fontWeight = '700';
-  document.getElementById('nav-main-bar').style.background = 'transparent';
-  document.getElementById('nav-main-label').style.color = '#bbbbbb';
-  document.getElementById('nav-main-label').style.fontWeight = '500';
-  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
-    p.setAttribute('stroke', '#FF6B00');
-  });
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function switchCafeTab(tab) {
-  ['notice','survey','diary'].forEach(t => {
-    const el = document.getElementById(`cafe-${t}`);
-    const btn = document.getElementById(`cafe-tab-${t}`);
-    if (el) el.style.display = t === tab ? 'block' : 'none';
-    if (btn) {
-      btn.style.background = t === tab ? 'var(--accent)' : 'var(--paper)';
-      btn.style.color = t === tab ? 'white' : 'var(--ink2)';
-      btn.style.borderColor = t === tab ? 'var(--accent)' : 'var(--border)';
-      btn.style.fontWeight = t === tab ? '700' : '500';
-    }
-  });
-}
-
-function voteSurvey(btn, idx) {
-  document.querySelectorAll('#cafe-survey button[onclick^="voteSurvey("]').forEach((b,i) => {
-    b.style.borderColor = i === idx ? 'var(--accent)' : 'var(--border)';
-    b.style.background = i === idx ? 'rgba(255,107,0,.08)' : 'var(--cream)';
-    const bar = b.querySelector('.survey-bar div');
-    if (bar) bar.style.width = i === idx ? '80%' : ['20%','40%','60%','30%'][i] || '10%';
-  });
-  document.getElementById('survey-result').style.display = 'block';
-  showToast('소중한 의견 감사해요! 😊');
-}
-
-// ── localStorage 저장/불러오기 ──
-
-function saveToLocal() {
-  try {
-    const data = {
-      members: members.map(m => ({
-        id: m.id,
-        type: m.type,
-        name: m.name,
-        school: m.school,
-        workMenu: m.workMenu,
-      })),
-      memberIdCounter,
-    };
-    localStorage.setItem('whatsdinner_members', JSON.stringify(data));
-  } catch(e) {}
-}
-
-function loadFromLocal() {
-  try {
-    const raw = localStorage.getItem('whatsdinner_members');
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    if (!data.members || data.members.length === 0) return false;
-
-    members = data.members
-      .filter(m => m.type === 'child' || m.type === 'adult')
-      .map(m => ({
-        ...m,
-        name: m.school
-          ? m.school.name.replace('초등학교','').replace('중학교','').replace('고등학교','').replace('초','').trim()
-          : '',
-        lunchItems: [],
-      }));
-
-    if (members.length === 0) return false;
-    memberIdCounter = data.memberIdCounter || members.length;
-    return true;
-  } catch(e) {
-    localStorage.removeItem('whatsdinner_members');
-    return false;
-  }
-}
-
-function clearLocal() {
-  localStorage.removeItem('whatsdinner_members');
-}
-
-// ── 초기화 ──
-const restored = loadFromLocal();
-renderMembers();
-
-if (restored) {
-  setTimeout(() => {
-    const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
-    showToast(`✅ ${names} 설정을 불러왔어요!`);
-  }, 600);
-}
-
-// ── 홈화면 추가 배너 ──
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (localStorage.getItem('whatsdinner_banner_dismissed')) return;
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.style.display = 'flex';
-});
-
-function installApp() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(result => {
-    if (result.outcome === 'accepted') showToast('앱 설치 완료! 홈화면에서 실행하세요 😄');
-    deferredPrompt = null;
-    const banner = document.getElementById('install-banner');
-    if (banner) banner.style.display = 'none';
-  });
-}
-
-function dismissBanner() {
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.style.display = 'none';
-  localStorage.setItem('whatsdinner_banner_dismissed', '1');
-}
-</script>
-<!-- PWA SW 등록 (배포 환경에서만) -->
-<script>
-if (location.hostname !== 'www.claudeusercontent.com' &&
-    'serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js');
-  });
-}
-</script>
-</body>
-</html>
+  document.getElementById('nav-main-label').style.fontWeight
