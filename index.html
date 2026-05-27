@@ -765,21 +765,6 @@ body::before {
 
     <div id="shopping-list"></div>
 
-    <!-- 쿠팡 전체 장보기 버튼 -->
-    <div class="card" style="margin-bottom:12px">
-      <div class="form-label" style="margin-bottom:10px">한 번에 장보기</div>
-      <a id="coupang-all-btn"
-        href="#"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="display:block;text-align:center;padding:14px;background:#c00;border-radius:10px;color:white;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:8px">
-        🚀 쿠팡에서 전체 재료 검색
-      </a>
-      <div style="font-size:11px;color:var(--ink3);text-align:center">
-        이 링크는 쿠팡 파트너스 제휴 링크입니다
-      </div>
-    </div>
-
     <!-- 주문 후 레시피 보기 -->
     <div id="recipe-link-card" style="display:none">
       <div class="card" style="text-align:center;padding:20px">
@@ -2075,24 +2060,9 @@ function goShoppingFromMenu() {
 
   const el = document.getElementById('shopping-list');
 
-  // 쿠팡 검색 URL 생성
-  const COUPANG_ID = 'whatsdinner'; // 파트너스 ID 등록 후 여기 변경
-
-  // 개별 재료 → 리뷰 많은 순 정렬
+  // 쿠팡 개별 재료 링크 (리뷰 많은 순)
   const coupangUrl = (keyword) =>
     `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user&sorter=reviewCountDESC`;
-
-  // 전체 재료 → 관련도순 (여러 재료 섞이면 리뷰순 의미없음)
-  const coupangAllUrl = (keyword) =>
-    `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`;
-
-  // 전체 재료 합쳐서 쿠팡 검색
-  const allKeyword = needed.map(i => i.name).join(' ');
-  const coupangAllBtn = document.getElementById('coupang-all-btn');
-  if (coupangAllBtn) {
-    coupangAllBtn.href = coupangAllUrl(allKeyword || menuName);
-    coupangAllBtn.innerHTML = `🚀 쿠팡에서 전체 재료 검색 (${needed.length}가지)`;
-  }
 
   if (needed.length === 0) {
     el.innerHTML = `
