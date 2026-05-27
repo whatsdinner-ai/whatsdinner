@@ -2651,20 +2651,23 @@ function goShoppingFromMenu() {
         <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px;padding:3px 10px;background:${color}18;border-radius:100px;display:inline-block">
           ${label}
         </div>
-        ${list.map((item, i) => `
+        ${list.map((item, i) => {
+            const safeId = `s-${label}-${i}`;
+            const safeName = item.name.replace(/'/g, "\\'");
+            return `
           <div style="margin-bottom:6px">
             <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
-              <div id="scheck-s-${label}-${i}" onclick="toggleCheck('s-${label}-${i}','${item.name}')"
+              <div id="scheck-${safeId}" onclick="toggleCheck('${safeId}','${safeName}')"
                 style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
-              <div id="sname-s-${label}-${i}" style="flex:1;font-size:14px;font-weight:${item.isMain ? '700' : '400'}">${item.name}</div>
+              <div id="sname-${safeId}" style="flex:1;font-size:14px;font-weight:${item.isMain ? '700' : '400'}">${item.name}</div>
               <a href="${coupangUrl(item.name)}" target="_blank" rel="noopener noreferrer"
-                onclick="handleCoupangClick('${item.name}')"
+                onclick="event.preventDefault();handleCoupangClick('${safeName}')"
                 style="font-size:11px;color:#e8232a;font-weight:700;text-decoration:none;padding:4px 8px;background:#fff0f0;border-radius:6px;flex-shrink:0">
                 쿠팡 →
               </a>
             </div>
-          </div>
-        `).join('')}
+          </div>`;
+          }).join('')}
       </div>`;
   };
 
