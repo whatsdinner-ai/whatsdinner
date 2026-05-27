@@ -576,15 +576,21 @@ body {
   <!-- 헤더 (항상 표시) -->
   <div class="header">
     <div class="header-top">
-      <svg width="210" height="44" viewBox="0 0 210 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="42" height="42" rx="9" stroke="#FF6B00" stroke-width="2" fill="none"/>
-        <line x1="1" y1="22" x2="43" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
-        <line x1="22" y1="1" x2="22" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
-        <path d="M26 10 L29.5 14 L36 7.5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="54" y="17" font-family="'Black Han Sans', 'Noto Sans KR', sans-serif" font-size="18" font-weight="900" fill="#1a1208" letter-spacing="-0.5">왓츠디너</text>
-        <line x1="54" y1="24" x2="206" y2="24" stroke="#e8ddd0" stroke-width="0.8"/>
-        <text x="54" y="37" font-family="'Noto Sans KR', sans-serif" font-weight="400" font-size="10" fill="#9a8a75" letter-spacing="0.5">급식과 다른 저녁</text>
-      </svg>
+      <!-- 로고 -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <!-- 식판 아이콘 SVG -->
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <rect x="1" y="1" width="42" height="42" rx="9" stroke="#FF6B00" stroke-width="2" fill="none"/>
+          <line x1="1" y1="22" x2="43" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
+          <line x1="22" y1="1" x2="22" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
+          <path d="M26 10 L29.5 14 L36 7.5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <!-- 브랜드 텍스트 -->
+        <div>
+          <div style="font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:18px;font-weight:400;color:#1a1208;letter-spacing:-0.5px;line-height:1.2">왓츠디너</div>
+          <div style="font-size:10px;color:#9a8a75;letter-spacing:0.5px;margin-top:1px">급식과 다른 저녁</div>
+        </div>
+      </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="today-date" id="today-date"></div>
         <button onclick="showInfoModal()" style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0">ⓘ</button>
@@ -1860,10 +1866,20 @@ async function generateMenu() {
     ...[...recentItems]
   ].map(i => i.toLowerCase()));
 
-  // 기본 제외 (밥류, 김치류, 음료)
-  const basicExclude = ['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치','우유','요구르트','과일','사과','귤','오렌지'];
+  // 메뉴 이름 정규화 (유사 메뉴 통합)
+  const normalizeName = (name) => {
+    return name
+      .replace(/\s/g, '')
+      .replace(/된장찌개|된장국|된장soup/gi, '된장찌개')
+      .replace(/미역국|미역soup/gi, '미역국')
+      .replace(/김치찌개|김치국/gi, '김치찌개')
+      .replace(/콩나물국|콩나물soup/gi, '콩나물국')
+      .replace(/계란|달걀/gi, '계란')
+      .replace(/쇠고기|소고기/gi, '소고기')
+      .toLowerCase();
+  };
 
-  // 2. 1달치 전체에서 메뉴별 등장 횟수 집계 (인기 = 많이 나온 것)
+  // 2. 3달치 전체에서 메뉴별 등장 횟수 집계
   const menuPool = {};
 
   pastLunchMenus.forEach(day => {
@@ -1875,15 +1891,22 @@ async function generateMenu() {
       );
       if (hasExclude) return;
 
-      if (!menuPool[item]) {
-        menuPool[item] = { count: 0, nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat } };
+      // 정규화된 이름으로 그룹핑 (중복 방지)
+      const normalized = normalizeName(item);
+      if (!menuPool[normalized]) {
+        menuPool[normalized] = {
+          count: 0,
+          displayName: item, // 원래 이름 표시용
+          nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat }
+        };
       }
-      menuPool[item].count++;
+      menuPool[normalized].count++;
     });
   });
 
-  // 3. 카테고리 분류 + 인기순 정렬
-  const allMenus = Object.entries(menuPool).map(([name, info]) => {
+  // 3. 카테고리 분류 + 빈도 적은 순 정렬
+  const allMenus = Object.entries(menuPool).map(([normalized, info]) => {
+    const name = info.displayName; // 원래 이름 사용
     const category = getMenuCategory(name);
 
     // 주부 직관 보너스
@@ -1918,10 +1941,10 @@ async function generateMenu() {
   const gukList    = allMenus.filter(m => m.category === '국').sort((a,b) => a.count-b.count).slice(0,5);
   const banchanList= allMenus.filter(m => m.category === '반찬').sort((a,b) => a.count-b.count).slice(0,8);
 
-  // 기본값 보충
-  const defaultBap = [{ name:'잡곡밥', emoji:'🌾', category:'밥', reason:'기본 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) }];
-  const defaultGuk = [{ name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) }];
-  const defaultBanchan = [{ name:'계란후라이', emoji:'🥚', category:'반찬', reason:'간단 반찬', badges:[], schoolRef:'', cookTime:'5분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) }];
+  // 기본값 보충 (실제 데이터 없을 때만)
+  const defaultBap     = [{ name:'잡곡밥',   emoji:'🌾', category:'밥',  reason:'기본 잡곡밥',   badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) }];
+  const defaultGuk     = [{ name:'미역국',   emoji:'🍲', category:'국',  reason:'기본 미역국',   badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('미역국', state.fridge, state.lunchMenu) }];
+  const defaultBanchan = [{ name:'계란후라이',emoji:'🥚', category:'반찬',reason:'간단 반찬',     badges:[], schoolRef:'', cookTime:'5분',  difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) }];
 
   renderMenusByCat(
     bapList.length > 0 ? bapList : defaultBap,
