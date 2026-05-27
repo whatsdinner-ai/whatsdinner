@@ -741,36 +741,43 @@ body {
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">3달치 급식 중 덜 나온 메뉴 순 · 이번주·저번주 제외</div>
+      <div class="section-sub">3달치 급식 중 덜 나온 메뉴 · 이번주·저번주 제외</div>
 
       <!-- 밥 -->
       <div style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div style="width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🍚</div>
-          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">밥</div>
-          <div style="font-size:12px;color:var(--ink3)">오늘의 추천</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:26px;height:26px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🍚</div>
+            <div style="font-size:15px;font-weight:700">밥</div>
+          </div>
+          <button id="more-bap" onclick="showMore('bap')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;display:none">더보기 ›</button>
         </div>
-        <div id="menu-list-bap"></div>
+        <div id="menu-list-bap" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
       </div>
 
       <!-- 국 -->
       <div style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div style="width:28px;height:28px;background:#2d6a4f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🥘</div>
-          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">국/찌개</div>
-          <div style="font-size:12px;color:var(--ink3)">오늘의 추천</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:26px;height:26px;background:#2d6a4f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🥘</div>
+            <div style="font-size:15px;font-weight:700">국/찌개</div>
+          </div>
+          <button id="more-guk" onclick="showMore('guk')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;display:none">더보기 ›</button>
         </div>
-        <div id="menu-list-guk"></div>
+        <div id="menu-list-guk" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
       </div>
 
       <!-- 반찬 -->
       <div style="margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div style="width:28px;height:28px;background:#e8832a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🍳</div>
-          <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700">반찬</div>
-          <div style="font-size:12px;color:var(--ink3)">여러 개 선택 가능</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:26px;height:26px;background:#e8832a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🍳</div>
+            <div style="font-size:15px;font-weight:700">반찬</div>
+            <div style="font-size:11px;color:var(--ink3)">여러 개 선택 가능</div>
+          </div>
+          <button id="more-banchan" onclick="showMore('banchan')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;display:none">더보기 ›</button>
         </div>
-        <div id="menu-list-banchan"></div>
+        <div id="menu-list-banchan" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
       </div>
 
       <!-- 선택된 오늘 저녁 -->
@@ -1814,83 +1821,94 @@ function renderCatList(containerId, menus, cat) {
   };
 
   const rankEmoji = ['🥇','🥈','🥉'];
-  const rankColor = ['#FF6B00','#888','#a06030'];
 
-  document.getElementById(containerId).innerHTML = menus.map((m, i) => `
-    <div class="menu-card" id="mcard-${cat}-${i}"
-      onclick="selectCatMenu('${cat}', ${i})"
-      style="margin-bottom:10px;cursor:pointer">
-      <div class="menu-card-header">
-        <div style="position:relative;flex-shrink:0">
-          <div class="menu-emoji" style="font-size:28px">${m.emoji}</div>
-          ${i < 3 ? `<div style="position:absolute;top:-6px;right:-6px;font-size:14px">${rankEmoji[i]}</div>` : ''}
-        </div>
-        <div class="menu-info">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div class="menu-name">${m.name}</div>
-            ${m.rawCount > 0 ? `<span style="font-size:11px;color:${rankColor[i]||'#999'};font-weight:700">${i+1}위</span>` : ''}
+  // 처음엔 3개만, 더보기 버튼으로 전체 표시
+  const initial = menus.slice(0, 3);
+  const rest = menus.slice(3);
+
+  const morBtn = document.getElementById(`more-${cat}`);
+  if (morBtn) morBtn.style.display = rest.length > 0 ? 'block' : 'none';
+
+  // 가로 스크롤 카드 렌더링
+  const renderCards = (list, append = false) => {
+    const html = list.map((m, idx) => {
+      const i = append ? menus.indexOf(m) : idx;
+      const selected = (cat === 'bap' && selectedDinner.bap?.name === m.name) ||
+                       (cat === 'guk' && selectedDinner.guk?.name === m.name) ||
+                       (cat === 'banchan' && selectedDinner.banchan.some(b => b.name === m.name));
+      return `
+        <div id="mcard-${cat}-${i}"
+          onclick="selectCatMenu('${cat}', ${i})"
+          style="
+            flex-shrink:0;
+            width:140px;
+            background:${selected ? 'var(--accent)' : 'white'};
+            border:1.5px solid ${selected ? 'var(--accent)' : '#f0f0f0'};
+            border-radius:14px;
+            padding:14px 12px;
+            cursor:pointer;
+            transition:all .15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+          ">
+          <!-- 랭크 + 이모지 -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div style="font-size:26px">${m.emoji}</div>
+            <div style="font-size:13px">${i < 3 ? rankEmoji[i] : ''}</div>
           </div>
-          <div class="menu-reason">${m.reason}</div>
-          <div class="menu-badges">
-            ${(m.badges||[]).map(b=>`<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
-            <span class="badge badge-orange">⏱ ${m.cookTime}</span>
-            ${m.rawCount > 0 ? `<span class="badge badge-green">📚 3달중 ${m.rawCount}회</span>` : ''}
-          </div>
+          <!-- 메뉴명 -->
+          <div style="font-size:13px;font-weight:700;color:${selected ? 'white' : 'var(--ink)'};line-height:1.3;margin-bottom:6px">${m.name}</div>
+          <!-- 조리시간 -->
+          <div style="font-size:11px;color:${selected ? 'rgba(255,255,255,.8)' : 'var(--ink3)'};margin-bottom:6px">⏱ ${m.cookTime}</div>
+          <!-- 3달 등장 횟수 -->
+          ${m.rawCount > 0 ? `<div style="font-size:10px;color:${selected ? 'rgba(255,255,255,.7)' : 'var(--ink3)'}">📚 3달중 ${m.rawCount}회</div>` : ''}
+          <!-- 선택 표시 -->
+          ${selected ? `<div style="margin-top:8px;font-size:11px;color:white;font-weight:700">✓ 선택됨</div>` : ''}
         </div>
-      </div>
-      <div class="menu-card-body">
-        <div class="ingredients-title">필요 재료</div>
-        <div class="ingredients">
-          ${(m.ingredients||[]).map(ing=>`
-            <span class="ingredient ${ing.overlap?'overlap':ing.have?'have':''}">
-              ${ing.overlap?'❌':ing.have?'✓':''} ${ing.name}
-            </span>`).join('')}
-        </div>
-        <div style="font-size:11px;color:var(--ink3);margin-top:6px">✓ 있는 재료 &nbsp; ❌ 급식과 겹침</div>
-        <div style="margin-top:10px">
-          <a href="https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(m.name)}"
-            target="_blank" rel="noopener noreferrer"
-            onclick="event.stopPropagation()"
-            style="display:inline-block;padding:6px 12px;background:rgba(200,80,26,.08);border:1px solid rgba(200,80,26,.2);border-radius:6px;color:var(--accent);font-size:12px;text-decoration:none">
-            👨‍🍳 레시피 보기
-          </a>
-        </div>
-      </div>
-    </div>
-  `).join('');
+      `;
+    }).join('');
+
+    const container = document.getElementById(containerId);
+    if (append) container.innerHTML += html;
+    else container.innerHTML = html;
+  };
+
+  renderCards(initial);
+
+  // 더보기 클릭 시 나머지 추가
+  window[`_more_${cat}`] = () => {
+    renderCards(rest, true);
+    const morBtn = document.getElementById(`more-${cat}`);
+    if (morBtn) morBtn.style.display = 'none';
+  };
+}
+
+function showMore(cat) {
+  if (window[`_more_${cat}`]) window[`_more_${cat}`]();
 }
 
 function selectCatMenu(cat, idx) {
 
-  // 메뉴 선택 시 재료를 이름 기반으로 정확히 재생성
   function freshMenu(m) {
-    return {
-      ...m,
-      ingredients: getIngredients(m.name, state.fridge, state.lunchMenu)
-    };
+    return { ...m, ingredients: getIngredients(m.name, state.fridge, state.lunchMenu) };
   }
 
   if (cat === 'bap') {
-    document.querySelectorAll('[id^="mcard-bap-"]').forEach(c => c.classList.remove('selected-card'));
-    document.getElementById(`mcard-bap-${idx}`).classList.add('selected-card');
     selectedDinner.bap = freshMenu(window._bapList[idx]);
-
   } else if (cat === 'guk') {
-    document.querySelectorAll('[id^="mcard-guk-"]').forEach(c => c.classList.remove('selected-card'));
-    document.getElementById(`mcard-guk-${idx}`).classList.add('selected-card');
     selectedDinner.guk = freshMenu(window._gukList[idx]);
-
   } else if (cat === 'banchan') {
-    const card = document.getElementById(`mcard-banchan-${idx}`);
     const menu = freshMenu(window._banchanList[idx]);
-    if (card.classList.contains('selected-card')) {
-      card.classList.remove('selected-card');
+    if (selectedDinner.banchan.some(m => m.name === menu.name)) {
       selectedDinner.banchan = selectedDinner.banchan.filter(m => m.name !== menu.name);
     } else {
-      card.classList.add('selected-card');
       selectedDinner.banchan.push(menu);
     }
   }
+
+  // 카드 색상 업데이트
+  renderCatList('menu-list-bap', window._bapList, 'bap');
+  renderCatList('menu-list-guk', window._gukList, 'guk');
+  renderCatList('menu-list-banchan', window._banchanList, 'banchan');
 
   updateDinnerSummary();
 }
