@@ -1635,11 +1635,18 @@ function renderAllLunch(cards) {
                 if (vitaminItems.length === 0) return '';
                 const query = encodeURIComponent('어린이 종합 비타민');
                 const coupangUrl = `https://www.coupang.com/np/search?q=${query}&channel=user&sorter=reviewCountDESC`;
+                const kurlyUrl = `https://www.kurly.com/search?sword=${query}`;
                 return `
-                <a href="${coupangUrl}" target="_blank" rel="noopener noreferrer"
-                  style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:10px 14px;background:#e8232a;border-radius:10px;color:white;font-size:13px;font-weight:700;text-decoration:none">
-                  🛒 어린이 비타민 쿠팡에서 구매하기
-                </a>`;
+                <div style="display:flex;gap:6px;margin-top:8px">
+                  <a href="${coupangUrl}" target="_blank" rel="noopener noreferrer"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#e8232a;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                    🛒 쿠팡
+                  </a>
+                  <a href="${kurlyUrl}" target="_blank" rel="noopener noreferrer"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                    🌿 컬리
+                  </a>
+                </div>`;
               })()}`;
           })()}
         </div>
@@ -1866,11 +1873,18 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                   </span>`).join('')}
               </div>
               ${deficient.some(n => n.label.includes('비타민')) ? `
-              <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 종합 비타민')}&channel=user&sorter=reviewCountDESC"
-                target="_blank" rel="noopener noreferrer"
-                style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:10px 14px;background:#e8232a;border-radius:10px;color:white;font-size:13px;font-weight:700;text-decoration:none">
-                🛒 어린이 비타민 쿠팡에서 구매하기
-              </a>` : ''}
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 종합 비타민')}&channel=user&sorter=reviewCountDESC"
+                  target="_blank" rel="noopener noreferrer"
+                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#e8232a;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                  🛒 쿠팡
+                </a>
+                <a href="https://www.kurly.com/search?sword=${encodeURIComponent('어린이 종합 비타민')}"
+                  target="_blank" rel="noopener noreferrer"
+                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                  🌿 컬리
+                </a>
+              </div>` : ''}
             </div>` : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ 이번주 영양 균형 우수!
@@ -2376,8 +2390,8 @@ function getDifficulty(name) {
 }
 
 function getIngredients(name, fridge, lunchItems) {
+  // [주재료, ...부재료] - 첫 2개 주재료, 나머지 부재료
   const ingredientMap = {
-    // 국/찌개/탕
     '된장찌개':   ['된장','두부','애호박','대파','마늘'],
     '된장국':     ['된장','두부','애호박','대파'],
     '김치찌개':   ['김치','돼지고기','두부','대파','고춧가루'],
@@ -2392,50 +2406,101 @@ function getIngredients(name, fridge, lunchItems) {
     '시금치국':   ['시금치','된장','마늘','대파'],
     '북어국':     ['북어채','계란','대파','참기름','간장'],
     '계란국':     ['계란','대파','소금','참기름'],
-    '떡국':       ['떡국떡','계란','대파','간장','소고기'],
+    '떡국':       ['떡국떡','소고기','계란','대파','간장'],
     '어묵국':     ['어묵','무','대파','간장','다시마'],
     '순대국':     ['순대','돼지고기','대파','들깨','소금'],
-    '감자국':     ['감자','대파','된장','마늘'],
-    '우거지국':   ['우거지','된장','돼지고기','마늘','대파'],
-    '아욱국':     ['아욱','된장','마늘','대파'],
-    '시래기국':   ['시래기','된장','돼지고기','마늘'],
-
-    // 볶음
+    '감자국':     ['감자','된장','대파','마늘'],
+    '우거지국':   ['우거지','돼지고기','된장','마늘','대파'],
     '제육볶음':   ['돼지고기','고추장','양파','대파','깨'],
-    '제육':       ['돼지고기','고추장','양파','대파'],
     '오징어볶음': ['오징어','고추장','양파','대파','당근'],
     '낙지볶음':   ['낙지','고추장','양파','대파','깨'],
     '닭볶음':     ['닭고기','고추장','감자','양파','당근'],
+    '닭볶음탕':   ['닭고기','감자','당근','양파','고추장'],
+    '찜닭':       ['닭고기','감자','당근','양파','간장'],
     '두부볶음':   ['두부','간장','양파','대파','참기름'],
     '김치볶음':   ['김치','돼지고기','참기름','간장'],
     '소고기볶음': ['소고기','간장','양파','마늘','깨'],
+    '소불고기':   ['소고기','간장','배','마늘','참기름'],
+    '불고기':     ['소고기','간장','배','마늘','깨'],
     '버섯볶음':   ['버섯','간장','마늘','참기름','대파'],
-    '애호박볶음': ['애호박','간장','마늘','참기름','소금'],
-    '감자볶음':   ['감자','간장','설탕','참기름','깨'],
-    '멸치볶음':   ['멸치','간장','설탕','참기름','마늘'],
     '볶음밥':     ['밥','계란','당근','대파','간장'],
-
-    // 구이
     '고등어구이': ['고등어','소금','식용유'],
     '갈치구이':   ['갈치','소금','식용유'],
     '삼치구이':   ['삼치','소금','식용유'],
     '조기구이':   ['조기','소금','식용유'],
-    '돼지구이':   ['돼지고기','간장','마늘','참기름'],
-    '소갈비구이': ['소갈비','간장','마늘','참기름','설탕'],
-    '닭구이':     ['닭고기','간장','마늘','참기름','깨'],
-    '두부구이':   ['두부','간장','참기름','깨','대파'],
-    '계란후라이': ['계란','소금','식용유'],
-    '계란말이':   ['계란','당근','대파','소금','식용유'],
-
-    // 조림
-    '감자조림':   ['감자','간장','설탕','참기름','깨'],
-    '두부조림':   ['두부','간장','고추','대파','참기름'],
     '고등어조림': ['고등어','무','간장','고추장','대파'],
     '갈치조림':   ['갈치','무','간장','고추장','대파'],
-    '소고기조림': ['소고기','간장','설탕','마늘','참기름'],
+    '연어구이':   ['연어','소금','올리브오일','레몬'],
+    '황태국':     ['황태','계란','대파','참기름','마늘'],
+    '계란후라이': ['계란','소금','식용유'],
+    '계란말이':   ['계란','당근','대파','소금','식용유'],
+    '감자조림':   ['감자','간장','설탕','참기름','깨'],
+    '두부조림':   ['두부','간장','고추','대파','참기름'],
     '장조림':     ['소고기','간장','마늘','설탕','계란'],
-    '연근조림':   ['연근','간장','설탕','참기름','깨'],
-    '메추리알조림':['메추리알','간장','설탕','마늘'],
+    '떡갈비':     ['소고기','돼지고기','간장','마늘','참기름'],
+    '삼겹살':     ['삼겹살','상추','마늘','쌈장','소금'],
+    '수육':       ['돼지고기','대파','마늘','된장','생강'],
+    '잡채':       ['당면','소고기','시금치','당근','간장'],
+    'japchae':    ['당면','소고기','시금치','당근','간장'],
+    '카레':       ['카레가루','감자','당근','양파','소고기'],
+    '짜장':       ['춘장','돼지고기','양파','감자','호박'],
+    '라면':       ['라면','계란','대파','김치'],
+    '파스타':     ['파스타면','올리브오일','마늘','토마토소스'],
+    '피자':       ['피자도우','토마토소스','모짜렐라치즈','토핑'],
+    '치킨':       ['닭고기','튀김가루','식용유','소금','후추'],
+    '닭갈비':     ['닭고기','고추장','양파','고구마','대파'],
+    '족발':       ['족발','새우젓','쌈채소','마늘'],
+    '보쌈':       ['돼지고기','새우젓','쌈채소','마늘'],
+    '돼지갈비찜': ['돼지갈비','간장','마늘','참기름','설탕'],
+    '소고기미역국':['소고기','미역','참기름','간장','마늘'],
+  };
+
+  // 주재료 키워드 (첫 2개)
+  const mainIngredientKeywords = [
+    '소고기','돼지고기','닭고기','고등어','갈치','연어','오징어','새우','낙지',
+    '두부','계란','김치','미역','순두부','어묵','햄','소시지','당면','떡국떡',
+    '황태','북어채','콩나물','시금치','우거지','삼겹살','족발','닭','순대',
+  ];
+
+  const keys = Object.keys(ingredientMap).sort((a,b) => b.length - a.length);
+  let matched = [];
+  for (const key of keys) {
+    if (name.includes(key)) {
+      matched = ingredientMap[key];
+      break;
+    }
+  }
+
+  if (matched.length === 0) {
+    if (name.includes('돼지') || name.includes('삼겹') || name.includes('제육')) matched.push('돼지고기');
+    if (name.includes('소고기') || name.includes('쇠고기') || name.includes('불고기')) matched.push('소고기');
+    if (name.includes('닭') || name.includes('치킨')) matched.push('닭고기');
+    if (name.includes('계란') || name.includes('달걀')) matched.push('계란');
+    if (name.includes('두부')) matched.push('두부');
+    if (name.includes('고등어')) matched.push('고등어');
+    if (name.includes('갈치')) matched.push('갈치');
+    if (name.includes('오징어')) matched.push('오징어');
+    if (name.includes('새우')) matched.push('새우');
+    if (name.includes('멸치')) matched.push('멸치');
+    if (name.includes('찌개') || name.includes('국') || name.includes('탕')) {
+      matched.push('대파','마늘','소금');
+    } else if (name.includes('볶음')) {
+      matched.push('간장','양파','마늘','참기름');
+    } else if (name.includes('조림')) {
+      matched.push('간장','설탕','참기름');
+    } else if (name.includes('나물') || name.includes('무침')) {
+      matched.push('참기름','마늘','소금','깨');
+    }
+    if (matched.length === 0) matched = ['간장','참기름','마늘','대파','소금'];
+  }
+
+  return matched.map((ing, idx) => ({
+    name: ing,
+    isMain: idx < 2 || mainIngredientKeywords.some(kw => ing.includes(kw)),
+    have: fridge.some(f => ing.includes(f.replace(/\s/g,'')) || f.replace(/\s/g,'').includes(ing)),
+    overlap: lunchItems.some(l => ing.includes(l) || l.includes(ing))
+  }));
+}
 
     // 나물/무침
     '시금치나물': ['시금치','참기름','마늘','소금','깨'],
@@ -2674,32 +2739,46 @@ function goShoppingFromMenu() {
   document.getElementById('shop-sub').textContent   = '재료를 클릭하면 쿠팡에서 바로 검색돼요';
 
   const items = getIngredients(menu.name, state.fridge, state.lunchMenu)
-    .filter(i => !i.overlap)
-    .slice(0, 6);
+    .filter(i => !i.overlap);
+
+  const mainItems = items.filter(i => i.isMain);
+  const subItems  = items.filter(i => !i.isMain);
 
   if (items.length === 0) {
     el.innerHTML = `<div style="text-align:center;padding:28px;color:var(--ink3)">재료 정보가 없어요</div>`;
     return;
   }
 
+  const renderItems = (list, label, color) => {
+    if (list.length === 0) return '';
+    return `
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px;padding:3px 10px;background:${color}18;border-radius:100px;display:inline-block">
+          ${label}
+        </div>
+        ${list.map((item, i) => `
+          <div style="margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+              <div id="scheck-s-${label}-${i}" onclick="toggleCheck('s-${label}-${i}','${item.name}')"
+                style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
+              <div id="sname-s-${label}-${i}" style="flex:1;font-size:14px;font-weight:${item.isMain ? '700' : '400'}">${item.name}</div>
+              <a href="${coupangUrl(item.name)}" target="_blank" rel="noopener noreferrer"
+                onclick="handleCoupangClick('${item.name}')"
+                style="font-size:11px;color:#e8232a;font-weight:700;text-decoration:none;padding:4px 8px;background:#fff0f0;border-radius:6px;flex-shrink:0">
+                쿠팡 →
+              </a>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  };
+
   el.innerHTML = `
     <div style="margin-bottom:12px;padding:12px 14px;background:var(--accent-light);border-radius:12px;font-size:13px;font-weight:700;color:var(--accent)">
       ${menu.emoji} ${menu.name}
     </div>
-    ${items.map((item, i) => `
-      <div style="margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
-          <div id="scheck-s-${i}" onclick="toggleCheck('s-${i}','${item.name}')"
-            style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
-          <div id="sname-s-${i}" style="flex:1;font-size:14px;font-weight:500">${item.name}</div>
-          <a href="${coupangUrl(item.name)}" target="_blank" rel="noopener noreferrer"
-            onclick="handleCoupangClick('${item.name}')"
-            style="font-size:11px;color:#e8232a;font-weight:700;text-decoration:none;padding:4px 8px;background:#fff0f0;border-radius:6px;flex-shrink:0">
-            쿠팡 →
-          </a>
-        </div>
-      </div>
-    `).join('')}
+    ${renderItems(mainItems, '🥩 주재료', '#e8832a')}
+    ${renderItems(subItems,  '🧂 부재료', '#666')}
   `;
 
   setTimeout(() => {
