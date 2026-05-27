@@ -1420,9 +1420,13 @@ async function fetchAllLunch() {
   // 아이들 급식 조회
   for (const member of children) {
     try {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(
-        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`
+        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`,
+        { signal: controller.signal }
       );
+      clearTimeout(tid);
       const data = await res.json();
       const row = data?.mealServiceDietInfo?.[1]?.row?.[0];
 
@@ -1551,9 +1555,13 @@ async function analyzeWeeklyNutrition() {
 
   for (const child of children) {
     try {
+      const controller2 = new AbortController();
+      const tid2 = setTimeout(() => controller2.abort(), 8000);
       const res = await fetch(
-        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=7&ATPT_OFCDC_SC_CODE=${child.school.sido}&SD_SCHUL_CODE=${child.school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`
+        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=7&ATPT_OFCDC_SC_CODE=${child.school.sido}&SD_SCHUL_CODE=${child.school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`,
+        { signal: controller2.signal }
       );
+      clearTimeout(tid2);
       const data = await res.json();
       const rows = data?.mealServiceDietInfo?.[1]?.row || [];
       if (rows.length > 0) {
@@ -1783,10 +1791,16 @@ async function fetchPastLunch() {
   document.querySelector('.loading-sub').textContent = '3달치 급식 데이터 수집 중...';
 
   try {
-    // 한 번에 최대 100건 요청 (pSize=100)
+    // 타임아웃 8초
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 8000);
+
     const res = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fmt(fromDate)}&MLSV_TO_YMD=${fmt(toDate)}`
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fmt(fromDate)}&MLSV_TO_YMD=${fmt(toDate)}`,
+      { signal: controller.signal }
     );
+    clearTimeout(tid);
+
     const data = await res.json();
     const rows = data?.mealServiceDietInfo?.[1]?.row || [];
 
@@ -1811,8 +1825,10 @@ async function fetchPastLunch() {
       }));
     } catch(e) {}
 
-    showToast(`📚 ${pastLunchMenus.length}일치 급식 데이터 로드`);
+    if (pastLunchMenus.length > 0) showToast(`📚 ${pastLunchMenus.length}일치 급식 데이터 로드`);
+
   } catch(e) {
+    // 실패해도 빈 배열로 계속 진행 (로딩 멈춤 방지)
     pastLunchMenus = [];
   }
 }
@@ -1828,14 +1844,15 @@ async function generateMenu() {
 
   document.querySelector('.loading-sub').textContent = '1달치 급식 인기 메뉴 분석 중...';
 
-  if (pastLunchMenus.length === 0) {
-    await fetchPastLunch();
-  }
+  try {
+    if (pastLunchMenus.length === 0) {
+      await fetchPastLunch();
+    }
 
-  if (pastLunchMenus.length === 0) {
-    renderMenus(getSampleMenus());
-    return;
-  }
+    if (pastLunchMenus.length === 0) {
+      renderMenus(getSampleMenus());
+      return;
+    }
 
   // 1. 이번주 + 저번주 제외 범위
   const getWeekStart = (date, offset = 0) => {
@@ -1947,6 +1964,13 @@ async function generateMenu() {
     gukList.length > 0 ? gukList : defaultGuk,
     banchanList.length > 0 ? banchanList : defaultBanchan
   );
+  } catch(err) {
+    // 어떤 오류가 발생해도 로딩 숨기고 샘플 메뉴로 진행
+    document.getElementById('menu-loading').style.display = 'none';
+    document.getElementById('menu-results').style.display = 'block';
+    renderMenus(getSampleMenus());
+    showToast('메뉴 분석 오류 · 기본 메뉴로 추천해요', true);
+  }
 }
 
 // ── 메뉴 카테고리 분류 ──
