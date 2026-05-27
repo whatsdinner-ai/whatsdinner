@@ -2118,6 +2118,9 @@ async function generateMenu() {
   });
   const healthWarningActive = healthExcludeKeywords.length > 0;
 
+  // 기본 제외 항목 (밥류 보조, 소스류 등)
+  const basicExclude = ['김치','깍두기','깍뚜기','총각김치','열무김치','백김치','물김치','간장','고추장','된장','소금','후추','마요네즈','케첩','쌈장','초고추장','식초','설탕','우유','쥬스','주스','요거트','요구르트','두유'];
+
   // 메뉴 이름 정규화 (유사 메뉴 통합)
   const normalizeName = (name) => {
     return name
