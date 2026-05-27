@@ -1125,6 +1125,20 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
+// ── 앱 정보 모달 ──
+function showInfoModal() {
+  const modal = document.getElementById('info-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function hideInfoModal() {
+  const modal = document.getElementById('info-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
 // ── 상태 ──
 const state = {
   schoolType: '',
@@ -2569,9 +2583,4 @@ function showToast(msg, isError=false) {
 // ── 탭 전환 ──
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
-  document.getElementById('section-cafe').style.display = 'none';
-  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i === currentStep-1));
-
-  document.getElementById('nav-main-bar').style.background = '#FF6B00';
-  document.getElementById('nav-main-label').style.color = '#FF6B00';
-  document.getElementById('nav-main-label').style.fontWeight
+  d
