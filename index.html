@@ -613,13 +613,10 @@ body {
       <div class="step-num">2</div> 오늘 급식
     </div>
     <div class="step" id="step3" onclick="goStep(3)">
-      <div class="step-num">3</div> 가족 설정
+      <div class="step-num">3</div> 메뉴 추천
     </div>
     <div class="step" id="step4" onclick="goStep(4)">
-      <div class="step-num">4</div> 메뉴 추천
-    </div>
-    <div class="step" id="step5" onclick="goStep(5)">
-      <div class="step-num">5</div> 장보기
+      <div class="step-num">4</div> 장보기
     </div>
   </div>
 
@@ -684,13 +681,8 @@ body {
       </div>
     </div>
 
-    <button class="btn-primary" onclick="goStep(3)">다음: 가족 설정 →</button>
+    <button class="btn-primary" onclick="generateMenu()">메뉴 추천받기 ✨</button>
   </div>
-
-  <!-- ══ STEP 3: 가족 설정 ══ -->
-  <div class="section" id="section3">
-    <div class="section-title">가족 입맛을<br>알려주세요</div>
-    <div class="section-sub">맞춤 추천을 위해 딱 한 번만 설정하면 돼요</div>
 
     <div class="card">
       <div class="form-group">
@@ -746,7 +738,7 @@ body {
   </div>
 
   <!-- ══ STEP 4: 메뉴 추천 ══ -->
-  <div class="section" id="section4">
+  <div class="section" id="section3">
     <div id="menu-loading" class="loading" style="display:none">
       <div class="loading-spinner"></div>
       <div class="loading-text">급식 데이터 분석 중...</div>
@@ -810,7 +802,7 @@ body {
   </div>
 
   <!-- ══ STEP 5: 장보기 ══ -->
-  <div class="section" id="section5">
+  <div class="section" id="section4">
     <div class="done-header">
       <div class="done-icon">🛒</div>
       <div class="done-title" id="shop-title">오늘의 장보기 목록</div>
@@ -1061,9 +1053,11 @@ body {
         <div style="width:32px;height:32px;background:#FF6B00;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">™</div>
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700;color:var(--ink)">상표등록 출원 중</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.6">
-            왓츠디너 제 40-2026-0106193 호<br>
-            WhatsDinner 제 40-2026-0106230 호
+          <div style="font-size:11px;color:var(--ink3);margin-top:6px;line-height:2">
+            <div><span style="font-weight:600;color:var(--ink)">왓츠디너</span></div>
+            <div style="margin-top:-4px">제 40-2026-0106193 호</div>
+            <div style="margin-top:4px"><span style="font-weight:600;color:var(--ink)">WhatsDinner</span></div>
+            <div style="margin-top:-4px">제 40-2026-0106230 호</div>
           </div>
         </div>
         <div style="font-size:10px;color:white;background:#FF6B00;padding:3px 8px;border-radius:100px;font-weight:700;flex-shrink:0">출원중</div>
@@ -1332,43 +1326,6 @@ function renderMembers() {
           <div style="margin-top:8px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
             ✅ ${m.school.name}
           </div>` : ''}
-      </div>
-      <div class="form-group" style="margin-bottom:8px">
-        <label class="form-label" style="margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${[
-            {key:'sugar',  label:'🍬 당류 제한',   desc:'인슐린·당뇨'},
-            {key:'sodium', label:'🧂 나트륨 제한', desc:'고혈압·신장'},
-            {key:'flour',  label:'🌾 밀가루 제한', desc:'글루텐 프리'},
-            {key:'fat',    label:'🥓 지방 제한',   desc:'비만·고지혈'},
-          ].map(opt => `
-            <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
-              style="padding:6px 12px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
-              ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
-            </div>`).join('')}
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label" style="margin-bottom:6px">🚨 알레르기 설정 (선택)</label>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">
-          ${[
-            {no:'1', label:'🥚 난류'},{no:'2', label:'🥛 우유'},{no:'3', label:'🦐 메밀'},
-            {no:'4', label:'🥜 땅콩'},{no:'5', label:'🌾 대두'},{no:'6', label:'🌿 밀'},
-            {no:'7', label:'🐟 고등어'},{no:'8', label:'🦀 게'},{no:'9', label:'🦐 새우'},
-            {no:'10', label:'🐷 돼지고기'},{no:'11', label:'🍑 복숭아'},{no:'12', label:'🍅 토마토'},
-            {no:'13', label:'🥜 아황산류'},{no:'14', label:'🥚 호두'},{no:'15', label:'🐄 소고기'},
-            {no:'16', label:'🐔 닭고기'},{no:'17', label:'🦑 오징어'},{no:'18', label:'🦪 조개류'},
-          ].map(a => {
-            const checked = (m.allergyNos||[]).includes(a.no);
-            return `<div onclick="toggleAllergy(${m.id},'${a.no}')"
-              style="padding:5px 10px;border-radius:100px;border:1.5px solid ${checked ? '#dc3545' : 'var(--border)'};background:${checked ? 'rgba(220,53,69,.08)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${checked ? '#dc3545' : 'var(--ink3)'}">
-              ${a.label}
-            </div>`;
-          }).join('')}
-        </div>
-        <div style="font-size:11px;color:var(--ink3);margin-top:6px">
-          ⓘ NEIS 급식 알레르기 번호 기준 · 급식에 포함 시 즉시 경고
-        </div>
       </div>
     </div>
   `).join('');
@@ -1965,7 +1922,7 @@ async function fetchPastLunch() {
 
 // ── 1달치 급식 인기 랭킹 기반 메뉴 추천 ──
 async function generateMenu() {
-  goStep(4);
+  goStep(3);
   document.getElementById('menu-loading').style.display = 'block';
   document.getElementById('menu-results').style.display = 'none';
 
@@ -2566,7 +2523,7 @@ function selectMenu(idx, name, ingredients) {
 }
 function goShoppingFromMenu() {
   if (!state.selectedMenu) return;
-  goStep(5);
+  goStep(4);
 
   const recipeCard = document.getElementById('recipe-link-card');
   if (recipeCard) recipeCard.style.display = 'none';
@@ -2880,19 +2837,10 @@ const restored = loadFromLocal();
 renderMembers();
 
 if (restored) {
-  setTimeout(async () => {
+  setTimeout(() => {
     const names = members.map(m => m.name || '아이').join(', ');
     showToast(`✅ ${names} 설정을 불러왔어요!`);
     renderMembers();
-
-    // 아이가 있고 학교 설정 완료된 경우 자동으로 급식 조회
-    const children = members.filter(m => m.type === 'child');
-    const allSet = children.length > 0 && children.every(m => m.school);
-    if (allSet) {
-      setTimeout(() => {
-        fetchAllLunch();
-      }, 800);
-    }
   }, 300);
 }
 
