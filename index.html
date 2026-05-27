@@ -1053,8 +1053,20 @@ const state = {
 
 // ── 날짜 ──
 const today = new Date();
-document.getElementById('today-date').textContent =
-  `${today.getMonth()+1}월 ${today.getDate()}일 ${['일','월','화','수','목','금','토'][today.getDay()]}요일`;
+let targetDate = new Date(today); // 조회 날짜 (오늘 or 내일)
+
+function formatDate(d) {
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function updateDateDisplay() {
+  const d = targetDate;
+  const isToday = d.toDateString() === today.toDateString();
+  const label = isToday ? '오늘' : '내일';
+  document.getElementById('today-date').textContent =
+    `${label} ${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
+}
+updateDateDisplay();
 
 // ── 스텝 이동 ──
 let currentStep = 1;
@@ -1296,7 +1308,7 @@ async function fetchAllLunch() {
       <div style="color:var(--ink2);font-size:14px">가족 점심 메뉴 불러오는 중...</div>
     </div>`;
 
-  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  const dateStr = formatDate(targetDate);
   let allLunchItems = [];
   let cards = [];
 
@@ -2401,21 +2413,58 @@ function toggleCheck(i, name) {
 function resetAll() {
   state.selectedMenu = null;
   state.lunchMenu = [];
+  state.lunchNutrition = {};
   state.prefs = [];
   state.excludes = [];
   state.fridge = [];
   state.checkedItems.clear();
-  // members는 유지 (학교 설정 보존)
-  pastLunchMenus = [];
   state.deficientNutrients = [];
+  pastLunchMenus = [];
+
+  // 내일 날짜로 전환
+  targetDate = new Date(today);
+  targetDate.setDate(targetDate.getDate() + 1);
+  // 주말이면 월요일로
+  if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
+  if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
+  updateDateDisplay();
+
   currentStep = 1;
-  goStep(1);
-  document.getElementById('lunch-display').innerHTML = '';
-  document.getElementById('menu-list').innerHTML = '';
-  document.getElementById('shopping-list').innerHTML = '';
+
+  // 화면 초기화
+  const lunchDisplay = document.getElementById('lunch-display');
+  if (lunchDisplay) lunchDisplay.innerHTML = '';
+
+  const menuListBap = document.getElementById('menu-list-bap');
+  const menuListGuk = document.getElementById('menu-list-guk');
+  const menuListBanchan = document.getElementById('menu-list-banchan');
+  if (menuListBap) menuListBap.innerHTML = '';
+  if (menuListGuk) menuListGuk.innerHTML = '';
+  if (menuListBanchan) menuListBanchan.innerHTML = '';
+
+  const shoppingList = document.getElementById('shopping-list');
+  if (shoppingList) shoppingList.innerHTML = '';
+
+  const menuResults = document.getElementById('menu-results');
+  if (menuResults) menuResults.style.display = 'none';
+
+  const menuLoading = document.getElementById('menu-loading');
+  if (menuLoading) menuLoading.style.display = 'none';
+
+  const weeklyCard = document.getElementById('weekly-nutrition-card');
+  if (weeklyCard) weeklyCard.style.display = 'none';
+
   document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+
+  selectedDinner.bap = null;
+  selectedDinner.guk = null;
+  selectedDinner.banchan = [];
+
+  goStep(1);
   renderMembers();
-  showToast('가족 설정은 그대로예요 🍽️');
+
+  const d = targetDate;
+  showToast(`${d.getMonth()+1}월 ${d.getDate()}일 메뉴 추천 시작! 🍽️`);
 }
 
 // ── 토스트 ──
