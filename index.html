@@ -3,47 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>왓츠디너 - 급식과 겹치지 않는 저녁</title>
+<title>왓츠디너 - 급식과 다른 저녁</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 
 :root {
-  --cream: #faf6f0;
-  --warm: #f5ede0;
-  --paper: #fffdf9;
-  --ink: #1a1208;
-  --ink2: #5a4a35;
-  --ink3: #9a8a75;
-  --accent: #c8501a;
-  --accent2: #e8832a;
+  --bg: #ffffff;
+  --paper: #ffffff;
+  --card: #ffffff;
+  --ink: #191919;
+  --ink2: #4a4a4a;
+  --ink3: #999999;
+  --accent: #FF6B00;
+  --accent-light: #fff3e8;
+  --accent2: #FF8C00;
+  --border: #f0f0f0;
+  --shadow: rgba(0,0,0,.05);
+  --radius: 16px;
   --green: #2d6a4f;
   --green-light: #e8f5ee;
-  --border: #e8ddd0;
-  --shadow: rgba(90,60,20,.12);
-  --radius: 16px;
+  --cream: #ffffff;
+  --warm: #fff3e8;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
   font-family: 'Noto Sans KR', sans-serif;
-  background: var(--cream);
+  background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
-}
-
-/* 배경 텍스처 */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(200,80,26,.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(45,106,79,.04) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 .container {
@@ -51,23 +42,23 @@ body::before {
   margin: 0 auto;
   padding: 0 0 80px;
   position: relative;
-  z-index: 1;
 }
 
 /* ── 헤더 ── */
 .header {
   background: var(--paper);
-  border-bottom: 2px solid var(--ink);
-  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  background: var(--paper);
 }
 .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 .logo-wrap { display:flex; align-items:center; gap:10px; }
 .today-date { font-size:12px; color:var(--ink3); }
@@ -136,14 +127,13 @@ body::before {
 
 /* ── 카드 ── */
 .card {
-  background: var(--paper);
-  border: 1.5px solid var(--border);
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
   border-radius: var(--radius);
   padding: 18px 20px;
   margin-bottom: 12px;
-  transition: box-shadow .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
 }
-.card:hover { box-shadow: 0 4px 16px var(--shadow); }
 
 /* ── 폼 ── */
 .form-group { margin-bottom: 14px; }
@@ -207,11 +197,11 @@ body::before {
 .btn-primary {
   width: 100%;
   padding: 16px;
-  background: var(--ink);
+  background: var(--accent);
   border: none;
   border-radius: 12px;
-  color: var(--cream);
-  font-family: 'Noto Serif KR', serif;
+  color: white;
+  font-family: 'Noto Sans KR', sans-serif;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -219,14 +209,8 @@ body::before {
   letter-spacing: -.3px;
   margin-top: 8px;
 }
-.btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+.btn-primary:hover { background: #e05a00; transform: translateY(-1px); }
 .btn-primary:active { transform: translateY(0); }
-.btn-primary:disabled {
-  background: var(--border);
-  color: var(--ink3);
-  cursor: not-allowed;
-  transform: none;
-}
 
 .btn-secondary {
   width: 100%;
@@ -570,26 +554,23 @@ body::before {
 <body>
 <div class="container">
 
-<div id="main-content">
-
-  <!-- 헤더 -->
+  <!-- 헤더 (항상 표시) -->
   <div class="header">
     <div class="header-top">
-      <!-- SVG 로고 -->
       <svg width="210" height="44" viewBox="0 0 210 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- 식판 아이콘 -->
         <rect x="1" y="1" width="42" height="42" rx="9" stroke="#FF6B00" stroke-width="2" fill="none"/>
         <line x1="1" y1="22" x2="43" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
         <line x1="22" y1="1" x2="22" y2="22" stroke="#FF6B00" stroke-width="1.6"/>
         <path d="M26 10 L29.5 14 L36 7.5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- 브랜드명 Black Han Sans -->
         <text x="54" y="17" font-family="'Black Han Sans', 'Noto Sans KR', sans-serif" font-size="18" font-weight="900" fill="#1a1208" letter-spacing="-0.5">왓츠디너</text>
         <line x1="54" y1="24" x2="206" y2="24" stroke="#e8ddd0" stroke-width="0.8"/>
-        <text x="54" y="37" font-family="'Noto Sans KR', sans-serif" font-weight="400" font-size="10" fill="#9a8a75" letter-spacing="0.5">급식과 겹치지 않는 저녁</text>
+        <text x="54" y="37" font-family="'Noto Sans KR', sans-serif" font-weight="400" font-size="10" fill="#9a8a75" letter-spacing="0.5">급식과 다른 저녁</text>
       </svg>
       <div class="today-date" id="today-date"></div>
     </div>
   </div>
+
+<div id="main-content">
 
   <!-- 스텝 네비 -->
   <div class="step-nav">
@@ -612,23 +593,54 @@ body::before {
 
   <!-- ══ STEP 1: 가족 구성원 설정 ══ -->
   <div class="section active" id="section1">
-    <div class="section-title">가족 구성원을<br>설정해주세요</div>
-    <div class="section-sub">학교·직장 점심을 모두 고려해서<br>겹치지 않는 저녁을 추천해드려요</div>
+
+    <!-- 인사말 -->
+    <div style="padding:20px 0 16px">
+      <div style="font-size:13px;color:var(--ink3);margin-bottom:4px">오늘 저녁 메뉴</div>
+      <div style="font-size:22px;font-weight:900;color:var(--ink);line-height:1.3">
+        급식과 다른 저녁,<br>지금 바로 추천받으세요 🍽️
+      </div>
+    </div>
+
+    <!-- 구성원 추가 버튼 (토스 스타일) -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button onclick="addMember('child')"
+        style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s"
+        onmouseover="this.style.borderColor='#FF6B00'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:38px;height:38px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧒👧</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">아이 추가</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px">학교 급식 연동</div>
+        </div>
+        <div style="margin-left:auto;color:var(--ink3);font-size:16px">›</div>
+      </button>
+      <button onclick="addMember('adult')"
+        style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s"
+        onmouseover="this.style.borderColor='#FF6B00'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:38px;height:38px;background:#f0f4ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👨👩</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">어른 추가</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px">직장 점심 입력</div>
+        </div>
+        <div style="margin-left:auto;color:var(--ink3);font-size:16px">›</div>
+      </button>
+    </div>
 
     <!-- 구성원 목록 -->
     <div id="members-list"></div>
 
-    <!-- 구성원 추가 버튼 -->
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn-secondary" style="margin-top:0;flex:1" onclick="addMember('child')">
-        🧒 아이 추가
-      </button>
-      <button class="btn-secondary" style="margin-top:0;flex:1" onclick="addMember('adult')">
-        👨 어른 추가
-      </button>
+    <!-- 단계 안내 -->
+    <div id="step-guide" style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--accent-light);border-radius:12px;margin-bottom:12px">
+      <div style="width:6px;height:6px;background:var(--accent);border-radius:50%;flex-shrink:0"></div>
+      <div style="font-size:12px;color:var(--accent);font-weight:600">위에서 가족을 먼저 추가해주세요</div>
     </div>
 
-    <button class="btn-primary" onclick="fetchAllLunch()">점심 메뉴 가져오기 →</button>
+    <!-- 시작 버튼 -->
+    <button id="fetch-btn" class="btn-primary" onclick="fetchAllLunch()"
+      style="background:#cccccc;color:white;pointer-events:none">
+      점심 메뉴 가져오기
+    </button>
+
   </div>
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
@@ -729,7 +741,7 @@ body::before {
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">밥 1가지 · 국 1가지 · 반찬을 골라주세요!</div>
+      <div class="section-sub">1달치 급식 인기 메뉴 랭킹 · 이번주·저번주 제외</div>
 
       <!-- 밥 -->
       <div style="margin-bottom:20px">
@@ -836,7 +848,7 @@ body::before {
         <div style="font-size:13px;color:var(--ink2);line-height:1.8">
           안녕하세요. 왓츠디너 개발자입니다.<br><br>
           매일 저녁 "오늘 뭐 먹지?" 고민하는 부모님들을 위해 이 서비스를 만들었어요.<br><br>
-          학교 급식과 겹치지 않는 저녁 메뉴를 매일 추천해드릴게요. 많은 관심 부탁드립니다!
+          학교 급식과 다른 저녁 메뉴를 매일 추천해드릴게요. 많은 관심 부탁드립니다!
         </div>
       </div>
 
@@ -954,32 +966,36 @@ body::before {
 
 </div>
 
-<!-- 하단 탭 네비 -->
-<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--paper);border-top:1px solid var(--border);display:flex;z-index:100;padding:8px 0 calc(8px + env(safe-area-inset-bottom))">
-  <button onclick="showMain()" id="nav-main" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:4px 0">
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <rect x="2" y="2" width="8" height="8" rx="2" fill="#FF6B00"/>
-      <rect x="12" y="2" width="8" height="8" rx="2" fill="#FF6B00" opacity=".4"/>
-      <rect x="2" y="12" width="8" height="8" rx="2" fill="#FF6B00" opacity=".4"/>
-      <rect x="12" y="12" width="8" height="8" rx="2" fill="#FF6B00" opacity=".4"/>
+<!-- 하단 탭바 (항상 표시) -->
+<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-top:1px solid #eeeeee;display:flex;z-index:200;padding:0 0 calc(env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.06)">
+
+  <button id="nav-main" onclick="showMain()"
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 0 12px;position:relative">
+    <div id="nav-main-bar" style="position:absolute;top:0;left:15%;right:15%;height:2px;background:#FF6B00;border-radius:0 0 3px 3px"></div>
+    <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="2" width="8" height="8" rx="2.5" fill="#FF6B00"/>
+      <rect x="12" y="2" width="8" height="8" rx="2.5" fill="#FF6B00" opacity=".4"/>
+      <rect x="2" y="12" width="8" height="8" rx="2.5" fill="#FF6B00" opacity=".4"/>
+      <rect x="12" y="12" width="8" height="8" rx="2.5" fill="#FF6B00" opacity=".4"/>
     </svg>
-    <span id="nav-main-label" style="font-size:10px;font-weight:700;color:#FF6B00;font-family:inherit">메뉴추천</span>
+    <span id="nav-main-label" style="font-size:10px;font-weight:700;color:#FF6B00;font-family:inherit;letter-spacing:-.3px">메뉴추천</span>
   </button>
-  <button onclick="showCafe()" id="nav-cafe" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:4px 0">
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <!-- 컵 몸체 -->
-      <path d="M4 7 H15 L13.5 17 Q13 19 11 19 H8 Q6 19 5.5 17 Z" stroke="var(--ink3)" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-      <!-- 손잡이 -->
-      <path d="M15 9 Q19 9 19 12 Q19 15 15 15" stroke="var(--ink3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- 김 (증기) -->
-      <path d="M7 5 Q7.5 3.5 7 2" stroke="var(--ink3)" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M10 5 Q10.5 3.5 10 2" stroke="var(--ink3)" stroke-width="1.2" stroke-linecap="round"/>
+
+  <button id="nav-cafe" onclick="showCafe()"
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 0 12px;position:relative">
+    <div id="nav-cafe-bar" style="position:absolute;top:0;left:15%;right:15%;height:2px;background:transparent;border-radius:0 0 3px 3px"></div>
+    <svg id="nav-cafe-icon" width="20" height="20" viewBox="0 0 22 22" fill="none">
+      <path d="M4 7 H15 L13.5 17 Q13 19 11 19 H8 Q6 19 5.5 17 Z" stroke="#bbbbbb" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <path d="M15 9 Q19 9 19 12 Q19 15 15 15" stroke="#bbbbbb" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M7 5 Q7.5 3.5 7 2" stroke="#bbbbbb" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M10 5 Q10.5 3.5 10 2" stroke="#bbbbbb" stroke-width="1.2" stroke-linecap="round"/>
     </svg>
-    <span id="nav-cafe-label" style="font-size:10px;font-weight:500;color:var(--ink3);font-family:inherit">디너카페</span>
+    <span id="nav-cafe-label" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">디너카페</span>
   </button>
+
 </div>
 
-<!-- 하단 여백 (탭바 높이) -->
+<!-- 하단 탭바 여백 -->
 <div style="height:64px"></div>
 
 <!-- 토스트 -->
@@ -1072,31 +1088,47 @@ function addMember(type) {
   const id = memberIdCounter++;
   members.push({ id, type, name: '', school: null, workMenu: '', lunchItems: [] });
   renderMembers();
+  saveToLocal();
 }
 
 function removeMember(id) {
   members = members.filter(m => m.id !== id);
-  pastLunchMenus = []; // 구성원 변경시 캐시 초기화
+  pastLunchMenus = [];
   renderMembers();
+  saveToLocal();
 }
 
 function renderMembers() {
   const list = document.getElementById('members-list');
+  const btn = document.getElementById('fetch-btn');
+  const guide = document.getElementById('step-guide');
 
   if (members.length === 0) {
-    list.innerHTML = `
-      <div class="card" style="text-align:center;padding:28px;color:var(--ink3)">
-        <div style="font-size:32px;margin-bottom:8px">👨‍👩‍👧‍👦</div>
-        <div style="font-size:14px">아이 또는 어른을 추가해주세요</div>
-      </div>`;
+    list.innerHTML = '';
+    if (btn) {
+      btn.textContent = '점심 메뉴 가져오기';
+      btn.style.background = '#cccccc';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'none';
+    }
+    if (guide) guide.style.display = 'flex';
     return;
   }
+
+  // 버튼 활성화
+  if (btn) {
+    btn.textContent = '점심 메뉴 가져오기 →';
+    btn.style.background = 'var(--accent)';
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  }
+  if (guide) guide.style.display = 'none';
 
   list.innerHTML = members.map(m => `
     <div class="card" style="margin-bottom:12px" id="member-card-${m.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="font-weight:700;font-size:15px">
-          ${m.type === 'child' ? '🧒 아이' : '👨 어른'}
+          ${m.type === 'child' ? '🧒👧 아이' : '👨👩 어른'}
         </div>
         <button onclick="removeMember(${m.id})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px">✕</button>
       </div>
@@ -1105,7 +1137,7 @@ function renderMembers() {
         <label class="form-label">이름 (선택)</label>
         <input type="text" class="form-input" placeholder="${m.type === 'child' ? '예: 첫째, 둘째' : '예: 아빠, 엄마'}"
           value="${m.name}"
-          oninput="members.find(x=>x.id===${m.id}).name=this.value"
+          oninput="members.find(x=>x.id===${m.id}).name=this.value; saveToLocal()"
           style="margin-bottom:0" />
       </div>
 
@@ -1182,7 +1214,6 @@ async function searchSchoolForMember(memberId, val) {
 function selectSchoolForMember(memberId, name, code, sido, addr) {
   const member = members.find(m => m.id === memberId);
   if (member) {
-    // 학교가 바뀌면 과거 급식 캐시 초기화
     if (member.school?.code !== code) {
       pastLunchMenus = [];
     }
@@ -1190,6 +1221,7 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     document.getElementById(`school-input-${memberId}`).value = name;
     document.getElementById(`school-dd-${memberId}`).style.display = 'none';
     renderMembers();
+    saveToLocal(); // 학교 선택 시 자동 저장
     showToast(`${name} 선택됨 ✅`);
   }
 }
@@ -1589,7 +1621,7 @@ async function fetchPastLunch() {
   }
 }
 
-// ── 순수 NEIS 데이터 기반 메뉴 추천 ──
+// ── 1달치 급식 인기 랭킹 기반 메뉴 추천 ──
 async function generateMenu() {
   goStep(4);
   document.getElementById('menu-loading').style.display = 'block';
@@ -1598,72 +1630,49 @@ async function generateMenu() {
   const fridgeText = document.getElementById('fridge-input')?.value || '';
   state.fridge = fridgeText ? fridgeText.split(/[,，\s]+/).filter(Boolean) : [];
 
-  // 로딩 메시지 업데이트
-  document.querySelector('.loading-sub').textContent = '과거 급식 데이터 분석 중...';
+  document.querySelector('.loading-sub').textContent = '1달치 급식 인기 메뉴 분석 중...';
 
-  // 과거 급식 데이터 수집
   if (pastLunchMenus.length === 0) {
     await fetchPastLunch();
   }
 
-  // 데이터 없으면 샘플
   if (pastLunchMenus.length === 0) {
     renderMenus(getSampleMenus());
     return;
   }
 
-  // ── 추천 로직 ──
-
-  // 1. 이번주 + 저번주 날짜 범위 계산
+  // 1. 이번주 + 저번주 제외 범위
   const getWeekStart = (date, offset = 0) => {
     const d = new Date(date);
-    const day = d.getDay(); // 0=일, 1=월
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // 월요일 기준
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     d.setDate(diff + offset * 7);
     d.setHours(0,0,0,0);
     return d;
   };
-
-  const thisWeekStart = getWeekStart(today, 0);
   const lastWeekStart = getWeekStart(today, -1);
-  const lastWeekEnd = new Date(thisWeekStart);
-  lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
 
-  // 이번주 + 저번주에 나온 메뉴 수집
-  const recentMenuItems = new Set();
+  // 이번주+저번주 메뉴 제외
+  const recentItems = new Set();
   pastLunchMenus.forEach(day => {
-    const d = new Date(
-      day.date.slice(0,4),
-      parseInt(day.date.slice(4,6)) - 1,
-      day.date.slice(6,8)
-    );
-    if (d >= lastWeekStart) { // 저번주 월요일 이후
-      day.items.forEach(item => recentMenuItems.add(item.toLowerCase()));
-    }
+    const d = new Date(day.date.slice(0,4), parseInt(day.date.slice(4,6))-1, day.date.slice(6,8));
+    if (d >= lastWeekStart) day.items.forEach(i => recentItems.add(i.toLowerCase()));
   });
 
-  // 2. 제외 목록 = 오늘점심 + 이번주+저번주 급식 + 사용자 제외
+  // 오늘 점심 + 사용자 제외
   const excludeItems = new Set([
     ...state.lunchMenu,
     ...state.excludes,
-    ...[...recentMenuItems]
+    ...[...recentItems]
   ].map(i => i.toLowerCase()));
 
-  // 기본 제외 항목
-  const basicExclude = ['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치','우유','요구르트','과일','사과','귤'];
+  // 기본 제외 (밥류, 김치류, 음료)
+  const basicExclude = ['쌀밥','잡곡밥','현미밥','흰밥','밥','배추김치','깍두기','열무김치','총각김치','백김치','우유','요구르트','과일','사과','귤','오렌지'];
 
-  // 3. 2주 이전 급식에서 후보 메뉴 추출
+  // 2. 1달치 전체에서 메뉴별 등장 횟수 집계 (인기 = 많이 나온 것)
   const menuPool = {};
 
   pastLunchMenus.forEach(day => {
-    const d = new Date(
-      day.date.slice(0,4),
-      parseInt(day.date.slice(4,6)) - 1,
-      day.date.slice(6,8)
-    );
-    // 저번주 이전 데이터만 사용
-    if (d >= lastWeekStart) return;
-
     day.items.forEach(item => {
       if (basicExclude.includes(item)) return;
       if (excludeItems.has(item.toLowerCase())) return;
@@ -1673,146 +1682,58 @@ async function generateMenu() {
       if (hasExclude) return;
 
       if (!menuPool[item]) {
-        menuPool[item] = {
-          count: 0,
-          refDate: day.date,
-          nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat }
-        };
+        menuPool[item] = { count: 0, nutrition: { cal: day.cal, protein: day.protein, carb: day.carb, fat: day.fat } };
       }
       menuPool[item].count++;
     });
   });
 
-  // ── 15년차 주부 직관 엔진 ──
-  const lunchItems = state.lunchMenu;
+  // 3. 카테고리 분류 + 인기순 정렬
+  const allMenus = Object.entries(menuPool).map(([name, info]) => {
+    const category = getMenuCategory(name);
 
-  const lunchProfile = {
-    isSpicy:      lunchItems.some(m => ['떡볶이','제육','닭갈비','김치찌개','육개장','순두부','마라','볶음밥','라볶이'].some(k => m.includes(k))),
-    isSweet:      lunchItems.some(m => ['강정','조림','탕수','불고기','케첩'].some(k => m.includes(k))),
-    isGreasy:     lunchItems.some(m => ['튀김','돈까스','치킨','탕수육','후라이드','너겟','까스'].some(k => m.includes(k))),
-    isHeavy:      lunchItems.some(m => ['갈비','불고기','제육','삼겹','보쌈','소고기'].some(k => m.includes(k))),
-    hasClearSoup: lunchItems.some(m => ['콩나물국','북어국','미역국','계란국','황태국','무국'].some(k => m.includes(k))),
-    hasRichSoup:  lunchItems.some(m => ['된장찌개','김치찌개','순두부','부대찌개','육개장','설렁탕','갈비탕'].some(k => m.includes(k))),
-    hasSoupAtAll: lunchItems.some(m => ['국','찌개','탕','국물'].some(k => m.includes(k))),
-    hasPork:      lunchItems.some(m => ['돼지','제육','삼겹','보쌈'].some(k => m.includes(k))),
-    hasChicken:   lunchItems.some(m => ['닭','치킨','강정'].some(k => m.includes(k))),
-    hasBeef:      lunchItems.some(m => ['소고기','불고기','갈비','육'].some(k => m.includes(k))),
-    hasGochujang: lunchItems.some(m => ['떡볶이','제육','닭갈비','순두부','김치찌개','육개장'].some(k => m.includes(k))),
-    hasDoenjang:  lunchItems.some(m => ['된장찌개','된장국','청국장'].some(k => m.includes(k))),
-    hasNoodle:    lunchItems.some(m => ['국수','라면','우동','냉면','파스타'].some(k => m.includes(k))),
-    isSoft:       lunchItems.some(m => ['두부','계란','순두부','죽'].some(k => m.includes(k))),
-  };
-
-  function getConflictPenalty(name) {
-    let penalty = 0;
-    if (lunchProfile.hasGochujang && ['떡볶이','제육','닭갈비','고추장','김치찌개','순두부','육개장'].some(k => name.includes(k))) penalty += 50;
-    if (lunchProfile.hasDoenjang  && name.includes('된장')) penalty += 40;
-    if (lunchProfile.hasPork      && ['제육','돼지','삼겹','보쌈'].some(k => name.includes(k))) penalty += 35;
-    if (lunchProfile.hasChicken   && ['닭','치킨','강정'].some(k => name.includes(k))) penalty += 35;
-    if (lunchProfile.hasBeef      && ['불고기','갈비','소고기볶음'].some(k => name.includes(k))) penalty += 35;
-    if (lunchProfile.isGreasy     && ['튀김','돈까스','치킨','탕수육','너겟'].some(k => name.includes(k))) penalty += 40;
-    if (lunchProfile.hasRichSoup  && ['된장찌개','김치찌개','순두부','부대'].some(k => name.includes(k))) penalty += 30;
-    if (lunchProfile.hasClearSoup && ['콩나물국','미역국','북어국'].some(k => name.includes(k))) penalty += 20;
-    if (lunchProfile.hasNoodle    && ['국수','라면','우동','냉면'].some(k => name.includes(k))) penalty += 35;
-    return penalty;
-  }
-
-  function getComplementBonus(name) {
+    // 주부 직관 보너스
     let bonus = 0;
-    let reason = '';
-    if (lunchProfile.isGreasy   && ['나물','무침','찜','두부','된장'].some(k => name.includes(k))) { bonus += 30; reason = '기름진 점심 후 담백한 저녁'; }
-    if (lunchProfile.isSpicy    && ['미역국','계란','두부','나물','무침','조림'].some(k => name.includes(k))) { bonus += 25; reason = '매운 점심 후 순한 저녁'; }
-    if (lunchProfile.isHeavy    && ['나물','무침','생선','고등어','갈치','두부'].some(k => name.includes(k))) { bonus += 25; reason = '육류 점심 후 채소/생선 저녁'; }
-    if (lunchProfile.hasClearSoup && !lunchProfile.hasRichSoup && ['찌개','된장','김치찌개','순두부'].some(k => name.includes(k))) { bonus += 20; reason = '맑은국 점심 후 진한 국 저녁'; }
-    if (!lunchProfile.hasSoupAtAll && ['국','찌개','탕'].some(k => name.includes(k))) { bonus += 20; reason = '점심에 국 없어 저녁 국 추천'; }
-    if (lunchProfile.isSoft && ['볶음','구이','조림','전'].some(k => name.includes(k))) { bonus += 15; reason = '부드러운 점심 후 씹는 저녁'; }
-    return { bonus, reason };
-  }
+    const deficient = state.deficientNutrients || [];
+    if (deficient.includes('단백질') && (name.includes('고기')||name.includes('닭')||name.includes('돼지')||name.includes('계란')||name.includes('생선')||name.includes('두부'))) bonus += 2;
+    if (deficient.includes('칼슘') && (name.includes('멸치')||name.includes('미역')||name.includes('두부'))) bonus += 2;
+    if (deficient.includes('철분') && (name.includes('시금치')||name.includes('소고기'))) bonus += 2;
 
-  // 4. 영양 균형 점수 — 주간 부족 영양소 반영
-  const todayNutri = state.lunchNutrition;
-  const needProtein = todayNutri.protein < 60;
-  const needVeg = todayNutri.fat > 60;
-
-  // 주간 분석에서 부족한 영양소
-  const deficient = state.deficientNutrients || [];
-  const needWeeklyProtein = deficient.includes('단백질');
-  const needWeeklyCalcium = deficient.includes('칼슘');
-  const needWeeklyIron    = deficient.includes('철분');
-  const needWeeklyVitA    = deficient.includes('비타민A');
-  const needWeeklyVitC    = deficient.includes('비타민C');
-
-  // 5. 점수화 — 빈도 낮은 것 우선 (count 적을수록 높은 점수)
-  const maxCount = Math.max(...Object.values(menuPool).map(v => v.count), 1);
-
-  const scored = Object.entries(menuPool).map(([name, info]) => {
-    let score = (maxCount - info.count + 1) * 10;
-
-    // 🍳 주부 직관 패널티/보너스
-    score -= getConflictPenalty(name);
-    const { bonus, reason: complementReason } = getComplementBonus(name);
-    score += bonus;
-
-    // 냉장고 재료
-    const fridgeMatch = state.fridge.filter(f =>
-      name.includes(f.replace(/\s/g,'')) || f.includes(name.replace(/\s/g,''))
-    ).length;
-    score += fridgeMatch * 15;
-
-    // 영양 보완
-    if (needProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('소')||name.includes('갈치')||name.includes('고등어'))) score += 10;
-    if (needVeg && (name.includes('나물')||name.includes('채소')||name.includes('무침'))) score += 10;
-    if (needWeeklyProtein && (name.includes('고기')||name.includes('두부')||name.includes('계란')||name.includes('생선')||name.includes('닭')||name.includes('돼지')||name.includes('갈치')||name.includes('고등어'))) score += 25;
-    if (needWeeklyCalcium && (name.includes('멸치')||name.includes('미역')||name.includes('두부')||name.includes('뱅어포'))) score += 25;
-    if (needWeeklyIron    && (name.includes('시금치')||name.includes('소고기')||name.includes('굴')||name.includes('콩'))) score += 25;
-    if (needWeeklyVitA    && (name.includes('당근')||name.includes('시금치')||name.includes('호박')||name.includes('나물'))) score += 20;
-    if (needWeeklyVitC    && (name.includes('브로콜리')||name.includes('피망')||name.includes('무침')||name.includes('나물'))) score += 20;
-    if (state.prefs.includes('🍳 간단하게') && (name.includes('나물')||name.includes('무침')||name.includes('계란'))) score += 8;
-    if (state.prefs.includes('🍚 한식 위주')) score += 5;
-
-    // 배지
-    const badges = [];
-    if (fridgeMatch > 0) badges.push('냉장고활용');
-    if (bonus >= 25) badges.push('균형식단');
-    else if (needWeeklyCalcium && (name.includes('멸치')||name.includes('두부')||name.includes('미역'))) badges.push('🦴칼슘보완');
-    else if (needWeeklyIron && (name.includes('시금치')||name.includes('소고기'))) badges.push('🩸철분보완');
-    else if (needWeeklyProtein) badges.push('💪단백질보완');
-    else badges.push('급식참고');
-
-    const reason = complementReason
-      || (fridgeMatch > 0 ? '냉장고 재료 활용'
-      : needWeeklyCalcium && (name.includes('멸치')||name.includes('두부')) ? '이번주 칼슘 부족 보완'
-      : needWeeklyIron && (name.includes('시금치')||name.includes('소고기')) ? '이번주 철분 부족 보완'
-      : needWeeklyProtein ? '이번주 단백질 부족 보완'
-      : info.count === 1 ? '한 번만 나온 메뉴'
-      : '최근 잘 안 나온 메뉴');
+    // 냉장고 재료 보너스
+    const fridgeMatch = state.fridge.filter(f => name.includes(f.replace(/\s/g,''))).length;
+    if (fridgeMatch > 0) bonus += 1;
 
     return {
-      name, score, emoji: getMenuEmoji(name), badges, reason,
-      schoolRef: `급식 ${info.count}회`,
+      name,
+      count: info.count + bonus,
+      rawCount: info.count,
+      category,
+      emoji: getMenuEmoji(name),
       cookTime: getCookTime(name),
       difficulty: getDifficulty(name),
       ingredients: getIngredients(name, state.fridge, state.lunchMenu),
-      category: getMenuCategory(name),
+      schoolRef: `${info.count}회 등장`,
+      badges: fridgeMatch > 0 ? ['냉장고활용'] : bonus > 0 ? ['영양보완'] : [],
+      reason: fridgeMatch > 0 ? '냉장고 재료 활용' : bonus > 0 ? '영양 보완 추천' : `이달 ${info.count}회 등장`,
+      score: info.count + bonus,
     };
   });
 
-  // 6. 카테고리별 1개씩만 추출 (점수 최상위)
-  const allSorted = scored.sort((a,b) => b.score - a.score);
+  // 4. 카테고리별 인기순 정렬
+  const bapList    = allMenus.filter(m => m.category === '밥').sort((a,b) => b.count-a.count).slice(0,3);
+  const gukList    = allMenus.filter(m => m.category === '국').sort((a,b) => b.count-a.count).slice(0,5);
+  const banchanList= allMenus.filter(m => m.category === '반찬').sort((a,b) => b.count-a.count).slice(0,8);
 
-  const topBap     = allSorted.find(m => m.category === '밥')
-    || { name:'잡곡밥', emoji:'🌾', category:'밥', reason:'기본 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) };
+  // 기본값 보충
+  const defaultBap = [{ name:'잡곡밥', emoji:'🌾', category:'밥', reason:'기본 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) }];
+  const defaultGuk = [{ name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) }];
+  const defaultBanchan = [{ name:'계란후라이', emoji:'🥚', category:'반찬', reason:'간단 반찬', badges:[], schoolRef:'', cookTime:'5분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) }];
 
-  const topGuk     = allSorted.find(m => m.category === '국')
-    || { name:'된장찌개', emoji:'🥘', category:'국', reason:'기본 된장찌개', badges:[], schoolRef:'', cookTime:'15분', difficulty:'쉬움', score:0, ingredients:getIngredients('된장찌개', state.fridge, state.lunchMenu) };
-
-  const topBanchan = allSorted.filter(m => m.category === '반찬').slice(0, 3);
-  const finalBanchan = topBanchan.length > 0 ? topBanchan : [
-    { name:'계란후라이', emoji:'🥚', category:'반찬', reason:'간단 반찬', badges:['간편요리'], schoolRef:'', cookTime:'5분', difficulty:'쉬움', score:0, ingredients:getIngredients('계란후라이', state.fridge, state.lunchMenu) },
-    { name:'시금치나물', emoji:'🥗', category:'반찬', reason:'철분 보충', badges:['건강식'], schoolRef:'', cookTime:'10분', difficulty:'쉬움', score:0, ingredients:getIngredients('시금치나물', state.fridge, state.lunchMenu) },
-  ];
-
-  renderMenusByCat([topBap], [topGuk], finalBanchan);
+  renderMenusByCat(
+    bapList.length > 0 ? bapList : defaultBap,
+    gukList.length > 0 ? gukList : defaultGuk,
+    banchanList.length > 0 ? banchanList : defaultBanchan
+  );
 }
 
 // ── 메뉴 카테고리 분류 ──
@@ -1858,23 +1779,32 @@ function renderMenusByCat(bapList, gukList, banchanList) {
 function renderCatList(containerId, menus, cat) {
   const badgeClass = {
     '영양균형':'badge-green','간편요리':'badge-orange','냉장고활용':'badge-blue',
-    '아이입맛':'badge-green','건강식':'badge-green','든든함':'badge-orange','급식참고':'badge-green'
+    '아이입맛':'badge-green','건강식':'badge-green','든든함':'badge-orange','급식참고':'badge-green',
+    '영양보완':'badge-green','균형식단':'badge-green'
   };
+
+  const rankEmoji = ['🥇','🥈','🥉'];
+  const rankColor = ['#FF6B00','#888','#a06030'];
 
   document.getElementById(containerId).innerHTML = menus.map((m, i) => `
     <div class="menu-card" id="mcard-${cat}-${i}"
       onclick="selectCatMenu('${cat}', ${i})"
       style="margin-bottom:10px;cursor:pointer">
       <div class="menu-card-header">
-        <div class="menu-emoji" style="font-size:28px">${m.emoji}</div>
+        <div style="position:relative;flex-shrink:0">
+          <div class="menu-emoji" style="font-size:28px">${m.emoji}</div>
+          ${i < 3 ? `<div style="position:absolute;top:-6px;right:-6px;font-size:14px">${rankEmoji[i]}</div>` : ''}
+        </div>
         <div class="menu-info">
-          <div class="menu-name">${m.name}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="menu-name">${m.name}</div>
+            ${m.rawCount > 0 ? `<span style="font-size:11px;color:${rankColor[i]||'#999'};font-weight:700">${i+1}위</span>` : ''}
+          </div>
           <div class="menu-reason">${m.reason}</div>
           <div class="menu-badges">
             ${(m.badges||[]).map(b=>`<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
             <span class="badge badge-orange">⏱ ${m.cookTime}</span>
-            <span class="badge badge-blue">${m.difficulty}</span>
-            ${m.schoolRef ? `<span class="badge badge-green">📚 ${m.schoolRef}</span>` : ''}
+            ${m.rawCount > 0 ? `<span class="badge badge-green">📚 이달 ${m.rawCount}회</span>` : ''}
           </div>
         </div>
       </div>
@@ -2256,9 +2186,11 @@ function goShoppingFromMenu() {
 
   const el = document.getElementById('shopping-list');
 
-  // 쿠팡 개별 재료 링크 (리뷰 많은 순)
+  // 쿠팡/컬리 링크
   const coupangUrl = (keyword) =>
     `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user&sorter=reviewCountDESC`;
+  const kurlyUrl = (keyword) =>
+    `https://www.kurly.com/search?sword=${encodeURIComponent(keyword)}`;
 
   if (needed.length === 0) {
     el.innerHTML = `
@@ -2267,7 +2199,6 @@ function goShoppingFromMenu() {
         <div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;margin-bottom:6px">이미 다 있어요!</div>
         <div style="font-size:13px;color:var(--ink3)">냉장고 재료로 바로 만들 수 있어요</div>
       </div>`;
-    // 재료 다 있으면 레시피 바로 표시
     const recipeLink = document.getElementById('recipe-external-link');
     if (recipeCard && recipeLink) {
       recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
@@ -2282,7 +2213,7 @@ function goShoppingFromMenu() {
   el.innerHTML = `
     <div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--accent)">
-        사야 할 재료 (${needed.length}가지) — 클릭하면 쿠팡 검색
+        사야 할 재료 (${needed.length}가지)
       </div>
       ${needed.map((item, i) => `
         <div style="margin-bottom:8px">
@@ -2290,12 +2221,19 @@ function goShoppingFromMenu() {
             <div id="scheck-${i}" onclick="toggleCheck(${i},'${item.name}')"
               style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
             <div id="sname-${i}" style="flex:1;font-size:14px;font-weight:500">${item.name}</div>
-            <a href="${coupangUrl(item.name)}"
-              target="_blank" rel="noopener noreferrer"
-              onclick="handleCoupangClick('${item.name}')"
-              style="display:flex;align-items:center;gap:4px;padding:6px 12px;background:#c00;border-radius:8px;color:white;font-size:12px;font-weight:700;text-decoration:none;flex-shrink:0">
-              쿠팡 🛒
-            </a>
+            <div style="display:flex;gap:5px;flex-shrink:0">
+              <a href="${coupangUrl(item.name)}"
+                target="_blank" rel="noopener noreferrer"
+                onclick="handleCoupangClick('${item.name}')"
+                style="display:flex;align-items:center;padding:6px 10px;background:#c00;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                쿠팡
+              </a>
+              <a href="${kurlyUrl(item.name)}"
+                target="_blank" rel="noopener noreferrer"
+                style="display:flex;align-items:center;padding:6px 10px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
+                컬리
+              </a>
+            </div>
           </div>
         </div>
       `).join('')}
@@ -2377,8 +2315,7 @@ function resetAll() {
   state.excludes = [];
   state.fridge = [];
   state.checkedItems.clear();
-  members = [];
-  memberIdCounter = 0;
+  // members는 유지 (학교 설정 보존)
   pastLunchMenus = [];
   state.deficientNutrients = [];
   currentStep = 1;
@@ -2388,7 +2325,7 @@ function resetAll() {
   document.getElementById('shopping-list').innerHTML = '';
   document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
   renderMembers();
-  showToast('내일 메뉴 추천을 시작해요 🍚');
+  showToast('가족 설정은 그대로예요 🍽️');
 }
 
 // ── 토스트 ──
@@ -2400,35 +2337,37 @@ function showToast(msg, isError=false) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── 디너카페 ──
+// ── 탭 전환 ──
 function showMain() {
-  // 메뉴추천 영역 보이기
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
-
-  // 현재 스텝 복원
   document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i === currentStep-1));
 
-  // 탭 스타일
+  document.getElementById('nav-main-bar').style.background = '#FF6B00';
   document.getElementById('nav-main-label').style.color = '#FF6B00';
   document.getElementById('nav-main-label').style.fontWeight = '700';
-  document.getElementById('nav-cafe-label').style.color = 'var(--ink3)';
+  document.getElementById('nav-cafe-bar').style.background = 'transparent';
+  document.getElementById('nav-cafe-label').style.color = '#bbbbbb';
   document.getElementById('nav-cafe-label').style.fontWeight = '500';
-
+  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
+    p.setAttribute('stroke', '#bbbbbb');
+  });
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function showCafe() {
-  // 메뉴추천 영역 완전히 숨기기
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('section-cafe').style.display = 'block';
 
-  // 탭 스타일
+  document.getElementById('nav-cafe-bar').style.background = '#FF6B00';
   document.getElementById('nav-cafe-label').style.color = '#FF6B00';
   document.getElementById('nav-cafe-label').style.fontWeight = '700';
-  document.getElementById('nav-main-label').style.color = 'var(--ink3)';
+  document.getElementById('nav-main-bar').style.background = 'transparent';
+  document.getElementById('nav-main-label').style.color = '#bbbbbb';
   document.getElementById('nav-main-label').style.fontWeight = '500';
-
+  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
+    p.setAttribute('stroke', '#FF6B00');
+  });
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -2457,8 +2396,57 @@ function voteSurvey(btn, idx) {
   showToast('소중한 의견 감사해요! 😊');
 }
 
+// ── localStorage 저장/불러오기 ──
+
+function saveToLocal() {
+  try {
+    const data = {
+      members: members.map(m => ({
+        id: m.id,
+        type: m.type,
+        name: m.name,
+        school: m.school,
+        workMenu: m.workMenu,
+      })),
+      memberIdCounter,
+    };
+    localStorage.setItem('whatsdinner_members', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem('whatsdinner_members');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data.members || data.members.length === 0) return false;
+
+    members = data.members.map(m => ({
+      ...m,
+      lunchItems: [],
+    }));
+    memberIdCounter = data.memberIdCounter || members.length;
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function clearLocal() {
+  localStorage.removeItem('whatsdinner_members');
+}
+
 // ── 초기화 ──
+const restored = loadFromLocal();
 renderMembers();
+
+if (restored) {
+  // 저장된 구성원 있으면 안내 토스트
+  setTimeout(() => {
+    const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
+    showToast(`✅ ${names} 설정을 불러왔어요!`);
+  }, 600);
+}
 </script>
 </body>
 </html>
