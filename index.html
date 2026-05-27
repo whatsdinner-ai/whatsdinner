@@ -1083,34 +1083,6 @@ body {
 
 <script>
 // ── 내일 메뉴 바로 보기 ──
-function goTomorrow() {
-  targetDate = new Date(today);
-  targetDate.setDate(targetDate.getDate() + 1);
-  if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
-  if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
-  updateDateDisplay();
-  const children = members.filter(m => m.type === 'child' && m.school);
-  if (children.length === 0) {
-    showToast('먼저 아이 학교를 설정해주세요', true);
-    goStep(1);
-    return;
-  }
-  fetchAllLunch();
-}
-
-// ── 오늘 메뉴로 돌아가기 ──
-function goToday() {
-  targetDate = new Date(today);
-  updateDateDisplay();
-  const children = members.filter(m => m.type === 'child' && m.school);
-  if (children.length === 0) {
-    showToast('먼저 아이 학교를 설정해주세요', true);
-    goStep(1);
-    return;
-  }
-  fetchAllLunch();
-}
-
 // ── 앱 정보 모달 ──
 function showInfoModal() {
   document.getElementById('info-modal').style.display = 'block';
@@ -1143,6 +1115,35 @@ let targetDate = new Date(today); // 조회 날짜 (오늘 or 내일)
 
 function formatDate(d) {
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── 내일 메뉴 ──
+function goTomorrow() {
+  targetDate = new Date(today);
+  targetDate.setDate(targetDate.getDate() + 1);
+  if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
+  if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
+  updateDateDisplay();
+  const children = members.filter(m => m.type === 'child' && m.school);
+  if (children.length === 0) {
+    showToast('먼저 아이 학교를 설정해주세요', true);
+    goStep(1);
+    return;
+  }
+  fetchAllLunch();
+}
+
+// ── 오늘 메뉴 ──
+function goToday() {
+  targetDate = new Date(today);
+  updateDateDisplay();
+  const children = members.filter(m => m.type === 'child' && m.school);
+  if (children.length === 0) {
+    showToast('먼저 아이 학교를 설정해주세요', true);
+    goStep(1);
+    return;
+  }
+  fetchAllLunch();
 }
 
 function updateDateDisplay() {
