@@ -1073,22 +1073,25 @@ body {
     <div style="margin-bottom:20px">
       <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">지식재산권</div>
 
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border-radius:12px;margin-bottom:8px">
-        <div style="width:32px;height:32px;background:#fff3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">™</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--ink)">상표권 등록</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:1px">등록번호 제 0000-0000000 호</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff3e8;border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,107,0,.15)">
+        <div style="width:32px;height:32px;background:#FF6B00;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">™</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--ink)">상표등록 출원 중</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.6">
+            왓츠디너 제 40-2026-0106193 호<br>
+            WhatsDinner 제 40-2026-0106230 호
+          </div>
         </div>
-        <div style="margin-left:auto;font-size:10px;color:white;background:#2d6a4f;padding:2px 8px;border-radius:100px;font-weight:700">등록</div>
+        <div style="font-size:10px;color:white;background:#FF6B00;padding:3px 8px;border-radius:100px;font-weight:700;flex-shrink:0">출원중</div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border-radius:12px">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border-radius:12px;border:1px solid var(--border)">
         <div style="width:32px;height:32px;background:#fff3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">⚙️</div>
-        <div>
+        <div style="flex:1">
           <div style="font-size:12px;font-weight:700;color:var(--ink)">특허 출원 중</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:1px">출원번호 제 0000-0000000 호</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px">출원번호 제 0000-0000000 호</div>
         </div>
-        <div style="margin-left:auto;font-size:10px;color:white;background:#FF6B00;padding:2px 8px;border-radius:100px;font-weight:700">출원중</div>
+        <div style="font-size:10px;color:white;background:#FF6B00;padding:3px 8px;border-radius:100px;font-weight:700;flex-shrink:0">출원중</div>
       </div>
     </div>
 
@@ -2579,4 +2582,156 @@ function showToast(msg, isError=false) {
 // ── 탭 전환 ──
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
-  document.getElementById('section-cafe').style.di
+  document.getElementById('section-cafe').style.display = 'none';
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i === currentStep-1));
+
+  document.getElementById('nav-main-bar').style.background = '#FF6B00';
+  document.getElementById('nav-main-label').style.color = '#FF6B00';
+  document.getElementById('nav-main-label').style.fontWeight = '700';
+  document.getElementById('nav-cafe-bar').style.background = 'transparent';
+  document.getElementById('nav-cafe-label').style.color = '#bbbbbb';
+  document.getElementById('nav-cafe-label').style.fontWeight = '500';
+  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
+    p.setAttribute('stroke', '#bbbbbb');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function showCafe() {
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('section-cafe').style.display = 'block';
+
+  document.getElementById('nav-cafe-bar').style.background = '#FF6B00';
+  document.getElementById('nav-cafe-label').style.color = '#FF6B00';
+  document.getElementById('nav-cafe-label').style.fontWeight = '700';
+  document.getElementById('nav-main-bar').style.background = 'transparent';
+  document.getElementById('nav-main-label').style.color = '#bbbbbb';
+  document.getElementById('nav-main-label').style.fontWeight = '500';
+  document.querySelectorAll('#nav-cafe-icon path').forEach(p => {
+    p.setAttribute('stroke', '#FF6B00');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function switchCafeTab(tab) {
+  ['notice','survey','diary'].forEach(t => {
+    const el = document.getElementById(`cafe-${t}`);
+    const btn = document.getElementById(`cafe-tab-${t}`);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+    if (btn) {
+      btn.style.background = t === tab ? 'var(--accent)' : 'var(--paper)';
+      btn.style.color = t === tab ? 'white' : 'var(--ink2)';
+      btn.style.borderColor = t === tab ? 'var(--accent)' : 'var(--border)';
+      btn.style.fontWeight = t === tab ? '700' : '500';
+    }
+  });
+}
+
+function voteSurvey(btn, idx) {
+  document.querySelectorAll('#cafe-survey button[onclick^="voteSurvey("]').forEach((b,i) => {
+    b.style.borderColor = i === idx ? 'var(--accent)' : 'var(--border)';
+    b.style.background = i === idx ? 'rgba(255,107,0,.08)' : 'var(--cream)';
+    const bar = b.querySelector('.survey-bar div');
+    if (bar) bar.style.width = i === idx ? '80%' : ['20%','40%','60%','30%'][i] || '10%';
+  });
+  document.getElementById('survey-result').style.display = 'block';
+  showToast('소중한 의견 감사해요! 😊');
+}
+
+// ── localStorage 저장/불러오기 ──
+
+function saveToLocal() {
+  try {
+    const data = {
+      members: members.map(m => ({
+        id: m.id,
+        type: m.type,
+        name: m.name,
+        school: m.school,
+        workMenu: m.workMenu,
+      })),
+      memberIdCounter,
+    };
+    localStorage.setItem('whatsdinner_members', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem('whatsdinner_members');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data.members || data.members.length === 0) return false;
+
+    members = data.members
+      .filter(m => m.type === 'child' || m.type === 'adult')
+      .map(m => ({
+        ...m,
+        name: m.school
+          ? m.school.name.replace('초등학교','').replace('중학교','').replace('고등학교','').replace('초','').trim()
+          : '',
+        lunchItems: [],
+      }));
+
+    if (members.length === 0) return false;
+    memberIdCounter = data.memberIdCounter || members.length;
+    return true;
+  } catch(e) {
+    localStorage.removeItem('whatsdinner_members');
+    return false;
+  }
+}
+
+function clearLocal() {
+  localStorage.removeItem('whatsdinner_members');
+}
+
+// ── 초기화 ──
+const restored = loadFromLocal();
+renderMembers();
+
+if (restored) {
+  setTimeout(() => {
+    const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
+    showToast(`✅ ${names} 설정을 불러왔어요!`);
+  }, 600);
+}
+
+// ── 홈화면 추가 배너 ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (localStorage.getItem('whatsdinner_banner_dismissed')) return;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') showToast('앱 설치 완료! 홈화면에서 실행하세요 😄');
+    deferredPrompt = null;
+    const banner = document.getElementById('install-banner');
+    if (banner) banner.style.display = 'none';
+  });
+}
+
+function dismissBanner() {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+  localStorage.setItem('whatsdinner_banner_dismissed', '1');
+}
+</script>
+<!-- PWA SW 등록 (배포 환경에서만) -->
+<script>
+if (location.hostname !== 'www.claudeusercontent.com' &&
+    'serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+</script>
+</body>
+</html>
