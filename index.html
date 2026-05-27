@@ -1590,16 +1590,34 @@ function renderAllLunch(cards) {
         <div class="lunch-items">
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
         </div>
-        <div class="nutrition-bar">
-          <div class="nutrition-label">영양소 충족률</div>
-          <div class="nutrition-items">
-            ${[{n:'탄수화물',v:card.nutrition.carb},{n:'단백질',v:card.nutrition.protein},{n:'지방',v:card.nutrition.fat},{n:'칼로리',v:card.nutrition.cal}].map(item=>`
-              <div class="nutrition-item">
-                <div class="nutrition-name">${item.n}</div>
-                <div class="nutrition-track"><div class="nutrition-fill" style="width:${item.v}%"></div></div>
-                <div class="nutrition-val">${item.v}%</div>
-              </div>`).join('')}
-          </div>
+        <div style="margin-top:10px">
+          ${(() => {
+            const items = [
+              {n:'탄수화물', v:card.nutrition.carb,    icon:'🌾', threshold:50},
+              {n:'단백질',   v:card.nutrition.protein, icon:'💪', threshold:50},
+              {n:'지방',     v:card.nutrition.fat,     icon:'🥑', threshold:40},
+              {n:'칼로리',   v:card.nutrition.cal,     icon:'🔥', threshold:50},
+            ].filter(i => i.v < i.threshold);
+
+            if (items.length === 0) return `
+              <div style="font-size:12px;color:var(--green);font-weight:600">
+                ✅ 영양 균형이 좋아요! 저녁도 골고루 드세요
+              </div>`;
+
+            return `
+              <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 부족한 영양소</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                ${items.map(i => `
+                  <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px">
+                    <span style="font-size:13px">${i.icon}</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--accent)">${i.n}</span>
+                    <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
+                  </div>`).join('')}
+              </div>
+              <div style="font-size:11px;color:var(--ink3);margin-top:6px">
+                💡 저녁에 위 영양소가 풍부한 메뉴를 추천해드려요
+              </div>`;
+          })()}
         </div>
 
         ${card.warnings && card.warnings.length > 0 ? `
@@ -2572,11 +2590,62 @@ function goShoppingFromMenu() {
   if (recipeCard) recipeCard.style.display = 'none';
 
   const menu = state.selectedMenu;
-  document.getElementById('shop-title').textContent = `오늘의 장보기 목록`;
-  document.getElementById('shop-sub').textContent = `재료를 클릭하면 쿠팡에서 바로 검색돼요`;
+  const tab  = window._selectedMenuItem?.tab || 'cook';
+  const el   = document.getElementById('shopping-list');
 
-  const el = document.getElementById('shopping-list');
   const coupangUrl = k => `https://www.coupang.com/np/search?q=${encodeURIComponent(k)}&channel=user&sorter=reviewCountDESC`;
+  const kurlyUrl   = k => `https://www.kurly.com/search?sword=${encodeURIComponent(k)}`;
+
+  // ── 밀키트 탭 ──
+  if (tab === 'milkit') {
+    document.getElementById('shop-title').textContent = '밀키트 바로 구매';
+    document.getElementById('shop-sub').textContent   = '쿠팡·컬리에서 바로 검색할 수 있어요';
+    el.innerHTML = `
+      <div style="padding:16px;background:var(--accent-light);border-radius:14px;margin-bottom:16px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">${menu.emoji}</div>
+        <div style="font-size:17px;font-weight:800;color:var(--ink)">${menu.name}</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <a href="${coupangUrl(menu.name)}" target="_blank" rel="noopener noreferrer"
+          onclick="handleCoupangClick('${menu.name}')"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;background:#e8232a;border-radius:12px;color:white;font-size:14px;font-weight:700;text-decoration:none">
+          🛒 쿠팡에서 검색
+        </a>
+        <a href="${kurlyUrl(menu.name)}" target="_blank" rel="noopener noreferrer"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;background:#5f0080;border-radius:12px;color:white;font-size:14px;font-weight:700;text-decoration:none">
+          🌿 컬리에서 검색
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  // ── 배달 탭 ──
+  if (tab === 'delivery') {
+    document.getElementById('shop-title').textContent = '배달 앱으로 주문';
+    document.getElementById('shop-sub').textContent   = '배달의민족·요기요에서 검색해보세요';
+    el.innerHTML = `
+      <div style="padding:16px;background:var(--accent-light);border-radius:14px;margin-bottom:16px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">${menu.emoji}</div>
+        <div style="font-size:17px;font-weight:800;color:var(--ink)">${menu.name}</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <a href="https://baemin.com/search?q=${encodeURIComponent(menu.name)}" target="_blank" rel="noopener noreferrer"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;background:#2ac1bc;border-radius:12px;color:white;font-size:14px;font-weight:700;text-decoration:none">
+          🛵 배달의민족
+        </a>
+        <a href="https://www.yogiyo.co.kr/search/?search=${encodeURIComponent(menu.name)}" target="_blank" rel="noopener noreferrer"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;background:#fa3535;border-radius:12px;color:white;font-size:14px;font-weight:700;text-decoration:none">
+          🍴 요기요
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  // ── 요리 탭 (기본) ──
+  document.getElementById('shop-title').textContent = '오늘의 장보기 목록';
+  document.getElementById('shop-sub').textContent   = '재료를 클릭하면 쿠팡에서 바로 검색돼요';
 
   const items = getIngredients(menu.name, state.fridge, state.lunchMenu)
     .filter(i => !i.overlap)
