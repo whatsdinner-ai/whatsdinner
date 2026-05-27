@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>왓츠디너 - 급식과 다른 저녁</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="왓츠디너">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- OG 태그 (카카오/SNS 공유) -->
+<meta property="og:title" content="왓츠디너 - 급식과 다른 저녁">
+<meta property="og:description" content="학교 급식과 안 겹치는 저녁 메뉴를 AI가 추천해드려요">
+<meta property="og:url" content="https://whatsdinner.co.kr">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -1005,6 +1020,17 @@ body {
 <!-- 하단 탭바 여백 -->
 <div style="height:64px"></div>
 
+<!-- 홈화면 추가 배너 -->
+<div id="install-banner" style="display:none;position:fixed;bottom:68px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:448px;background:#1a1208;border-radius:14px;padding:14px 16px;z-index:300;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.2)">
+  <div style="font-size:24px">📱</div>
+  <div style="flex:1">
+    <div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px">홈화면에 앱 추가하기</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.6)">아이콘으로 바로 실행할 수 있어요</div>
+  </div>
+  <button onclick="installApp()" style="padding:8px 14px;background:#FF6B00;border:none;border-radius:8px;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">설치</button>
+  <button onclick="dismissBanner()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;padding:0 4px">×</button>
+</div>
+
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
@@ -1141,8 +1167,8 @@ function renderMembers() {
       </div>
 
       <div class="form-group">
-        <label class="form-label">이름 (선택)</label>
-        <input type="text" class="form-input" placeholder="${m.type === 'child' ? '예: 첫째, 둘째' : '예: 아빠, 엄마'}"
+        <label class="form-label">닉네임 (학교 선택 시 자동 설정)</label>
+        <input type="text" class="form-input" placeholder="${m.type === 'child' ? '예: 의정부, 첫째' : '예: 아빠, 엄마'}"
           value="${m.name}"
           oninput="members.find(x=>x.id===${m.id}).name=this.value; saveToLocal()"
           style="margin-bottom:0" />
@@ -1225,10 +1251,20 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
       pastLunchMenus = [];
     }
     member.school = { name, code, sido, addr };
+
+    // 닉네임 자동 설정 (이름 없을 때만)
+    // 예: "의정부중학교" → "의정부"
+    if (!member.name) {
+      const schoolShort = name
+        .replace('초등학교','').replace('중학교','').replace('고등학교','')
+        .replace('초','').trim();
+      member.name = schoolShort;
+    }
+
     document.getElementById(`school-input-${memberId}`).value = name;
     document.getElementById(`school-dd-${memberId}`).style.display = 'none';
     renderMembers();
-    saveToLocal(); // 학교 선택 시 자동 저장
+    saveToLocal();
     showToast(`${name} 선택됨 ✅`);
   }
 }
@@ -2489,11 +2525,46 @@ const restored = loadFromLocal();
 renderMembers();
 
 if (restored) {
-  // 저장된 구성원 있으면 안내 토스트
   setTimeout(() => {
     const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
     showToast(`✅ ${names} 설정을 불러왔어요!`);
   }, 600);
+}
+
+// ── 홈화면 추가 배너 ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (localStorage.getItem('whatsdinner_banner_dismissed')) return;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') showToast('앱 설치 완료! 홈화면에서 실행하세요 😄');
+    deferredPrompt = null;
+    const banner = document.getElementById('install-banner');
+    if (banner) banner.style.display = 'none';
+  });
+}
+
+function dismissBanner() {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+  localStorage.setItem('whatsdinner_banner_dismissed', '1');
+}
+</script>
+<!-- PWA SW 등록 (배포 환경에서만) -->
+<script>
+if (location.hostname !== 'www.claudeusercontent.com' &&
+    'serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
 }
 </script>
 </body>
