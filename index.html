@@ -718,6 +718,25 @@ body {
       점심 메뉴 가져오기
     </button>
 
+    <!-- 알림 설정 버튼 -->
+    <div style="margin-top:10px">
+      <button id="notif-toggle-btn" onclick="toggleNotification()"
+        style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f8f8f8;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="notif-icon" style="font-size:18px">🔔</span>
+          <div style="text-align:left">
+            <div id="notif-label" style="font-size:13px;font-weight:700;color:var(--ink)">아침 알림 설정하기</div>
+            <div id="notif-sub" style="font-size:11px;color:var(--ink3);margin-top:1px">매일 아침 7시 급식 알림</div>
+          </div>
+        </div>
+        <div id="notif-switch"
+          style="width:44px;height:26px;border-radius:100px;background:#ccc;position:relative;transition:background .2s;flex-shrink:0">
+          <div id="notif-knob"
+            style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
+        </div>
+      </button>
+    </div>
+
   </div>
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
@@ -2716,6 +2735,70 @@ function clearLocal() {
   localStorage.removeItem('whatsdinner_members');
 }
 
+// ── 알림 토글 ──
+function updateNotifUI(on) {
+  const sw   = document.getElementById('notif-switch');
+  const knob = document.getElementById('notif-knob');
+  const icon = document.getElementById('notif-icon');
+  const label= document.getElementById('notif-label');
+  const sub  = document.getElementById('notif-sub');
+  if (!sw) return;
+
+  if (on) {
+    sw.style.background = 'var(--accent)';
+    knob.style.left = '21px';
+    icon.textContent = '🔔';
+    label.textContent = '아침 알림 켜짐';
+    label.style.color = 'var(--accent)';
+    sub.textContent = '매일 아침 7시 급식 알림 발송 중';
+  } else {
+    sw.style.background = '#ccc';
+    knob.style.left = '3px';
+    icon.textContent = '🔕';
+    label.textContent = '아침 알림 꺼짐';
+    label.style.color = 'var(--ink3)';
+    sub.textContent = '탭해서 알림 켜기';
+  }
+}
+
+async function toggleNotification() {
+  const isOn = localStorage.getItem('pushSubscribed') === '1'
+    && typeof Notification !== 'undefined'
+    && Notification.permission === 'granted';
+
+  if (isOn) {
+    // 알림 끄기
+    localStorage.removeItem('pushSubscribed');
+    localStorage.setItem('pushDismissed', '1');
+    updateNotifUI(false);
+    showToast('🔕 알림을 껐어요');
+
+    // 서비스워커 알람 취소
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_ALARM' });
+    }
+  } else {
+    // 알림 켜기
+    localStorage.removeItem('pushDismissed');
+    if (typeof Notification === 'undefined') {
+      showToast('이 브라우저는 알림을 지원하지 않아요', true);
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      showToast('브라우저 설정에서 알림을 허용해주세요', true);
+      return;
+    }
+    await requestPushPermission();
+  }
+}
+
+function initNotifUI() {
+  const isOn = localStorage.getItem('pushSubscribed') === '1'
+    && typeof Notification !== 'undefined'
+    && Notification.permission === 'granted';
+  updateNotifUI(isOn);
+}
+
 // ── PWA & 푸시 알림 ──
 const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBkYI2SY9-zG4wXkNpA4';
 
@@ -2827,6 +2910,9 @@ document.querySelectorAll('.step').forEach((s, i) => {
   s.classList.remove('active', 'done');
   if (i === 0) s.classList.add('active');
 });
+
+// 알림 버튼 UI 초기화
+initNotifUI();
 
 if (restored) {
   setTimeout(() => {

@@ -30,6 +30,11 @@ self.addEventListener('notificationclick', e => {
 
 // ── 로컬 알람 메시지 수신 ──
 self.addEventListener('message', e => {
+  if (e.data?.type === 'CANCEL_ALARM') {
+    clearTimeout(self._alarmTimer);
+    console.log('왓츠디너 알람 취소됨');
+    return;
+  }
   if (e.data?.type !== 'SCHEDULE_ALARM') return;
   const { members } = e.data;
   self._alarmMembers = members;
