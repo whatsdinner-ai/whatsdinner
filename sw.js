@@ -1,4 +1,4 @@
-// 왓츠디너 Service Worker v1.2 (테스트: 30분마다)
+// 왓츠디너 Service Worker v1.3 (테스트: 10분마다)
 const CACHE_NAME = 'whatsdinner-v1';
 
 self.addEventListener('install', e => { self.skipWaiting(); });
@@ -34,11 +34,11 @@ self.addEventListener('message', e => {
   const { members } = e.data;
   self._alarmMembers = members;
 
-  // 테스트: 30분 후 첫 발송
-  const INTERVAL = 30 * 60 * 1000; // 30분
+  // 테스트: 10분 후 첫 발송
+  const INTERVAL = 10 * 60 * 1000; // 10분
   clearTimeout(self._alarmTimer);
   self._alarmTimer = setTimeout(() => fireAlarm(members, INTERVAL), INTERVAL);
-  console.log(`왓츠디너 테스트 알람: 30분 후 발송`);
+  console.log(`왓츠디너 테스트 알람: 10분 후 발송`);
 
   // 즉시 테스트 알림 (등록 확인용)
   self.registration.showNotification('✅ 왓츠디너 알림 설정 완료', {
