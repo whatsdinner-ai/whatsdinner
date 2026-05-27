@@ -2891,7 +2891,9 @@ function loadFromLocal() {
       .filter(m => m.type === 'child')
       .map(m => {
         let name = m.name;
-        // 이름이 없으면 "학교" 두 글자만 제거해서 닉네임 생성
+        // 기존 -초/-중/-고 형식 → 하이픈 제거
+        if (name) name = name.replace(/-초$/, '초').replace(/-중$/, '중').replace(/-고$/, '고');
+        // 이름이 없으면 학교명에서 생성
         if (!name && m.school) {
           name = m.school.name.replace('학교', '').trim();
         }
