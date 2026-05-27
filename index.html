@@ -6,6 +6,12 @@
 <title>왓츠디너 - 급식과 다른 저녁</title>
 
 <!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#FF6B00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="왓츠디너">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <!-- OG 태그 (카카오/SNS 공유) -->
 <meta property="og:title" content="왓츠디너 - 급식과 다른 저녁">
 <meta property="og:description" content="학교 급식과 안 겹치는 저녁 메뉴를 AI가 추천해드려요">
@@ -578,6 +584,50 @@ body {
 <body>
 <div class="container">
 
+<!-- 알림 허용 팝업 -->
+<div id="push-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+  <div style="display:flex;align-items:flex-start;gap:12px">
+    <div style="font-size:32px;flex-shrink:0">🔔</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:4px">아침 급식 알림 받기</div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.6">
+        매일 아침 7시에<br>
+        🚨 알레르기 주의 · ⚠️ 영양 주의보<br>
+        🍬 간식 주의보를 보내드려요
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="requestPushPermission()"
+          style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+          허용하기
+        </button>
+        <button onclick="dismissPushPrompt()"
+          style="padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          나중에
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 홈화면 추가 안내 (iOS) -->
+<div id="ios-install-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+  <div style="display:flex;align-items:flex-start;gap:12px">
+    <div style="font-size:32px;flex-shrink:0">📲</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:4px">홈 화면에 추가하기</div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.8">
+        1. 하단 공유 버튼 <span style="background:#f0f0f0;padding:1px 6px;border-radius:4px">□↑</span> 터치<br>
+        2. <span style="font-weight:700;color:var(--ink)">"홈 화면에 추가"</span> 선택<br>
+        3. 앱처럼 사용 + 알림 수신
+      </div>
+      <button onclick="document.getElementById('ios-install-prompt').style.display='none';localStorage.setItem('iosPromptDismissed','1')"
+        style="width:100%;margin-top:12px;padding:10px;border-radius:10px;border:none;background:#f4f4f4;color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        확인
+      </button>
+    </div>
+  </div>
+</div>
+
   <!-- 헤더 (항상 표시) -->
   <div class="header">
     <!-- 1행: 로고 | 오늘↔내일 토글 -->
@@ -1055,6 +1105,12 @@ body {
     <button onclick="hideInfoModal()"
       style="width:100%;padding:14px;border-radius:12px;border:none;background:#f4f4f4;color:var(--ink2);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
       닫기
+    </button>
+
+    <!-- 알림 설정 (개발용) -->
+    <button onclick="localStorage.removeItem('pushDismissed');hideInfoModal();setTimeout(initPushPrompt,500);"
+      style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+      🔔 알림 설정하기
     </button>
 
   </div>
@@ -2433,10 +2489,12 @@ function getIngredients(name, fridge, lunchItems) {
   };
 
   // 주재료 키워드 (첫 2개)
+  // 주재료 = 육류 + 어류만
   const mainIngredientKeywords = [
-    '소고기','돼지고기','닭고기','고등어','갈치','연어','오징어','새우','낙지',
-    '두부','계란','김치','미역','순두부','어묵','햄','소시지','당면','떡국떡',
-    '황태','북어채','콩나물','시금치','우거지','삼겹살','족발','닭','순대',
+    '소고기','쇠고기','돼지고기','닭고기','삼겹살','족발','순대','햄','소시지',
+    '고등어','갈치','삼치','연어','참치','오징어','새우','낙지','멸치',
+    '황태','북어채','꽁치','조기','임연수','바지락','조개','해물',
+    '닭','소갈비','돼지갈비','소뼈',
   ];
 
   const keys = Object.keys(ingredientMap).sort((a,b) => b.length - a.length);
@@ -2473,7 +2531,7 @@ function getIngredients(name, fridge, lunchItems) {
 
   return matched.map((ing, idx) => ({
     name: ing,
-    isMain: idx < 2 || mainIngredientKeywords.some(kw => ing.includes(kw)),
+    isMain: mainIngredientKeywords.some(kw => ing.includes(kw)),
     have: fridge.some(f => ing.includes(f.replace(/\s/g,'')) || f.replace(/\s/g,'').includes(ing)),
     overlap: lunchItems.some(l => ing.includes(l) || l.includes(ing))
   }));
@@ -2898,6 +2956,106 @@ function loadFromLocal() {
 function clearLocal() {
   localStorage.removeItem('whatsdinner_members');
 }
+
+// ── PWA & 푸시 알림 ──
+const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBkYI2SY9-zG4wXkNpA4';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+// 서비스워커 등록
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    console.log('SW 등록 완료', reg.scope);
+  }).catch(err => console.log('SW 등록 실패', err));
+}
+
+// 푸시 알림 팝업 표시 타이밍
+function initPushPrompt() {
+  // 이미 거절했거나 허용된 경우 건너뜀
+  if (localStorage.getItem('pushDismissed')) return;
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    // 이미 허용됨 → 알람만 재등록
+    scheduleLocalNotifications();
+    return;
+  }
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  if (isIOS && !isStandalone) {
+    if (!localStorage.getItem('iosPromptDismissed')) {
+      document.getElementById('ios-install-prompt').style.display = 'block';
+    }
+  } else {
+    // 안드로이드 / 크롬 / 삼성브라우저
+    document.getElementById('push-prompt').style.display = 'block';
+  }
+}
+
+async function requestPushPermission() {
+  document.getElementById('push-prompt').style.display = 'none';
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      await subscribePush();
+      showToast('✅ 아침 7시 급식 알림이 설정됐어요!');
+      localStorage.setItem('pushSubscribed', '1');
+    } else {
+      localStorage.setItem('pushDismissed', '1');
+    }
+  } catch(e) {
+    console.log('알림 오류:', e);
+  }
+}
+
+async function subscribePush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    // 구독 정보 저장 (서버 없이 localStorage에 저장)
+    localStorage.setItem('pushSubscription', JSON.stringify(sub));
+    console.log('푸시 구독 완료:', sub);
+
+    // 로컬 알람 스케줄링 (서비스워커 이용)
+    scheduleLocalNotifications();
+  } catch(e) {
+    console.log('구독 오류:', e);
+  }
+}
+
+function dismissPushPrompt() {
+  document.getElementById('push-prompt').style.display = 'none';
+  localStorage.setItem('pushDismissed', '1');
+}
+
+// 로컬 알림 스케줄링 (서비스워커에 메시지 전송)
+async function scheduleLocalNotifications() {
+  if (!navigator.serviceWorker.controller) return;
+  const memberData = members.filter(m => m.school).map(m => ({
+    name: m.name,
+    school: m.school,
+    allergyNos: m.allergyNos || [],
+    healthFlags: m.healthFlags || [],
+  }));
+  navigator.serviceWorker.controller.postMessage({
+    type: 'SCHEDULE_ALARM',
+    members: memberData,
+    hour: 7,
+    minute: 0,
+  });
+}
+
+// 앱 로드 후 3초 뒤 알림 팝업
+setTimeout(initPushPrompt, 3000);
 
 // ── 초기화 ──
 const restored = loadFromLocal();
