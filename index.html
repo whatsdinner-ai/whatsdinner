@@ -741,7 +741,7 @@ body {
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">3달치 급식 인기 메뉴 랭킹 · 이번주·저번주 제외</div>
+      <div class="section-sub">3달치 급식 중 덜 나온 메뉴 순 · 이번주·저번주 제외</div>
 
       <!-- 밥 -->
       <div style="margin-bottom:20px">
@@ -1744,15 +1744,15 @@ async function generateMenu() {
       ingredients: getIngredients(name, state.fridge, state.lunchMenu),
       schoolRef: `${info.count}회 등장`,
       badges: fridgeMatch > 0 ? ['냉장고활용'] : bonus > 0 ? ['영양보완'] : [],
-      reason: fridgeMatch > 0 ? '냉장고 재료 활용' : bonus > 0 ? '영양 보완 추천' : `이달 ${info.count}회 등장`,
+      reason: fridgeMatch > 0 ? '냉장고 재료 활용' : bonus > 0 ? '영양 보완 추천' : `3달 중 ${info.count}회 (덜 나온 메뉴)`,
       score: info.count + bonus,
     };
   });
 
-  // 4. 카테고리별 인기순 정렬
-  const bapList    = allMenus.filter(m => m.category === '밥').sort((a,b) => b.count-a.count).slice(0,3);
-  const gukList    = allMenus.filter(m => m.category === '국').sort((a,b) => b.count-a.count).slice(0,5);
-  const banchanList= allMenus.filter(m => m.category === '반찬').sort((a,b) => b.count-a.count).slice(0,8);
+  // 4. 카테고리별 빈도 적은 순 정렬 (적게 나온 = 덜 먹은 = 저녁에 적합)
+  const bapList    = allMenus.filter(m => m.category === '밥').sort((a,b) => a.count-b.count).slice(0,3);
+  const gukList    = allMenus.filter(m => m.category === '국').sort((a,b) => a.count-b.count).slice(0,5);
+  const banchanList= allMenus.filter(m => m.category === '반찬').sort((a,b) => a.count-b.count).slice(0,8);
 
   // 기본값 보충
   const defaultBap = [{ name:'잡곡밥', emoji:'🌾', category:'밥', reason:'기본 잡곡밥', badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) }];
@@ -1834,7 +1834,7 @@ function renderCatList(containerId, menus, cat) {
           <div class="menu-badges">
             ${(m.badges||[]).map(b=>`<span class="badge ${badgeClass[b]||'badge-blue'}">${b}</span>`).join('')}
             <span class="badge badge-orange">⏱ ${m.cookTime}</span>
-            ${m.rawCount > 0 ? `<span class="badge badge-green">📚 이달 ${m.rawCount}회</span>` : ''}
+            ${m.rawCount > 0 ? `<span class="badge badge-green">📚 3달중 ${m.rawCount}회</span>` : ''}
           </div>
         </div>
       </div>
