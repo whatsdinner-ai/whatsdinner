@@ -627,7 +627,7 @@ body {
       <div class="step-num">1</div> 학교 설정
     </div>
     <div class="step" id="step2" onclick="goStep(2)">
-      <div class="step-num">2</div> 오늘 급식
+      <div class="step-num">2</div> <span id="step2-label">오늘 급식</span>
     </div>
     <div class="step" id="step3" onclick="goStep(3)">
       <div class="step-num">3</div> 메뉴 추천
@@ -673,8 +673,8 @@ body {
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
   <div class="section" id="section2">
-    <div class="section-title">오늘 점심 현황</div>
-    <div class="section-sub">가족 모두의 점심을 분석했어요<br>이 재료들은 저녁 추천에서 <strong>자동 제외</strong>돼요</div>
+    <div class="section-title" id="lunch-section-title">오늘 점심 현황</div>
+    <div class="section-sub" id="lunch-section-sub">가족 모두의 점심을 분석했어요<br>이 재료들은 저녁 추천에서 <strong>자동 제외</strong>돼요</div>
 
     <div id="lunch-display"></div>
 
@@ -1430,6 +1430,17 @@ async function fetchAllLunch() {
   }
 
   goStep(2);
+
+  // 오늘/내일 제목 동적 변경
+  const isToday = targetDate.toDateString() === today.toDateString();
+  const dayLabel = isToday ? '오늘' : '내일';
+  const titleEl = document.getElementById('lunch-section-title');
+  const subEl = document.getElementById('lunch-section-sub');
+  if (titleEl) titleEl.textContent = `${dayLabel} 점심 현황`;
+  if (subEl) subEl.innerHTML = `가족 모두의 ${dayLabel} 점심을 분석했어요<br>이 재료들은 저녁 추천에서 <strong>자동 제외</strong>돼요`;
+  const step2Label = document.getElementById('step2-label');
+  if (step2Label) step2Label.textContent = `${dayLabel} 급식`;
+
   document.getElementById('lunch-display').innerHTML = `
     <div style="text-align:center;padding:40px 20px">
       <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
