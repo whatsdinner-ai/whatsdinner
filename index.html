@@ -1568,8 +1568,8 @@ function renderAllLunch(cards) {
 
     return `
       <div class="lunch-card" style="margin-bottom:12px">
-        <div class="lunch-school">🏫 ${card.name} · ${card.school} · ${today.getMonth()+1}월 ${today.getDate()}일</div>
-        <div class="lunch-title">오늘 점심 급식</div>
+        <div class="lunch-school">🏫 ${card.name} · ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
+        <div class="lunch-title">${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 점심 급식</div>
         <div class="lunch-items">
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
         </div>
@@ -1835,8 +1835,8 @@ function renderLunch(schoolName, menu) {
   const d = document.getElementById('lunch-display');
   d.innerHTML = `
     <div class="lunch-card">
-      <div class="lunch-school">🏫 ${schoolName} · ${state.schoolType} · ${today.getMonth()+1}월 ${today.getDate()}일</div>
-      <div class="lunch-title">오늘 점심 급식</div>
+      <div class="lunch-school">🏫 ${schoolName} · ${state.schoolType} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
+      <div class="lunch-title">${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 점심 급식</div>
       <div class="lunch-items">
         ${menu.items.map((item,i) => `
           <div class="lunch-item ${i < 2 ? 'highlight' : ''}">${item}</div>
