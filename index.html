@@ -1043,9 +1043,9 @@ body {
 </div>
 
 <!-- 앱 정보 모달 -->
-<div id="info-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center"
+<div id="info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999"
   onclick="if(event.target===this)hideInfoModal()">
-  <div style="background:white;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:24px 24px 40px;animation:slideUp .25s ease">
+  <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px;animation:slideUp .25s ease">
 
     <!-- 핸들 -->
     <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px"></div>
@@ -1127,15 +1127,11 @@ body {
 <script>
 // ── 앱 정보 모달 ──
 function showInfoModal() {
-  const modal = document.getElementById('info-modal');
-  if (!modal) return;
-  modal.style.display = 'flex';
+  document.getElementById('info-modal').style.display = 'block';
   document.body.style.overflow = 'hidden';
 }
 function hideInfoModal() {
-  const modal = document.getElementById('info-modal');
-  if (!modal) return;
-  modal.style.display = 'none';
+  document.getElementById('info-modal').style.display = 'none';
   document.body.style.overflow = '';
 }
 
@@ -2583,4 +2579,4 @@ function showToast(msg, isError=false) {
 // ── 탭 전환 ──
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
-  d
+  document.getElementById('section-cafe').style.di
