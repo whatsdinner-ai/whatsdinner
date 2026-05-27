@@ -741,7 +741,7 @@ body {
 
     <div id="menu-results" style="display:none">
       <div class="section-title">오늘 저녁 추천</div>
-      <div class="section-sub">1달치 급식 인기 메뉴 랭킹 · 이번주·저번주 제외</div>
+      <div class="section-sub">3달치 급식 인기 메뉴 랭킹 · 이번주·저번주 제외</div>
 
       <!-- 밥 -->
       <div style="margin-bottom:20px">
@@ -1585,7 +1585,7 @@ function renderLunch(schoolName, menu) {
   `;
 }
 
-// ── 과거 급식 데이터 수집 ──
+// ── 과거 급식 데이터 수집 (3달치) ──
 let pastLunchMenus = [];
 
 async function fetchPastLunch() {
@@ -1593,29 +1593,59 @@ async function fetchPastLunch() {
   if (children.length === 0) return;
   const school = children[0].school;
 
-  // 날짜 범위 계산 (최근 30일)
+  // 캐시 확인 (같은 학교 + 7일 이내)
+  try {
+    const cached = localStorage.getItem('whatsdinner_menus');
+    if (cached) {
+      const { schoolCode, fetchedAt, menus } = JSON.parse(cached);
+      const daysDiff = (Date.now() - fetchedAt) / (1000 * 60 * 60 * 24);
+      if (schoolCode === school.code && daysDiff < 7 && menus.length > 0) {
+        pastLunchMenus = menus;
+        showToast(`📚 ${menus.length}일치 급식 데이터 로드`);
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 3달치 날짜 범위
+  const toDate = new Date(today);
   const fromDate = new Date(today);
-  fromDate.setDate(fromDate.getDate() - 30);
-  const fromStr = `${fromDate.getFullYear()}${String(fromDate.getMonth()+1).padStart(2,'0')}${String(fromDate.getDate()).padStart(2,'0')}`;
-  const toStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  fromDate.setMonth(fromDate.getMonth() - 3);
+
+  const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+
+  document.querySelector('.loading-sub').textContent = '3달치 급식 데이터 수집 중...';
 
   try {
+    // 한 번에 최대 100건 요청 (pSize=100)
     const res = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=30&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fromStr}&MLSV_TO_YMD=${toStr}`
+      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100&ATPT_OFCDC_SC_CODE=${school.sido}&SD_SCHUL_CODE=${school.code}&MLSV_FROM_YMD=${fmt(fromDate)}&MLSV_TO_YMD=${fmt(toDate)}`
     );
     const data = await res.json();
     const rows = data?.mealServiceDietInfo?.[1]?.row || [];
+
     pastLunchMenus = rows.map(row => ({
       date: row.MLSV_YMD,
       items: row.DDISH_NM
         .replace(/<br\/>/g, ',').split(',')
         .map(d => d.replace(/\([^)]*\)/g, '').trim())
         .filter(d => d.length > 0),
-      cal: parseFloat((row.NTR_INFO||'').match(/칼로리\(kcal\)\s*:\s*([\d.]+)/)?.[1] || 0),
-      carb: parseFloat((row.NTR_INFO||'').match(/탄수화물\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      cal:     parseFloat((row.NTR_INFO||'').match(/칼로리\(kcal\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      carb:    parseFloat((row.NTR_INFO||'').match(/탄수화물\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
       protein: parseFloat((row.NTR_INFO||'').match(/단백질\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
-      fat: parseFloat((row.NTR_INFO||'').match(/지방\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
+      fat:     parseFloat((row.NTR_INFO||'').match(/지방\(g\)\s*:\s*([\d.]+)/)?.[1] || 0),
     }));
+
+    // localStorage 캐시 저장 (7일)
+    try {
+      localStorage.setItem('whatsdinner_menus', JSON.stringify({
+        schoolCode: school.code,
+        fetchedAt: Date.now(),
+        menus: pastLunchMenus,
+      }));
+    } catch(e) {}
+
+    showToast(`📚 ${pastLunchMenus.length}일치 급식 데이터 로드`);
   } catch(e) {
     pastLunchMenus = [];
   }
