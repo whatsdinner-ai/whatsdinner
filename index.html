@@ -626,14 +626,6 @@ body {
   <!-- ══ STEP 1: 가족 구성원 설정 ══ -->
   <div class="section active" id="section1">
 
-    <!-- 인사말 -->
-    <div style="padding:20px 0 16px">
-      <div style="font-size:13px;color:var(--ink3);margin-bottom:4px">오늘 저녁 메뉴</div>
-      <div style="font-size:22px;font-weight:900;color:var(--ink);line-height:1.3">
-        급식과 다른 저녁,<br>지금 바로 추천받으세요 🍽️
-      </div>
-    </div>
-
     <!-- 구성원 추가 버튼 (토스 스타일) -->
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button onclick="addMember('child')"
@@ -1168,8 +1160,16 @@ function updateDateDisplay() {
   const d = targetDate;
   const isToday = d.toDateString() === today.toDateString();
   const label = isToday ? '오늘' : '내일';
-  document.getElementById('today-date').textContent =
-    `${label} ${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
+  const el = document.getElementById('today-date');
+  const dateText = `${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
+
+  if (isToday) {
+    el.innerHTML = `${label} ${dateText}`;
+    el.style.cssText = 'font-size:12px;color:var(--ink3);background:none;padding:0;border-radius:0;font-weight:400';
+  } else {
+    el.innerHTML = `<span style="color:white;background:var(--accent);padding:2px 8px;border-radius:100px;font-weight:700;font-size:11px">내일</span> <span style="font-weight:700;color:var(--accent)">${dateText}</span>`;
+    el.style.cssText = 'font-size:12px;display:flex;align-items:center;gap:4px';
+  }
 }
 updateDateDisplay();
 
@@ -1234,9 +1234,22 @@ let memberIdCounter = 0;
 let searchTimers = {};
 let selectedSchools = {};
 
+function toggleHealthOption(memberId, key) {
+  const m = members.find(x => x.id === memberId);
+  if (!m) return;
+  if (!m.healthFlags) m.healthFlags = [];
+  if (m.healthFlags.includes(key)) {
+    m.healthFlags = m.healthFlags.filter(k => k !== key);
+  } else {
+    m.healthFlags.push(key);
+  }
+  renderMembers();
+  saveToLocal();
+}
+
 function addMember(type) {
   const id = memberIdCounter++;
-  members.push({ id, type, name: '', school: null, workMenu: '', lunchItems: [] });
+  members.push({ id, type, name: '', school: null, workMenu: '', lunchItems: [], healthFlags: [] });
   renderMembers();
   saveToLocal();
 }
@@ -1301,7 +1314,7 @@ function renderMembers() {
       </div>
 
       ${m.type === 'child' ? `
-        <div class="form-group" style="position:relative;margin-bottom:0">
+        <div class="form-group" style="position:relative;margin-bottom:8px">
           <label class="form-label">학교 검색</label>
           <input type="text" class="form-input"
             placeholder="학교 이름 2글자 이상..."
@@ -1319,6 +1332,21 @@ function renderMembers() {
             <div style="margin-top:8px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
               ✅ ${m.school.name}
             </div>` : ''}
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${[
+              {key:'sugar',    label:'🍬 당류 제한',   desc:'인슐린·당뇨'},
+              {key:'sodium',   label:'🧂 나트륨 제한', desc:'고혈압·신장'},
+              {key:'flour',    label:'🌾 밀가루 제한', desc:'글루텐 프리'},
+              {key:'fat',      label:'🥓 지방 제한',   desc:'비만·고지혈'},
+            ].map(opt => `
+              <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
+                style="padding:6px 12px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
+                ${opt.label}<br><span style="font-size:10px;font-weight:400">${opt.desc}</span>
+              </div>`).join('')}
+          </div>
         </div>
       ` : `
         <div class="form-group" style="margin-bottom:0">
@@ -1440,12 +1468,29 @@ async function fetchAllLunch() {
 
         // 영양소 파싱
         const ntrInfo = row.NTR_INFO || '';
-        const cal = (() => { const m = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/10),100) : 65; })();
-        const carb = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/1.5),100) : 70; })();
-        const protein = (() => { const m = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.6),100) : 60; })();
-        const fat = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/); return m ? Math.min(Math.round(parseFloat(m[1])/0.5),100) : 45; })();
+        const cal     = (() => { const m = ntrInfo.match(/칼로리\(kcal\)\s*:\s*([\d.]+)/);  return m ? Math.min(Math.round(parseFloat(m[1])/10),100) : 65; })();
+        const carb    = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/);   return m ? Math.min(Math.round(parseFloat(m[1])/1.5),100) : 70; })();
+        const protein = (() => { const m = ntrInfo.match(/단백질\(g\)\s*:\s*([\d.]+)/);     return m ? Math.min(Math.round(parseFloat(m[1])/0.6),100) : 60; })();
+        const fat     = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/);       return m ? Math.min(Math.round(parseFloat(m[1])/0.5),100) : 45; })();
 
-        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat } });
+        // 당류/나트륨/탄수화물(밀가루) 실제 수치 파싱
+        const sugarRaw  = (() => { const m = ntrInfo.match(/당류\(g\)\s*:\s*([\d.]+)/);     return m ? parseFloat(m[1]) : 0; })();
+        const sodiumRaw = (() => { const m = ntrInfo.match(/나트륨\(mg\)\s*:\s*([\d.]+)/);  return m ? parseFloat(m[1]) : 0; })();
+        const carbRaw   = (() => { const m = ntrInfo.match(/탄수화물\(g\)\s*:\s*([\d.]+)/); return m ? parseFloat(m[1]) : 0; })();
+        const fatRaw    = (() => { const m = ntrInfo.match(/지방\(g\)\s*:\s*([\d.]+)/);     return m ? parseFloat(m[1]) : 0; })();
+
+        // 건강 경고 체크
+        const flags = member.healthFlags || [];
+        const warnings = [];
+        if (flags.includes('sugar')  && sugarRaw  > 0) warnings.push({ type:'sugar',  val:sugarRaw,  limit:25,    unit:'g',  label:'당류',   icon:'🍬' });
+        if (flags.includes('sodium') && sodiumRaw > 0) warnings.push({ type:'sodium', val:sodiumRaw, limit:800,   unit:'mg', label:'나트륨', icon:'🧂' });
+        if (flags.includes('flour')  && carbRaw   > 0) warnings.push({ type:'flour',  val:carbRaw,   limit:130,   unit:'g',  label:'탄수화물', icon:'🌾' });
+        if (flags.includes('fat')    && fatRaw    > 0) warnings.push({ type:'fat',    val:fatRaw,    limit:25,    unit:'g',  label:'지방',   icon:'🥓' });
+
+        member.lunchNutritionRaw = { sugar: sugarRaw, sodium: sodiumRaw, carb: carbRaw, fat: fatRaw };
+        member.healthWarnings = warnings;
+
+        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat }, warnings, healthFlags: flags, lunchNutritionRaw: member.lunchNutritionRaw });
       } else {
         member.lunchItems = [];
         cards.push({ type: 'nodata', name: member.name || '아이', school: member.school.name });
@@ -1523,6 +1568,34 @@ function renderAllLunch(cards) {
               </div>`).join('')}
           </div>
         </div>
+
+        ${card.warnings && card.warnings.length > 0 ? `
+        <div style="margin-top:12px;padding:12px 14px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px">
+          <div style="font-size:12px;font-weight:700;color:#856404;margin-bottom:8px">
+            ⚠️ ${card.name} 건강 주의 알림
+          </div>
+          ${card.warnings.map(w => {
+            const pct = Math.round(w.val / w.limit * 100);
+            const isOver = pct >= 80;
+            const color = pct >= 100 ? '#dc3545' : pct >= 80 ? '#fd7e14' : '#856404';
+            return `
+            <div style="margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:12px;font-weight:600;color:${color}">${w.icon} ${w.label}</span>
+                <span style="font-size:11px;color:${color};font-weight:700">
+                  ${w.val}${w.unit} / 권장 ${w.limit}${w.unit} (${pct}%)
+                  ${pct >= 100 ? ' 🚨 초과!' : pct >= 80 ? ' ⚠️ 주의' : ''}
+                </span>
+              </div>
+              <div style="height:6px;background:rgba(0,0,0,.1);border-radius:100px;overflow:hidden">
+                <div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:100px"></div>
+              </div>
+              ${isOver ? `<div style="font-size:11px;color:${color};margin-top:4px">
+                💡 저녁엔 ${w.type==='sugar'?'단 음식·주스·과자':w.type==='sodium'?'짠 음식·국물·가공식품':w.type==='flour'?'빵·면류·튀김':w.type==='fat'?'튀김·기름진 음식':''} 피해주세요
+              </div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>` : ''}
       </div>`;
   }).join('') + `
     <div style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:12px;padding:8px;background:var(--green-light);border-radius:8px">
@@ -1879,6 +1952,17 @@ async function generateMenu() {
     ...[...recentItems]
   ].map(i => i.toLowerCase()));
 
+  // 건강 경고 기반 추가 제외 메뉴
+  const healthExcludeKeywords = [];
+  members.filter(m => m.type === 'child' && m.healthFlags?.length > 0).forEach(m => {
+    const flags = m.healthFlags || [];
+    if (flags.includes('sugar'))  healthExcludeKeywords.push(...['조림','강정','달콤','설탕','꿀','잼','주스','요거트','케이크']);
+    if (flags.includes('sodium')) healthExcludeKeywords.push(...['찌개','국','탕','라면','짜장','간장조림','젓갈','명란']);
+    if (flags.includes('flour'))  healthExcludeKeywords.push(...['빵','면','파스타','떡볶이','라면','우동','칼국수','수제비','튀김']);
+    if (flags.includes('fat'))    healthExcludeKeywords.push(...['튀김','전','볶음','삼겹','갈비','치킨','돈까스','탕수육']);
+  });
+  const healthWarningActive = healthExcludeKeywords.length > 0;
+
   // 메뉴 이름 정규화 (유사 메뉴 통합)
   const normalizeName = (name) => {
     return name
@@ -1903,6 +1987,12 @@ async function generateMenu() {
         item.includes(ex.replace(/[🌶️🥩🐟🥚🧄🧅]/g,'').trim())
       );
       if (hasExclude) return;
+
+      // 건강 경고 기반 제외
+      if (healthWarningActive) {
+        const isHealthExclude = healthExcludeKeywords.some(kw => item.includes(kw));
+        if (isHealthExclude) return;
+      }
 
       // 정규화된 이름으로 그룹핑 (중복 방지)
       const normalized = normalizeName(item);
@@ -2421,86 +2511,72 @@ function goShoppingFromMenu() {
   if (!state.selectedMenu) return;
   goStep(5);
 
-  // 레시피 카드 초기화
   const recipeCard = document.getElementById('recipe-link-card');
   if (recipeCard) recipeCard.style.display = 'none';
 
-  const menuName = state.selectedMenu.name;
   document.getElementById('shop-title').textContent = `오늘의 장보기 목록`;
   document.getElementById('shop-sub').textContent = `재료를 클릭하면 쿠팡에서 바로 검색돼요`;
-
-  const needed = state.selectedMenu.ingredients.filter(i => !i.have && !i.overlap);
-  const have   = state.selectedMenu.ingredients.filter(i => i.have);
 
   const el = document.getElementById('shopping-list');
 
   // 쿠팡/컬리 링크
-  const coupangUrl = (keyword) =>
-    `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user&sorter=reviewCountDESC`;
-  const kurlyUrl = (keyword) =>
-    `https://www.kurly.com/search?sword=${encodeURIComponent(keyword)}`;
+  const coupangUrl = k => `https://www.coupang.com/np/search?q=${encodeURIComponent(k)}&channel=user&sorter=reviewCountDESC`;
+  const kurlyUrl   = k => `https://www.kurly.com/search?sword=${encodeURIComponent(k)}`;
 
-  if (needed.length === 0) {
-    el.innerHTML = `
-      <div style="text-align:center;padding:28px 20px">
-        <div style="font-size:48px;margin-bottom:12px">🎉</div>
-        <div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;margin-bottom:6px">이미 다 있어요!</div>
-        <div style="font-size:13px;color:var(--ink3)">냉장고 재료로 바로 만들 수 있어요</div>
-      </div>`;
-    const recipeLink = document.getElementById('recipe-external-link');
-    if (recipeCard && recipeLink) {
-      recipeLink.href = `https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(menuName)}`;
-      recipeLink.textContent = `만개의레시피에서 레시피 보기 →`;
-      recipeCard.style.display = 'block';
-    }
+  // 선택된 밥/국/반찬
+  const bap     = selectedDinner.bap;
+  const guk     = selectedDinner.guk;
+  const banchan = selectedDinner.banchan || [];
+
+  // 카테고리별 핵심 재료 3개씩 추출
+  function getCoreIngredients(menu) {
+    if (!menu) return [];
+    const all = getIngredients(menu.name, state.fridge, state.lunchMenu);
+    // 없는 재료(have=false, overlap=false) 우선, 최대 3개
+    const needed = all.filter(i => !i.have && !i.overlap);
+    return needed.slice(0, 3);
+  }
+
+  const sections = [
+    { label: '🍚 밥', emoji: '🍚', menu: bap,     color: '#FF6B00' },
+    { label: '🍲 국', emoji: '🍲', menu: guk,     color: '#2d6a4f' },
+    ...banchan.map((b, i) => ({ label: `🥗 반찬${banchan.length > 1 ? ` ${i+1}` : ''}`, emoji: '🥗', menu: b, color: '#5f0080' })),
+  ].filter(s => s.menu);
+
+  if (sections.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:28px;color:var(--ink3)">메뉴를 먼저 선택해주세요</div>`;
     return;
   }
 
-  document.getElementById('shop-sub').textContent = `${needed.length}가지 재료가 필요해요`;
-
-  el.innerHTML = `
-    <div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--accent)">
-        사야 할 재료 (${needed.length}가지)
-      </div>
-      ${needed.map((item, i) => `
-        <div style="margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
-            <div id="scheck-${i}" onclick="toggleCheck(${i},'${item.name}')"
-              style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
-            <div id="sname-${i}" style="flex:1;font-size:14px;font-weight:500">${item.name}</div>
-            <div style="display:flex;gap:5px;flex-shrink:0">
-              <a href="${coupangUrl(item.name)}"
-                target="_blank" rel="noopener noreferrer"
-                onclick="handleCoupangClick('${item.name}')"
-                style="display:flex;align-items:center;padding:6px 10px;background:#c00;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                쿠팡
-              </a>
-              <a href="${kurlyUrl(item.name)}"
-                target="_blank" rel="noopener noreferrer"
-                style="display:flex;align-items:center;padding:6px 10px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                컬리
-              </a>
+  let totalCount = 0;
+  el.innerHTML = sections.map(({ label, menu, color }) => {
+    const items = getCoreIngredients(menu);
+    totalCount += items.length;
+    if (items.length === 0) return '';
+    return `
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:8px;padding:4px 10px;background:${color}18;border-radius:100px;display:inline-block">
+          ${label} · ${menu.name}
+        </div>
+        ${items.map((item, i) => `
+          <div style="margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+              <div id="scheck-${label}-${i}" onclick="toggleCheck('${label}-${i}','${item.name}')"
+                style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s"></div>
+              <div id="sname-${label}-${i}" style="flex:1;font-size:14px;font-weight:500">${item.name}</div>
+              <div style="display:flex;gap:5px;flex-shrink:0">
+                <a href="${coupangUrl(item.name)}" target="_blank" rel="noopener noreferrer"
+                  onclick="handleCoupangClick('${item.name}')"
+                  style="display:flex;align-items:center;padding:6px 10px;background:#c00;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">쿠팡</a>
+                <a href="${kurlyUrl(item.name)}" target="_blank" rel="noopener noreferrer"
+                  style="display:flex;align-items:center;padding:6px 10px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">컬리</a>
+              </div>
             </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
 
-    ${have.length > 0 ? `
-    <div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--green)">
-        이미 있는 재료 (${have.length}가지)
-      </div>
-      ${have.map(item => `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6">
-          <div style="width:22px;height:22px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">✓</div>
-          <div style="font-size:14px;color:var(--ink2)">${item.name}</div>
-          <div style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600">있음</div>
-        </div>
-      `).join('')}
-    </div>` : ''}
-  `;
+  document.getElementById('shop-sub').textContent = `핵심 재료 ${totalCount}가지 · 클릭하면 쿠팡에서 바로 검색`;
 }
 
 function handleCoupangClick(itemName) {
@@ -2692,6 +2768,7 @@ function saveToLocal() {
         name: m.name,
         school: m.school,
         workMenu: m.workMenu,
+        healthFlags: m.healthFlags || [],
       })),
       memberIdCounter,
     };
@@ -2710,10 +2787,12 @@ function loadFromLocal() {
       .filter(m => m.type === 'child' || m.type === 'adult')
       .map(m => ({
         ...m,
-        name: m.school
+        name: m.name || (m.school
           ? m.school.name.replace('초등학교','').replace('중학교','').replace('고등학교','').replace('초','').trim()
-          : '',
+          : ''),
         lunchItems: [],
+        workMenu: m.workMenu || '',
+        healthFlags: m.healthFlags || [],
       }));
 
     if (members.length === 0) return false;
@@ -2734,10 +2813,20 @@ const restored = loadFromLocal();
 renderMembers();
 
 if (restored) {
-  setTimeout(() => {
+  setTimeout(async () => {
     const names = members.map(m => m.name || (m.type === 'child' ? '아이' : '어른')).join(', ');
     showToast(`✅ ${names} 설정을 불러왔어요!`);
-  }, 600);
+    renderMembers();
+
+    // 아이가 있고 학교 설정 완료된 경우 자동으로 급식 조회
+    const children = members.filter(m => m.type === 'child');
+    const allSet = children.length > 0 && children.every(m => m.school);
+    if (allSet) {
+      setTimeout(() => {
+        fetchAllLunch();
+      }, 800);
+    }
+  }, 300);
 }
 
 
