@@ -66,7 +66,7 @@ body {
   padding: 16px 20px 0;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 300;
   background: var(--paper);
 }
 .header-top {
@@ -605,7 +605,7 @@ body {
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="today-date" id="today-date"></div>
-        <button onclick="showInfoModal()" style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0">ⓘ</button>
+        <button onclick="showInfoModal()" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0;position:relative;z-index:200;-webkit-tap-highlight-color:transparent">ⓘ</button>
       </div>
     </div>
   </div>
@@ -1063,7 +1063,7 @@ body {
 <!-- 앱 정보 모달 -->
 <div id="info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999"
   onclick="if(event.target===this)hideInfoModal()">
-  <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px">
+  <div style="position:absolute;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px;overflow-y:auto;max-height:90vh">
 
     <!-- 핸들 -->
     <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px"></div>
@@ -2581,6 +2581,4 @@ function resetAll() {
   if (menuListBanchan) menuListBanchan.innerHTML = '';
 
   const shoppingList = document.getElementById('shopping-list');
-  if (shoppingList) shoppingList.innerHTML = '';
-
-  const menuResults = document.getElementById('menu-res
+  if (shop
