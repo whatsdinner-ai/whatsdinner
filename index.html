@@ -1423,7 +1423,12 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     member.school = { name, code, sido, addr };
 
     // 학교명에서 "학교" 두 글자만 제거해서 닉네임 생성
-    const shortName = name.replace('학교', '').trim();
+    let shortName = name;
+    if (name.includes('초등학교')) shortName = name.replace('초등학교', '') + '초';
+    else if (name.includes('중학교')) shortName = name.replace('중학교', '') + '중';
+    else if (name.includes('고등학교')) shortName = name.replace('고등학교', '') + '고';
+    else shortName = name.replace('학교', '');
+    shortName = shortName.trim();
 
     member.name = shortName;
 
@@ -1593,13 +1598,13 @@ function renderAllLunch(cards) {
   d.innerHTML = cards.map(card => {
     if (card.type === 'nodata') return `
       <div class="card" style="margin-bottom:12px;opacity:.6">
-        <div style="font-size:13px;color:var(--ink3)">🏫 ${card.name} · ${card.school}</div>
+        <div style="font-size:13px;color:var(--ink3)">🏫 ${card.school}</div>
         <div style="font-size:13px;color:var(--ink3);margin-top:6px">오늘 급식 정보 없음</div>
       </div>`;
 
     return `
       <div class="lunch-card" style="margin-bottom:12px">
-        <div class="lunch-school">🏫 ${card.name} · ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
+        <div class="lunch-school">🏫 ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
         <div class="lunch-title">${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 점심 급식</div>
         <div class="lunch-items">
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
@@ -1631,32 +1636,14 @@ function renderAllLunch(cards) {
               <div style="font-size:11px;color:var(--ink3);margin-top:6px">
                 💡 저녁에 위 영양소가 풍부한 메뉴를 추천해드려요
               </div>
-              ${items.some(i => i.n.includes('단백질') || i.n.includes('칼로리') || i.n.includes('지방') || i.n.includes('탄수화물')) ? '' : ''}
-              ${(() => {
-                const vitaminItems = items.filter(i => i.n.includes('비타민'));
-                if (vitaminItems.length === 0) return '';
-                const query = encodeURIComponent('어린이 종합 비타민');
-                const coupangUrl = `https://www.coupang.com/np/search?q=${query}&channel=user&sorter=reviewCountDESC`;
-                const kurlyUrl = `https://www.kurly.com/search?sword=${query}`;
-                return `
-                <div style="display:flex;gap:6px;margin-top:8px">
-                  <a href="${coupangUrl}" target="_blank" rel="noopener noreferrer"
-                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#e8232a;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                    🛒 쿠팡
-                  </a>
-                  <a href="${kurlyUrl}" target="_blank" rel="noopener noreferrer"
-                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                    🌿 컬리
-                  </a>
-                </div>`;
-              })()}`;
+              `;
           })()}
         </div>
 
         ${card.warnings && card.warnings.length > 0 ? `
         <div style="margin-top:12px;padding:12px 14px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px">
           <div style="font-size:12px;font-weight:700;color:#856404;margin-bottom:8px">
-            ⚠️ ${card.name} 건강 주의 알림
+            ⚠️ 건강 주의 알림
           </div>
           ${card.warnings.map(w => {
             const pct = Math.round(w.val / w.limit * 100);
@@ -1684,7 +1671,7 @@ function renderAllLunch(cards) {
         ${card.allergyHits && card.allergyHits.length > 0 ? `
         <div style="margin-top:10px;padding:12px 14px;background:#fde8e8;border:2px solid #dc3545;border-radius:12px">
           <div style="font-size:13px;font-weight:800;color:#dc3545;margin-bottom:8px">
-            🚨 ${card.name} 알레르기 주의!
+            🚨 알레르기 주의!
           </div>
           ${card.allergyHits.map(hit => `
             <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:8px;border:1px solid rgba(220,53,69,.3)">
@@ -1874,19 +1861,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                     ${n.icon} ${n.label}
                   </span>`).join('')}
               </div>
-              ${deficient.some(n => n.label.includes('비타민')) ? `
-              <div style="display:flex;gap:6px;margin-top:8px">
-                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 종합 비타민')}&channel=user&sorter=reviewCountDESC"
-                  target="_blank" rel="noopener noreferrer"
-                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#e8232a;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                  🛒 쿠팡
-                </a>
-                <a href="https://www.kurly.com/search?sword=${encodeURIComponent('어린이 종합 비타민')}"
-                  target="_blank" rel="noopener noreferrer"
-                  style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 8px;background:#5f0080;border-radius:8px;color:white;font-size:11px;font-weight:700;text-decoration:none">
-                  🌿 컬리
-                </a>
-              </div>` : ''}
+              ${deficient.some(n => n.label.includes('비타민')) ? `` : ''}
             </div>` : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ 이번주 영양 균형 우수!
@@ -2895,7 +2870,12 @@ function loadFromLocal() {
         if (name) name = name.replace(/-초$/, '초').replace(/-중$/, '중').replace(/-고$/, '고');
         // 이름이 없으면 학교명에서 생성
         if (!name && m.school) {
-          name = m.school.name.replace('학교', '').trim();
+          const sn = m.school.name;
+          if (sn.includes('초등학교')) name = sn.replace('초등학교','') + '초';
+          else if (sn.includes('중학교')) name = sn.replace('중학교','') + '중';
+          else if (sn.includes('고등학교')) name = sn.replace('고등학교','') + '고';
+          else name = sn.replace('학교','');
+          name = name.trim();
         }
         return {
           ...m,
