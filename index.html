@@ -675,7 +675,7 @@ body {
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
   <div class="section" id="section2">
     <div class="section-title" id="lunch-section-title">오늘 점심 현황</div>
-    <div class="section-sub" id="lunch-section-sub">가족 모두의 점심을 분석했어요<br>이 재료들은 저녁 추천에서 <strong>자동 제외</strong>돼요</div>
+    <div class="section-sub" id="lunch-section-sub" style="display:none"></div>
 
     <div id="lunch-display"></div>
 
@@ -1628,7 +1628,19 @@ function renderAllLunch(cards) {
               </div>
               <div style="font-size:11px;color:var(--ink3);margin-top:6px">
                 💡 저녁에 위 영양소가 풍부한 메뉴를 추천해드려요
-              </div>`;
+              </div>
+              ${items.some(i => i.n.includes('단백질') || i.n.includes('칼로리') || i.n.includes('지방') || i.n.includes('탄수화물')) ? '' : ''}
+              ${(() => {
+                const vitaminItems = items.filter(i => i.n.includes('비타민'));
+                if (vitaminItems.length === 0) return '';
+                const query = encodeURIComponent('어린이 종합 비타민');
+                const coupangUrl = `https://www.coupang.com/np/search?q=${query}&channel=user&sorter=reviewCountDESC`;
+                return `
+                <a href="${coupangUrl}" target="_blank" rel="noopener noreferrer"
+                  style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:10px 14px;background:#e8232a;border-radius:10px;color:white;font-size:13px;font-weight:700;text-decoration:none">
+                  🛒 어린이 비타민 쿠팡에서 구매하기
+                </a>`;
+              })()}`;
           })()}
         </div>
 
@@ -1853,28 +1865,18 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                     ${n.icon} ${n.label}
                   </span>`).join('')}
               </div>
+              ${deficient.some(n => n.label.includes('비타민')) ? `
+              <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 종합 비타민')}&channel=user&sorter=reviewCountDESC"
+                target="_blank" rel="noopener noreferrer"
+                style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:10px 14px;background:#e8232a;border-radius:10px;color:white;font-size:13px;font-weight:700;text-decoration:none">
+                🛒 어린이 비타민 쿠팡에서 구매하기
+              </a>` : ''}
             </div>` : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ 이번주 영양 균형 우수!
             </div>`}
         </div>`;
     }).join('')}
-
-    ${allDeficient.length > 0 ? `
-    <div style="background:rgba(200,80,26,.08);border:1px solid rgba(200,80,26,.2);border-radius:12px;padding:14px 16px;margin-bottom:12px">
-      <div style="font-weight:700;font-size:14px;color:var(--accent);margin-bottom:8px">
-        🍽️ 오늘 저녁 추천에 반영됩니다
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-        ${allDeficient.map(label => `
-          <span style="background:rgba(200,80,26,.1);border:1px solid rgba(200,80,26,.2);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--accent)">
-            ${label} 보완 메뉴 우선 추천
-          </span>`).join('')}
-      </div>
-      <div style="font-size:12px;color:var(--ink3)">
-        메뉴 추천 단계에서 부족한 영양소를 채워주는 저녁 메뉴를 우선 보여드려요
-      </div>
-    </div>` : ''}
   `;
 }
 
