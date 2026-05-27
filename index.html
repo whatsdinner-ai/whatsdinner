@@ -379,6 +379,7 @@ body {
 .badge-green { background: var(--green-light); color: var(--green); }
 .badge-orange { background: #fff0e8; color: var(--accent); }
 .badge-blue { background: #e8f0ff; color: #3060c8; }
+.badge-red { background: #fde8e8; color: #dc3545; }
 
 .menu-card-body {
   padding: 12px 18px 16px;
@@ -779,7 +780,6 @@ body {
       </div>
     </div>
 
-    <button class="btn-primary" onclick="resetAll()">🍽️ 내일 메뉴도 추천받기</button>
     <div style="margin-top:10px;padding:10px 14px;background:#f8f8f8;border-radius:10px;font-size:11px;color:var(--ink3);line-height:1.6;text-align:center">
       📌 학교 급식 일정은 변경·취소될 수 있어요<br>
       오후 2시 이후 조회 시 내일 급식이 더 정확해요
@@ -2029,7 +2029,85 @@ async function generateMenu() {
     ...[...recentItems]
   ].map(i => i.toLowerCase()));
 
-  // 건강 경고 기반 추가 제외 메뉴
+  // ── 고기류 분석 ──
+  const meatTypes = {
+    '소': ['소고기','쇠고기','불고기','육개장','갈비','스테이크','로스','떡갈비','소불고기','국거리'],
+    '돼지': ['돼지고기','제육','삼겹','돈까스','돈육','햄','베이컨','수육','보쌈','돈갈비'],
+    '닭': ['닭','치킨','닭볶음','닭갈비','닭도리','닭강정','삼계','닭가슴','닭다리'],
+    '어류': ['생선','고등어','갈치','삼치','명태','동태','연어','참치','조기','임연수','황태','코다리','꽁치'],
+  };
+
+  // 오늘 급식에 나온 고기류 파악
+  const lunchMenuStr = state.lunchMenu.join(' ');
+  const appearedMeats = new Set();
+  Object.entries(meatTypes).forEach(([type, keywords]) => {
+    if (keywords.some(kw => lunchMenuStr.includes(kw))) appearedMeats.add(type);
+  });
+
+  // 안 나온 고기류 → 저녁 추천 우선순위
+  const missingMeats = Object.keys(meatTypes).filter(t => !appearedMeats.has(t));
+
+  // 매운 메뉴 감지
+  const spicyKeywords = ['김치찌개','떡볶이','순두부','제육','마라','닭볶음','청양','매운','라면','부대찌개','낙지','돈육볶음'];
+  const hasSpicyLunch = spicyKeywords.some(kw => lunchMenuStr.includes(kw));
+
+  // 고기류별 추천 레시피 풀
+  const meatRecipes = {
+    '소': [
+      {name:'소불고기',emoji:'🥩',cat:'반찬',spicy:false},
+      {name:'된장찌개',emoji:'🥘',cat:'국',spicy:false},
+      {name:'소고기미역국',emoji:'🍲',cat:'국',spicy:false},
+      {name:'떡갈비',emoji:'🍖',cat:'반찬',spicy:false},
+      {name:'소고기볶음',emoji:'🥩',cat:'반찬',spicy:false},
+    ],
+    '돼지': [
+      {name:'제육볶음',emoji:'🐷',cat:'반찬',spicy:true},
+      {name:'돼지갈비찜',emoji:'🍖',cat:'반찬',spicy:false},
+      {name:'된장찌개',emoji:'🥘',cat:'국',spicy:false},
+      {name:'수육',emoji:'🥩',cat:'반찬',spicy:false},
+      {name:'돼지고기두루치기',emoji:'🐷',cat:'반찬',spicy:true},
+    ],
+    '닭': [
+      {name:'닭볶음탕',emoji:'🍗',cat:'반찬',spicy:true},
+      {name:'닭갈비',emoji:'🍗',cat:'반찬',spicy:true},
+      {name:'삼계탕',emoji:'🍲',cat:'국',spicy:false},
+      {name:'닭가슴살샐러드',emoji:'🥗',cat:'반찬',spicy:false},
+      {name:'찜닭',emoji:'🍗',cat:'반찬',spicy:false},
+    ],
+    '어류': [
+      {name:'고등어구이',emoji:'🐟',cat:'반찬',spicy:false},
+      {name:'갈치조림',emoji:'🐟',cat:'반찬',spicy:false},
+      {name:'생선전',emoji:'🐠',cat:'반찬',spicy:false},
+      {name:'연어구이',emoji:'🐟',cat:'반찬',spicy:false},
+      {name:'황태국',emoji:'🍲',cat:'국',spicy:false},
+    ],
+  };
+
+  // 미싱 고기류 기반 추천 메뉴 생성
+  const meatRecommended = [];
+  missingMeats.forEach(meatType => {
+    const recipes = meatRecipes[meatType] || [];
+    const filtered = hasSpicyLunch
+      ? recipes.filter(r => !r.spicy)  // 매운 급식이면 안 매운 것만
+      : recipes;
+    if (filtered.length > 0) {
+      const pick = filtered[Math.floor(Math.random() * Math.min(2, filtered.length))];
+      meatRecommended.push({
+        name: pick.name,
+        emoji: pick.emoji,
+        category: pick.cat === '국' ? '국' : '반찬',
+        reason: `급식에 ${meatType}고기 없음${hasSpicyLunch ? ' · 순한 맛' : ''}`,
+        badges: ['고기균형'],
+        score: 999, // 최우선 추천
+        count: 0,
+        rawCount: 0,
+        cookTime: '20분',
+        difficulty: '보통',
+        ingredients: getIngredients(pick.name, state.fridge, state.lunchMenu),
+      });
+    }
+  });
+
   const healthExcludeKeywords = [];
   members.filter(m => m.type === 'child' && m.healthFlags?.length > 0).forEach(m => {
     const flags = m.healthFlags || [];
@@ -2116,10 +2194,25 @@ async function generateMenu() {
     };
   });
 
-  // 4. 카테고리별 빈도 적은 순 정렬 (적게 나온 = 덜 먹은 = 저녁에 적합)
-  const bapList    = allMenus.filter(m => m.category === '밥').sort((a,b) => a.count-b.count).slice(0,3);
-  const gukList    = allMenus.filter(m => m.category === '국').sort((a,b) => a.count-b.count).slice(0,5);
-  const banchanList= allMenus.filter(m => m.category === '반찬').sort((a,b) => a.count-b.count).slice(0,8);
+  // 4. 카테고리별 빈도 적은 순 정렬
+  const bapList     = allMenus.filter(m => m.category === '밥').sort((a,b) => a.count-b.count).slice(0,3);
+  let gukList       = allMenus.filter(m => m.category === '국').sort((a,b) => a.count-b.count).slice(0,5);
+  let banchanList   = allMenus.filter(m => m.category === '반찬').sort((a,b) => a.count-b.count).slice(0,8);
+
+  // 고기류 추천 앞에 삽입 (중복 제거)
+  const meatGuk     = meatRecommended.filter(m => m.category === '국');
+  const meatBanchan = meatRecommended.filter(m => m.category === '반찬');
+  gukList     = [...meatGuk,     ...gukList.filter(m => !meatGuk.some(r => r.name === m.name))].slice(0,5);
+  banchanList = [...meatBanchan, ...banchanList.filter(m => !meatBanchan.some(r => r.name === m.name))].slice(0,8);
+
+  // 매운 급식이면 매운 반찬 뒤로 밀기
+  if (hasSpicyLunch) {
+    const spicyKw = ['제육','볶음','찌개','마라','낙지','청양','매운','닭볶음'];
+    banchanList = [
+      ...banchanList.filter(m => !spicyKw.some(kw => m.name.includes(kw))),
+      ...banchanList.filter(m =>  spicyKw.some(kw => m.name.includes(kw))),
+    ];
+  }
 
   // 기본값 보충 (실제 데이터 없을 때만)
   const defaultBap     = [{ name:'잡곡밥',   emoji:'🌾', category:'밥',  reason:'기본 잡곡밥',   badges:[], schoolRef:'', cookTime:'30분', difficulty:'쉬움', score:0, count:0, rawCount:0, ingredients:getIngredients('잡곡밥', state.fridge, state.lunchMenu) }];
@@ -2184,6 +2277,7 @@ function renderCatList(containerId, menus, cat) {
   const badgeClass = {
     '영양균형':'badge-green','간편요리':'badge-orange','냉장고활용':'badge-blue',
     '아이입맛':'badge-green','건강식':'badge-green','든든함':'badge-orange','급식참고':'badge-green',
+    '고기균형':'badge-red',
     '영양보완':'badge-green','균형식단':'badge-green'
   };
 
