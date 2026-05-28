@@ -2813,17 +2813,17 @@ function loadFromLocal() {
     members = data.members
       .filter(m => m.type === 'child')
       .map(m => {
-        let name = m.name;
-        // 기존 -초/-중/-고 형식 → 하이픈 제거
-        if (name) name = name.replace(/-초$/, '초').replace(/-중$/, '중').replace(/-고$/, '고');
-        // 이름이 없으면 학교명에서 생성
-        if (!name && m.school) {
+        // 항상 학교명 기반으로 닉네임 재생성 (구버전 수정)
+        let name = '';
+        if (m.school) {
           const sn = m.school.name;
-          if (sn.includes('초등학교')) name = sn.replace('초등학교','') + '초';
-          else if (sn.includes('중학교')) name = sn.replace('중학교','') + '중';
+          if (sn.includes('초등학교'))      name = sn.replace('초등학교','') + '초';
+          else if (sn.includes('중학교'))   name = sn.replace('중학교','')   + '중';
           else if (sn.includes('고등학교')) name = sn.replace('고등학교','') + '고';
-          else name = sn.replace('학교','');
+          else                              name = sn.replace('학교','');
           name = name.trim();
+        } else {
+          name = m.name || '';
         }
         return {
           ...m,
