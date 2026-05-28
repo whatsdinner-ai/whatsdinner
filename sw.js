@@ -1,4 +1,5 @@
-// 왓츠디너 Service Worker v1.4 (아침 7시 + 10분마다)
+// 왓츠디너 Service Worker v1.5
+// 2단계 알림: 7시(급식분석) + 9시(쿠팡주문 마감 알림)
 const CACHE_NAME = 'whatsdinner-v1';
 
 self.addEventListener('install', e => { self.skipWaiting(); });
@@ -31,51 +32,60 @@ self.addEventListener('notificationclick', e => {
 // ── 로컬 알람 메시지 수신 ──
 self.addEventListener('message', e => {
   if (e.data?.type === 'CANCEL_ALARM') {
-    clearTimeout(self._alarmTimer);
-    console.log('왓츠디너 알람 취소됨');
+    clearTimeout(self._alarm7Timer);
+    clearTimeout(self._alarm9Timer);
+    console.log('왓츠디너 알람 전체 취소됨');
     return;
   }
   if (e.data?.type !== 'SCHEDULE_ALARM') return;
+
   const { members } = e.data;
   self._alarmMembers = members;
 
-  // 아침 7시 기준 다음 발송 시간 계산
-  const now = new Date();
-  const next = new Date();
-  next.setHours(7, 0, 0, 0);
+  scheduleAlarms(members);
+});
 
-  // 7시가 지났으면 → 10분 간격으로 다음 발송 시간 찾기
-  if (next <= now) {
-    const INTERVAL = 10 * 60 * 1000;
-    const elapsed = now - next;
-    const cycles = Math.floor(elapsed / INTERVAL) + 1;
-    next.setTime(next.getTime() + cycles * INTERVAL);
-  }
+// ── 알람 스케줄링 ──
+function scheduleAlarms(members) {
+  const now  = new Date();
 
-  const delay = next - now;
-  clearTimeout(self._alarmTimer);
-  self._alarmTimer = setTimeout(() => fireAlarm(members), delay);
+  // ① 7시 알람 (급식 분석 + 저녁 추천)
+  const next7 = new Date();
+  next7.setHours(7, 0, 0, 0);
+  if (next7 <= now) next7.setDate(next7.getDate() + 1);
 
-  const mins = Math.round(delay / 1000 / 60);
-  console.log(`왓츠디너 알람: ${next.toLocaleTimeString()} (${mins}분 후)`);
+  // ② 9시 알람 (쿠팡 주문 마감 알림)
+  const next9 = new Date();
+  next9.setHours(9, 0, 0, 0);
+  if (next9 <= now) next9.setDate(next9.getDate() + 1);
 
-  // 즉시 테스트 알림 (등록 확인용)
+  clearTimeout(self._alarm7Timer);
+  clearTimeout(self._alarm9Timer);
+
+  self._alarm7Timer = setTimeout(() => fireAlarm7(members), next7 - now);
+  self._alarm9Timer = setTimeout(() => fireAlarm9(members), next9 - now);
+
+  const m7 = Math.round((next7 - now) / 1000 / 60);
+  const m9 = Math.round((next9 - now) / 1000 / 60);
+  console.log(`왓츠디너 7시 알람: ${m7}분 후 / 9시 알람: ${m9}분 후`);
+
+  // 설정 완료 확인 알림
   self.registration.showNotification('✅ 왓츠디너 알림 설정 완료', {
-    body: '30분 후 첫 급식 알림이 발송돼요!\n아침 7시 알림도 자동 설정됐어요 🍽️',
+    body: '매일 ⏰ 7시 급식알림 + 🛒 9시 쿠팡주문 알림을 보내드려요!',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     vibrate: [200, 100, 200],
     tag: 'whatsdinner-setup',
   });
-});
+}
 
-// ── 알람 실행 ──
-async function fireAlarm(members) {
+// ── 7시 알람: 급식 분석 알림 ──
+async function fireAlarm7(members) {
   if (!members?.length) return;
 
   const NEIS_KEY = 'c73b1f34c0444aa9b32fae1dd50c4f28';
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  const today    = new Date();
+  const dateStr  = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
 
   const allergyMap = {
     '1':'난류','2':'우유','3':'메밀','4':'땅콩','5':'대두','6':'밀',
@@ -89,15 +99,16 @@ async function fireAlarm(members) {
   for (const member of members) {
     if (!member.school) continue;
     try {
-      const res = await fetch(
-        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`
+      const res  = await fetch(
+        `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5` +
+        `&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`
       );
       const data = await res.json();
-      const row = data?.mealServiceDietInfo?.[1]?.row?.[0];
+      const row  = data?.mealServiceDietInfo?.[1]?.row?.[0];
       if (!row) continue;
 
       const rawDdish = row.DDISH_NM || '';
-      const ntrInfo = row.NTR_INFO || '';
+      const ntrInfo  = row.NTR_INFO  || '';
       const menuNames = rawDdish.replace(/<br\/>/g, ',').split(',')
         .map(d => d.replace(/\([^)]*\)/g, '').trim()).filter(Boolean);
 
@@ -114,46 +125,45 @@ async function fireAlarm(members) {
       if (allergyHits.length > 0) {
         notifications.push({
           title: `🚨 ${member.name} 알레르기 주의!`,
-          body: `오늘 급식에 ${allergyHits.join(', ')} 포함\n학교에 미리 알려주세요`,
-          priority: 1,
+          body:  `오늘 급식에 ${allergyHits.join(', ')} 포함\n학교에 미리 알려주세요`,
+          priority: 1, tag: 'allergy',
         });
       }
 
       // 당류 → 간식 주의보
       const sugarMatch = ntrInfo.match(/당류\(g\)\s*:\s*([\d.]+)/);
-      const sugarVal = sugarMatch ? parseFloat(sugarMatch[1]) : 0;
+      const sugarVal   = sugarMatch ? parseFloat(sugarMatch[1]) : 0;
       if (sugarVal > 15) {
         notifications.push({
           title: `🍬 ${member.name} 간식 주의보`,
-          body: `오늘 급식 당류 ${sugarVal}g · 오후 간식은 단 것 피해주세요`,
-          priority: 2,
+          body:  `오늘 급식 당류 ${sugarVal}g · 오후 간식은 단 것 피해주세요`,
+          priority: 2, tag: 'sugar',
         });
       }
 
-      // 나트륨 → 영양 주의보
+      // 나트륨 주의보
       if ((member.healthFlags || []).includes('sodium')) {
         const sodiumMatch = ntrInfo.match(/나트륨\(㎎\)\s*:\s*([\d.]+)/);
-        const sodiumVal = sodiumMatch ? parseFloat(sodiumMatch[1]) : 0;
+        const sodiumVal   = sodiumMatch ? parseFloat(sodiumMatch[1]) : 0;
         if (sodiumVal > 800) {
           notifications.push({
             title: `🧂 ${member.name} 영양 주의보`,
-            body: `오늘 급식 나트륨 ${sodiumVal}mg · 저녁은 싱겁게 드세요`,
-            priority: 3,
+            body:  `오늘 급식 나트륨 ${sodiumVal}mg · 저녁은 싱겁게 드세요`,
+            priority: 3, tag: 'sodium',
           });
         }
       }
 
-    } catch(err) { console.log('알람 오류:', err); }
-  }
+      // 기본 급식 알림
+      if (notifications.length === 0) {
+        notifications.push({
+          title: `🍽️ ${member.name} 오늘 급식`,
+          body:  menuNames.slice(0, 3).join(' · '),
+          priority: 9, tag: 'meal',
+        });
+      }
 
-  // 알림 없으면 기본 메뉴 알림
-  if (notifications.length === 0) {
-    const menuRes = await fetchTodayMenuNames(members[0], dateStr, NEIS_KEY);
-    notifications.push({
-      title: '🍽️ 왓츠디너 · 오늘 급식',
-      body: menuRes || `${members.map(m => m.name).join(', ')}의 급식을 확인해보세요!`,
-      priority: 9,
-    });
+    } catch(err) { console.log('7시 알람 오류:', err); }
   }
 
   // 발송
@@ -161,30 +171,46 @@ async function fireAlarm(members) {
   for (let i = 0; i < Math.min(notifications.length, 2); i++) {
     await new Promise(r => setTimeout(r, i * 1200));
     await self.registration.showNotification(notifications[i].title, {
-      body: notifications[i].body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      vibrate: i === 0 ? [300, 100, 300] : [200],
-      tag: `whatsdinner-${i}`,
+      body:             notifications[i].body,
+      icon:             '/icon-192.png',
+      badge:            '/icon-192.png',
+      vibrate:          i === 0 ? [300, 100, 300] : [200],
+      tag:              `whatsdinner-7-${notifications[i].tag}`,
       requireInteraction: i === 0,
-      data: { url: '/' },
+      data:             { url: '/' },
     });
   }
 
-  // 다음 알람: 10분 후
-  self._alarmTimer = setTimeout(() => fireAlarm(self._alarmMembers), 10 * 60 * 1000);
+  // 내일 7시 재설정
+  const tomorrow7 = new Date();
+  tomorrow7.setDate(tomorrow7.getDate() + 1);
+  tomorrow7.setHours(7, 0, 0, 0);
+  self._alarm7Timer = setTimeout(() => fireAlarm7(self._alarmMembers), tomorrow7 - new Date());
 }
 
-async function fetchTodayMenuNames(member, dateStr, key) {
-  try {
-    const res = await fetch(
-      `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${key}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${member.school.sido}&SD_SCHUL_CODE=${member.school.code}&MLSV_YMD=${dateStr}`
-    );
-    const data = await res.json();
-    const row = data?.mealServiceDietInfo?.[1]?.row?.[0];
-    if (!row) return null;
-    const menus = row.DDISH_NM.replace(/<br\/>/g, ',').split(',')
-      .map(d => d.replace(/\([^)]*\)/g, '').trim()).filter(Boolean);
-    return menus.slice(0, 3).join(' · ');
-  } catch { return null; }
+// ── 9시 알람: 쿠팡 주문 마감 알림 ──
+async function fireAlarm9(members) {
+  if (!members?.length) return;
+
+  const names = members.map(m => m.name).join(', ');
+
+  await self.registration.showNotification('🛒 쿠팡 주문 마감 1시간 전!', {
+    body: `${names}의 저녁 재료, 10시 전에 주문하면 오늘 저녁 도착!\n왓츠디너에서 추천 받은 메뉴 장보기 👇`,
+    icon:             '/icon-192.png',
+    badge:            '/icon-192.png',
+    vibrate:          [200, 100, 200, 100, 200],
+    tag:              'whatsdinner-9-order',
+    requireInteraction: true,
+    data:             { url: '/' },
+    actions: [
+      { action: 'open', title: '지금 장보기 🛒' },
+      { action: 'close', title: '나중에' },
+    ],
+  });
+
+  // 내일 9시 재설정
+  const tomorrow9 = new Date();
+  tomorrow9.setDate(tomorrow9.getDate() + 1);
+  tomorrow9.setHours(9, 0, 0, 0);
+  self._alarm9Timer = setTimeout(() => fireAlarm9(self._alarmMembers), tomorrow9 - new Date());
 }
