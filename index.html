@@ -1708,15 +1708,15 @@ function renderAllLunch(cards) {
               <div style="display:flex;flex-wrap:wrap;gap:6px">
                 ${items.map(i => {
                   const isVitamin = i.n.includes('비타민') || i.n.includes('칼슘') || i.n.includes('철분');
-                  const coupangQuery = encodeURIComponent(i.n.includes('칼슘') ? '어린이 칼슘 영양제' : i.n.includes('철분') ? '어린이 철분 영양제' : `어린이 ${i.n} 영양제`);
-                  const coupangHref  = `https://www.coupang.com/np/search?q=${coupangQuery}&channel=user&sorter=reviewCountDESC`;
+                  const _vitKeyword = i.n.includes('칼슘') ? '어린이 칼슘 영양제' : i.n.includes('철분') ? '어린이 철분 영양제' : `어린이 ${i.n} 영양제`;
+                  const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_vitKeyword)}&channel=user&sorter=reviewCountDESC`;
                   return `
                   <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px">
                     <span style="font-size:13px">${i.icon}</span>
                     <span style="font-size:12px;font-weight:700;color:var(--accent)">${i.n}</span>
                     <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
                     ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
-                      onclick="event.stopPropagation()"
+                      onclick="event.stopPropagation();handleCoupangClick('${_vitKeyword.replace(/'/g,\'\')}')"
                       style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>` : ''}
                   </div>`;
                 }).join('')}
@@ -1946,13 +1946,13 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
               <div style="display:flex;flex-wrap:wrap;gap:5px">
                 ${deficient.map(n => {
                   const isVitamin = n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분');
-                  const _q = n.label.includes('칼슘') ? '어린이 칼슘 영양제' : n.label.includes('철분') ? '어린이 철분 영양제' : `어린이 ${n.label} 영양제`;
-                  const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_q)}&channel=user&sorter=reviewCountDESC`;
+                  const _q2 = n.label.includes('칼슘') ? '어린이 칼슘 영양제' : n.label.includes('철분') ? '어린이 철분 영양제' : `어린이 ${n.label} 영양제`;
+                  const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_q2)}&channel=user&sorter=reviewCountDESC`;
                   return `
                   <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
                     ${n.icon} ${n.label}
                     ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
-                      onclick="event.stopPropagation()"
+                      onclick="event.stopPropagation();handleCoupangClick('${_q2.replace(/'/g,\'\')}')"
                       style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>` : ''}
                   </span>`;
                 }).join('')}
