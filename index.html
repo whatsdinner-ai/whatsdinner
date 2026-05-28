@@ -584,6 +584,55 @@ body {
 <body>
 <div class="container">
 
+<!-- 알림 안내 팝업 -->
+<div id="notif-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999" onclick="if(event.target===this)hideNotifInfoModal()">
+  <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px">
+    <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px"></div>
+
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:40px;margin-bottom:8px">🔔</div>
+      <div style="font-size:18px;font-weight:800;color:var(--ink)">매일 아침 7시 알림</div>
+      <div style="font-size:13px;color:var(--ink3);margin-top:4px">이런 정보를 알려드려요</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fde8e8;border-radius:12px">
+        <span style="font-size:24px;flex-shrink:0">🚨</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#dc3545">알레르기 주의</div>
+          <div style="font-size:12px;color:#666;margin-top:3px;line-height:1.5">오늘 급식에 설정한 알레르기 재료가<br>포함됐을 때 즉시 알림</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fff3cd;border-radius:12px">
+        <span style="font-size:24px;flex-shrink:0">🍬</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#856404">간식 주의보</div>
+          <div style="font-size:12px;color:#666;margin-top:3px;line-height:1.5">오늘 급식 당류가 높을 때<br>"오후 간식은 단 것 피하세요" 알림</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#e8f4fd;border-radius:12px">
+        <span style="font-size:24px;flex-shrink:0">🧂</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#1a6496">영양 주의보</div>
+          <div style="font-size:12px;color:#666;margin-top:3px;line-height:1.5">나트륨 설정 시 급식 나트륨 높으면<br>"저녁은 싱겁게" 알림</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--accent-light);border-radius:12px">
+        <span style="font-size:24px;flex-shrink:0">🍽️</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--accent)">오늘 급식 알림</div>
+          <div style="font-size:12px;color:#666;margin-top:3px;line-height:1.5">특별한 주의사항이 없어도<br>오늘 급식 메뉴 3가지를 알려드려요</div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="hideNotifInfoModal()"
+      style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">
+      확인했어요 ✅
+    </button>
+  </div>
+</div>
+
 <!-- 알림 허용 팝업 -->
 <div id="push-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
   <div style="display:flex;align-items:flex-start;gap:12px">
@@ -2735,6 +2784,13 @@ function clearLocal() {
   localStorage.removeItem('whatsdinner_members');
 }
 
+function showNotifInfoPopup() {
+  document.getElementById('notif-info-modal').style.display = 'block';
+}
+function hideNotifInfoModal() {
+  document.getElementById('notif-info-modal').style.display = 'none';
+}
+
 // ── 알림 토글 ──
 function updateNotifUI(on) {
   const sw    = document.getElementById('notif-switch');
@@ -2803,7 +2859,6 @@ async function toggleNotification() {
       localStorage.setItem('pushSubscribed', '1');
       localStorage.removeItem('pushDismissed');
       updateNotifUI(true);
-      showToast('✅ 매일 아침 7시 알림이 설정됐어요!');
 
       // 서비스워커에 알람 등록
       const sw = await navigator.serviceWorker.ready;
@@ -2816,6 +2871,9 @@ async function toggleNotification() {
       if (sw.active && memberData.length > 0) {
         sw.active.postMessage({ type: 'SCHEDULE_ALARM', members: memberData });
       }
+
+      // 알림 안내 팝업
+      showNotifInfoPopup();
     } else {
       updateNotifUI(false);
       showToast('알림 권한이 거부됐어요', true);
