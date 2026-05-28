@@ -1696,6 +1696,10 @@ function renderAllLunch(cards) {
               {n:'단백질',   v:card.nutrition.protein, icon:'💪', threshold:50},
               {n:'지방',     v:card.nutrition.fat,     icon:'🥑', threshold:40},
               {n:'칼로리',   v:card.nutrition.cal,     icon:'🔥', threshold:50},
+              {n:'칼슘',     v:card.nutrition.calcium  != null ? Math.round(card.nutrition.calcium  / 900  * 100) : 100, icon:'🦴', threshold:80},
+              {n:'철분',     v:card.nutrition.iron     != null ? Math.round(card.nutrition.iron     / 14   * 100) : 100, icon:'🩸', threshold:80},
+              {n:'비타민A',  v:card.nutrition.vitA     != null ? Math.round(card.nutrition.vitA     / 750  * 100) : 100, icon:'👁️', threshold:80},
+              {n:'비타민C',  v:card.nutrition.vitC     != null ? Math.round(card.nutrition.vitC     / 100  * 100) : 100, icon:'🍊', threshold:80},
             ].filter(i => i.v < i.threshold);
 
             if (items.length === 0) return `
@@ -1954,7 +1958,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
               <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">🔴 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:5px">
                 ${(() => {
-                  const sorted2 = [...deficient].sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0));
+                  const sorted2 = [...deficient].sort((a, b) => (a.avg/a.rda) - (b.avg/b.rda));
                   const firstCoupangLabel = sorted2.find(n =>
                     n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분')
                   )?.label;
