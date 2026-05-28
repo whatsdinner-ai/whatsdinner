@@ -715,7 +715,7 @@ body {
     <div class="step active" id="step1" onclick="goStep(1)">
       <div class="step-num">1</div> 학교 설정
     </div>
-    <div class="step" id="step2" onclick="goStep(2)">
+    <div class="step" id="step2" onclick="goToLunchStep()">
       <div class="step-num">2</div> <span id="step2-label">오늘 급식</span>
     </div>
     <div class="step" id="step3" onclick="goToMenuStep()">
@@ -2078,7 +2078,15 @@ async function fetchPastLunch() {
 }
 
 // ── 1달치 급식 인기 랭킹 기반 메뉴 추천 ──
-async function goToMenuStep() {
+async function goToLunchStep() {
+  goStep(2);
+  // 학교 설정이 있으면 바로 급식 가져오기
+  if (members.some(m => m.school)) {
+    fetchAllLunch();
+  }
+}
+
+function goToMenuStep() {
   goStep(3);
   // 급식 데이터 있으면 바로 메뉴 추천 실행
   if (state.lunchMenu?.length > 0 || members.some(m => m.lunchItems?.length > 0)) {
