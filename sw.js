@@ -1,4 +1,4 @@
-// 왓츠디너 Service Worker v1.3 (테스트: 10분마다)
+// 왓츠디너 Service Worker v1.4 (아침 7시 + 10분마다)
 const CACHE_NAME = 'whatsdinner-v1';
 
 self.addEventListener('install', e => { self.skipWaiting(); });
@@ -39,11 +39,25 @@ self.addEventListener('message', e => {
   const { members } = e.data;
   self._alarmMembers = members;
 
-  // 테스트: 10분 후 첫 발송
-  const INTERVAL = 10 * 60 * 1000; // 10분
+  // 아침 7시 기준 다음 발송 시간 계산
+  const now = new Date();
+  const next = new Date();
+  next.setHours(7, 0, 0, 0);
+
+  // 7시가 지났으면 → 10분 간격으로 다음 발송 시간 찾기
+  if (next <= now) {
+    const INTERVAL = 10 * 60 * 1000;
+    const elapsed = now - next;
+    const cycles = Math.floor(elapsed / INTERVAL) + 1;
+    next.setTime(next.getTime() + cycles * INTERVAL);
+  }
+
+  const delay = next - now;
   clearTimeout(self._alarmTimer);
-  self._alarmTimer = setTimeout(() => fireAlarm(members, INTERVAL), INTERVAL);
-  console.log(`왓츠디너 테스트 알람: 10분 후 발송`);
+  self._alarmTimer = setTimeout(() => fireAlarm(members), delay);
+
+  const mins = Math.round(delay / 1000 / 60);
+  console.log(`왓츠디너 알람: ${next.toLocaleTimeString()} (${mins}분 후)`);
 
   // 즉시 테스트 알림 (등록 확인용)
   self.registration.showNotification('✅ 왓츠디너 알림 설정 완료', {
@@ -56,7 +70,7 @@ self.addEventListener('message', e => {
 });
 
 // ── 알람 실행 ──
-async function fireAlarm(members, interval) {
+async function fireAlarm(members) {
   if (!members?.length) return;
 
   const NEIS_KEY = 'c73b1f34c0444aa9b32fae1dd50c4f28';
@@ -157,8 +171,8 @@ async function fireAlarm(members, interval) {
     });
   }
 
-  // 다음 알람 재설정 (30분 반복)
-  self._alarmTimer = setTimeout(() => fireAlarm(self._alarmMembers, interval), interval);
+  // 다음 알람: 10분 후
+  self._alarmTimer = setTimeout(() => fireAlarm(self._alarmMembers), 10 * 60 * 1000);
 }
 
 async function fetchTodayMenuNames(member, dateStr, key) {
