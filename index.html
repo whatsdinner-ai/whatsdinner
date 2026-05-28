@@ -2108,11 +2108,28 @@ async function goToLunchStep() {
 }
 
 function goToMenuStep() {
+  const hasSchool = members.some(m => m.school);
+
+  if (!hasSchool) {
+    showToast('먼저 학교를 설정해주세요');
+    goStep(1);
+    return;
+  }
+
+  // 단계 건너뛰기 허용 (학교 설정 있으면)
+  currentStep = 2;
   goStep(3);
-  // 급식 데이터 있으면 바로 메뉴 추천 실행
+
+  // 급식 이미 있으면 바로 추천
   if (state.lunchMenu?.length > 0 || members.some(m => m.lunchItems?.length > 0)) {
     generateMenu();
+    return;
   }
+
+  // 급식 없으면 로드 후 추천
+  fetchAllLunch().then(() => {
+    generateMenu();
+  });
 }
 
 async function generateMenu() {
