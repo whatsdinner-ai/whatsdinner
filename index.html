@@ -2142,7 +2142,54 @@ async function generateMenu() {
 
     const lunchStr = state.lunchMenu.join(' ');
 
-    // ── 급식 분석 ──
+    // ── TOP 30 급식 메뉴 반대 매핑 테이블 ──
+    // 급식에 이 메뉴가 나왔을 때 → 저녁 추천 방향 정의
+    const LUNCH_MAPPING = [
+      // 돼지고기 계열
+      { kw:['제육볶음','제육'],        tags:['저염','저지방','생선','채소','식물성'], reason:'제육볶음(매운 돼지) → 담백한 저염 메뉴' },
+      { kw:['돈까스','돈가스'],        tags:['저지방','채소','식물성','국물'],        reason:'돈까스(기름진 튀김) → 가벼운 채소·국물' },
+      { kw:['삼겹살'],                 tags:['저지방','채소','나트륨배출'],          reason:'삼겹살(고지방) → 채소 위주' },
+      { kw:['부대찌개'],               tags:['저염','식물성','담백'],               reason:'부대찌개(고나트륨) → 저염 식단' },
+      // 소고기 계열
+      { kw:['불고기'],                 tags:['저당','생선','채소'],                 reason:'불고기(달콤·고당) → 저당 메뉴' },
+      { kw:['갈비','갈비찜'],          tags:['저지방','채소','식물성'],             reason:'갈비(고지방) → 가벼운 채소' },
+      { kw:['육개장'],                 tags:['저염','순한','부드러운'],             reason:'육개장(매운·고나트륨) → 순하고 저염' },
+      // 닭고기 계열
+      { kw:['닭볶음','닭볶음탕'],      tags:['저염','소화','부드러운'],             reason:'닭볶음탕(매운) → 순하고 소화 잘 되는' },
+      { kw:['치킨','닭강정','강정'],   tags:['저지방','채소','국물'],               reason:'치킨(튀김·고지방) → 채소·국물' },
+      { kw:['찜닭'],                   tags:['저염','생선','채소'],                 reason:'찜닭(달콤·고당) → 저당 메뉴' },
+      // 어류 계열
+      { kw:['고등어','갈치','삼치'],   tags:['소','돼지','닭','고단백'],            reason:'생선류 → 육류로 단백질 다양화' },
+      // 찌개/국류
+      { kw:['김치찌개'],               tags:['저염','순한','식물성','부드러운'],    reason:'김치찌개(매운·짠) → 순하고 저염' },
+      { kw:['된장찌개'],               tags:['고단백','생선','채소'],               reason:'된장찌개 → 단백질 다양화' },
+      { kw:['순두부찌개'],             tags:['고단백','생선','채소'],               reason:'순두부(저칼로리) → 든든한 단백질' },
+      { kw:['라면','짬뽕'],            tags:['저염','저탄','채소','식물성'],        reason:'라면(고나트륨·고탄수) → 저염·저탄수화물' },
+      // 기름진/당류
+      { kw:['카레','카레라이스'],      tags:['저지방','채소','저당'],               reason:'카레(기름진·당류) → 담백 채소' },
+      { kw:['짜장','짜장밥'],          tags:['저지방','저염','채소'],               reason:'짜장(고지방·고나트륨) → 가벼운 채소' },
+      { kw:['탕수육','꿔바로우'],      tags:['저지방','저당','채소','국물'],        reason:'탕수육(튀김·고당) → 가볍고 담백' },
+      { kw:['떡볶이'],                 tags:['저당','고단백','채소'],               reason:'떡볶이(고당류) → 저당 단백질' },
+      // 밥류
+      { kw:['볶음밥','볶음'],          tags:['국물','저염','채소'],                 reason:'볶음밥(고나트륨) → 국물·채소' },
+      { kw:['비빔밥'],                 tags:['고단백','생선'],                      reason:'비빔밥(채소 위주) → 단백질 보충' },
+      { kw:['잡채'],                   tags:['고단백','국물','저당'],               reason:'잡채(고당류·면) → 단백질·국물' },
+      // 디저트/당류
+      { kw:['주스','요구르트','케이크','쿠키','아이스크림','탕후루','푸딩'], tags:['저당','채소','식물성'], reason:'당류 높은 후식 → 저당 저녁' },
+    ];
+
+    // 급식 분석 → 추천 태그 수집
+    const recommendTags = new Set();
+    const lunchReasons  = [];
+
+    for (const map of LUNCH_MAPPING) {
+      if (map.kw.some(kw => lunchStr.includes(kw))) {
+        map.tags.forEach(t => recommendTags.add(t));
+        lunchReasons.push(map.reason);
+      }
+    }
+
+    // ── 고기류 분석 ──
     const meatKws = {
       '소':   ['소고기','쇠고기','불고기','육개장','갈비','떡갈비','설렁탕','곰탕'],
       '돼지': ['돼지','제육','삼겹','돈까스','수육','보쌈','순대','족발'],
@@ -2154,12 +2201,11 @@ async function generateMenu() {
         .filter(([,kws]) => kws.some(kw => lunchStr.includes(kw)))
         .map(([type]) => type)
     );
-    const missing = Object.keys(meatKws).filter(t => !appeared.has(t));
 
-    const hasSpicy   = ['마라','김치찌개','떡볶이','제육','닭볶음','청양','매운','부대찌개','낙지'].some(kw => lunchStr.includes(kw));
-    const hasHighNa  = ['라면','찌개','짜장','짬뽕','국','탕','마라'].some(kw => lunchStr.includes(kw));
-    const hasHighSugar = ['주스','요구르트','케이크','쿠키','아이스크림','푸딩','탕후루'].some(kw => lunchStr.includes(kw));
-    const hasOily    = ['튀김','까스','강정','꿔바로우','탕수육','볶음밥'].some(kw => lunchStr.includes(kw));
+    const hasSpicy     = ['마라','김치찌개','떡볶이','제육','닭볶음','청양','매운','부대찌개','낙지'].some(kw => lunchStr.includes(kw));
+    const hasHighNa    = ['라면','찌개','짜장','짬뽕','국','탕','마라','부대'].some(kw => lunchStr.includes(kw));
+    const hasOily      = ['튀김','까스','강정','꿔바로우','탕수육','볶음밥','카레'].some(kw => lunchStr.includes(kw));
+    const hasHighSugar = ['주스','요구르트','케이크','쿠키','아이스크림','탕후루','푸딩','불고기','잡채'].some(kw => lunchStr.includes(kw));
     const isLowProtein = !['소고기','돼지','닭','계란','두부','생선','어묵'].some(kw => lunchStr.includes(kw));
 
     // ── 메뉴 풀 (요리 80개) ──
@@ -2290,43 +2336,58 @@ async function generateMenu() {
       // 1. 나온 고기 제외
       let filtered = pool.filter(m => !appeared.has(m.meat));
 
-      // 2. 매운 급식이면 매운 메뉴 하단으로
+      // 2. 반대 매핑 태그 우선 정렬 (핵심!)
+      if (recommendTags.size > 0) {
+        filtered = [
+          ...filtered.filter(m => m.tags.some(t => recommendTags.has(t))),
+          ...filtered.filter(m => !m.tags.some(t => recommendTags.has(t))),
+        ];
+      }
+
+      // 3. 매운 급식이면 매운 메뉴 하단으로
       if (hasSpicy) filtered = [
         ...filtered.filter(m => !m.spicy),
         ...filtered.filter(m => m.spicy),
       ];
 
-      // 3. 고나트륨 급식이면 저염 태그 우선
+      // 4. 고나트륨 급식이면 저염 우선
       if (hasHighNa) filtered = [
         ...filtered.filter(m => m.tags.includes('저염') || m.tags.includes('칼륨')),
         ...filtered.filter(m => !m.tags.includes('저염') && !m.tags.includes('칼륨')),
       ];
 
-      // 4. 기름진 급식이면 저지방 우선
+      // 5. 기름진 급식이면 저지방 우선
       if (hasOily) filtered = [
         ...filtered.filter(m => m.tags.includes('저지방') || m.tags.includes('채소') || m.tags.includes('식물성')),
         ...filtered.filter(m => !m.tags.includes('저지방') && !m.tags.includes('채소')),
       ];
 
-      // 5. 단백질 부족이면 고단백 우선
+      // 6. 고당류 급식이면 저당 우선
+      if (hasHighSugar) filtered = [
+        ...filtered.filter(m => m.tags.includes('저당')),
+        ...filtered.filter(m => !m.tags.includes('저당')),
+      ];
+
+      // 7. 단백질 부족이면 고단백 우선
       if (isLowProtein) filtered = [
         ...filtered.filter(m => m.tags.includes('고단백')),
         ...filtered.filter(m => !m.tags.includes('고단백')),
       ];
 
-      // 6. 중복 제거 후 5개 선택
+      // 8. 중복 제거 후 5개 선택
       const seen = new Set();
       const result = [];
       for (const m of filtered) {
         if (!seen.has(m.name) && result.length < 5) {
           seen.add(m.name);
-          // 뱃지 결정
           const badge = m.tags.includes('저염') ? '저염추천'
             : m.tags.includes('고단백') ? '단백질보충'
             : m.tags.includes('오메가3') ? '오메가3'
             : m.tags.includes('식물성') ? '식물성'
             : m.tags.includes('보양') ? '보양식'
             : m.tags.includes('아이입맛') ? '아이입맛'
+            : m.tags.includes('저당') ? '저당추천'
+            : m.tags.includes('저지방') ? '담백추천'
             : m.tags.includes('칼륨') ? '나트륨배출'
             : '추천';
           const badgeColor = m.tags.includes('저염') ? '#2d6a4f'
@@ -2334,11 +2395,13 @@ async function generateMenu() {
             : m.tags.includes('오메가3') ? '#0077b6'
             : m.tags.includes('식물성') ? '#40916c'
             : m.tags.includes('보양') ? '#9c6644'
+            : m.tags.includes('저당') ? '#6a4c93'
+            : m.tags.includes('저지방') ? '#457b9d'
             : '#888';
           result.push({ ...m, badge, badgeColor });
         }
       }
-      // 부족하면 appeared 고기도 포함해서 보충
+      // 부족하면 전체 풀에서 보충
       if (result.length < 3) {
         for (const m of pool) {
           if (!seen.has(m.name) && result.length < 4) {
@@ -2364,14 +2427,20 @@ async function generateMenu() {
 
     const subEl = document.getElementById('menu-results-sub');
     if (subEl) {
-      const reasons = [];
-      if (hasSpicy)   reasons.push('순한 메뉴 우선');
-      if (hasHighNa)  reasons.push('저염 우선');
-      if (hasOily)    reasons.push('담백한 메뉴 우선');
-      if (isLowProtein) reasons.push('단백질 보충');
-      subEl.textContent = reasons.length > 0
-        ? `오늘 급식 분석 · ${reasons.join(' · ')}`
-        : '급식에 없던 고기류 위주로 추천했어요';
+      if (lunchReasons.length > 0) {
+        // 첫 번째 이유만 표시 (가장 핵심)
+        const mainReason = lunchReasons[0].split('→')[1]?.trim() || lunchReasons[0];
+        subEl.textContent = `오늘 급식 분석 · ${mainReason}`;
+      } else {
+        const reasons = [];
+        if (hasSpicy)     reasons.push('순한 메뉴 우선');
+        if (hasHighNa)    reasons.push('저염 우선');
+        if (hasOily)      reasons.push('담백한 메뉴 우선');
+        if (isLowProtein) reasons.push('단백질 보충');
+        subEl.textContent = reasons.length > 0
+          ? `오늘 급식 분석 · ${reasons.join(' · ')}`
+          : '급식에 없던 고기류 위주로 추천했어요';
+      }
     }
 
     renderMenuTab('cook');
