@@ -2803,6 +2803,37 @@ function hideNotifInfoModal() {
 }
 
 
+function playNotifSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 딩동 2음 (알림 느낌)
+    const notes = [
+      { freq: 880, start: 0,    duration: 0.15 },
+      { freq: 1100, start: 0.18, duration: 0.2  },
+    ];
+
+    notes.forEach(({ freq, start, duration }) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type     = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration);
+    });
+  } catch(e) {
+    console.log('소리 재생 불가:', e);
+  }
+}
+
 // ── 알림 토글 ──
 function updateNotifUI(on) {
   const sw    = document.getElementById('notif-switch');
@@ -2864,6 +2895,7 @@ async function toggleNotification() {
 
   // 미리 UI 변화 (반응감)
   updateNotifUI(true);
+  playNotifSound();
 
   try {
     const permission = await Notification.requestPermission();
