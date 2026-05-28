@@ -521,16 +521,16 @@ body {
 /* ── 토스트 ── */
 .toast {
   position: fixed;
-  bottom: 24px;
+  top: 20px;
   left: 50%;
-  transform: translateX(-50%) translateY(80px);
+  transform: translateX(-50%) translateY(-80px);
   background: var(--ink);
   color: var(--cream);
   border-radius: 100px;
   padding: 12px 20px;
   font-size: 13px;
   font-weight: 500;
-  z-index: 999;
+  z-index: 9998;
   transition: transform .3s cubic-bezier(.34,1.56,.64,1);
   white-space: nowrap;
   box-shadow: 0 8px 32px rgba(0,0,0,.2);
@@ -623,7 +623,7 @@ body {
 </div>
 
 <!-- 알림 허용 팝업 -->
-<div id="push-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+<div id="push-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
   <div style="display:flex;align-items:flex-start;gap:12px">
     <div style="font-size:32px;flex-shrink:0">🔔</div>
     <div style="flex:1">
@@ -648,7 +648,7 @@ body {
 </div>
 
 <!-- 홈화면 추가 안내 (iOS) -->
-<div id="ios-install-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+<div id="ios-install-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
   <div style="display:flex;align-items:flex-start;gap:12px">
     <div style="font-size:32px;flex-shrink:0">📲</div>
     <div style="flex:1">
