@@ -1716,7 +1716,7 @@ function renderAllLunch(cards) {
                     <span style="font-size:12px;font-weight:700;color:var(--accent)">${i.n}</span>
                     <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
                     ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
-                      onclick="event.stopPropagation();handleCoupangClick('${_vitKeyword.replace(/'/g,\'\')}')"
+                      onclick="event.stopPropagation();handleCoupangClick(this.dataset.kw)" data-kw="${_vitKeyword}"
                       style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>` : ''}
                   </div>`;
                 }).join('')}
@@ -1952,7 +1952,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                   <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
                     ${n.icon} ${n.label}
                     ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
-                      onclick="event.stopPropagation();handleCoupangClick('${_q2.replace(/'/g,\'\')}')"
+                      onclick="event.stopPropagation();handleCoupangClick(this.dataset.kw)" data-kw="${_q2}"
                       style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>` : ''}
                   </span>`;
                 }).join('')}
