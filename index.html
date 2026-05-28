@@ -1707,13 +1707,17 @@ function renderAllLunch(cards) {
               <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
                 ${(() => {
-                  let coupangCount = 0;
-                  return items.map(i => {
+                  // 수치 낮은 순 정렬 (가장 부족한 것 먼저)
+                  const sorted = [...items].sort((a, b) => a.v - b.v);
+                  // 쿠팡 버튼 대상 중 첫 번째 항목 이름 찾기
+                  const firstCoupangName = sorted.find(i =>
+                    i.n.includes('비타민') || i.n.includes('칼슘') || i.n.includes('철분')
+                  )?.n;
+                  return sorted.map(i => {
                     const isVitamin = i.n.includes('비타민') || i.n.includes('칼슘') || i.n.includes('철분');
                     const _vitKeyword = i.n.includes('칼슘') ? '어린이 칼슘 영양제' : i.n.includes('철분') ? '어린이 철분 영양제' : `어린이 ${i.n} 영양제`;
                     const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_vitKeyword)}&channel=user&sorter=reviewCountDESC`;
-                    const isFirstCoupang = isVitamin && coupangCount === 0;
-                    if (isVitamin) coupangCount++;
+                    const isFirstCoupang = i.n === firstCoupangName;
                     return `
                     <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px">
                       <span style="font-size:13px">${i.icon}</span>
@@ -1950,13 +1954,15 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
               <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">🔴 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:5px">
                 ${(() => {
-                  let coupangCount2 = 0;
-                  return deficient.map(n => {
+                  const sorted2 = [...deficient].sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0));
+                  const firstCoupangLabel = sorted2.find(n =>
+                    n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분')
+                  )?.label;
+                  return sorted2.map(n => {
                     const isVitamin = n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분');
                     const _q2 = n.label.includes('칼슘') ? '어린이 칼슘 영양제' : n.label.includes('철분') ? '어린이 철분 영양제' : `어린이 ${n.label} 영양제`;
                     const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_q2)}&channel=user&sorter=reviewCountDESC`;
-                    const isFirstCoupang = isVitamin && coupangCount2 === 0;
-                    if (isVitamin) coupangCount2++;
+                    const isFirstCoupang = n.label === firstCoupangLabel;
                     return `
                     <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
                       ${n.icon} ${n.label}
