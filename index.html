@@ -2123,80 +2123,220 @@ async function generateMenu() {
   try {
     if (pastLunchMenus.length === 0) await fetchPastLunch();
 
-    const lunchMenuStr = state.lunchMenu.join(' ');
+    const lunchStr = state.lunchMenu.join(' ');
 
-    // ── 고기류 분석 ──
-    const meatTypes = {
-      '소': ['소고기','쇠고기','불고기','육개장','갈비','떡갈비'],
-      '돼지': ['돼지','제육','삼겹','돈까스','수육','보쌈'],
-      '닭고기': ['닭고기','치킨','삼계'],
-      '어류': ['생선','고등어','갈치','삼치','연어','참치','황태','꽁치'],
+    // ── 급식 분석 ──
+    const meatKws = {
+      '소':   ['소고기','쇠고기','불고기','육개장','갈비','떡갈비','설렁탕','곰탕'],
+      '돼지': ['돼지','제육','삼겹','돈까스','수육','보쌈','순대','족발'],
+      '닭':   ['닭','치킨','삼계','닭갈비','닭볶음'],
+      '어류': ['고등어','갈치','삼치','연어','참치','황태','꽁치','조기','생선','오징어','새우','낙지'],
     };
-    const appearedMeats = new Set();
-    Object.entries(meatTypes).forEach(([type, kws]) => {
-      if (kws.some(kw => lunchMenuStr.includes(kw))) appearedMeats.add(type);
-    });
-    const missingMeats = Object.keys(meatTypes).filter(t => !appearedMeats.has(t));
+    const appeared = new Set(
+      Object.entries(meatKws)
+        .filter(([,kws]) => kws.some(kw => lunchStr.includes(kw)))
+        .map(([type]) => type)
+    );
+    const missing = Object.keys(meatKws).filter(t => !appeared.has(t));
 
-    // 매운 급식 감지
-    const spicyKws = ['김치찌개','떡볶이','제육','마라','닭볶음','청양','매운','부대찌개'];
-    const hasSpicy = spicyKws.some(kw => lunchMenuStr.includes(kw));
+    const hasSpicy   = ['마라','김치찌개','떡볶이','제육','닭볶음','청양','매운','부대찌개','낙지'].some(kw => lunchStr.includes(kw));
+    const hasHighNa  = ['라면','찌개','짜장','짬뽕','국','탕','마라'].some(kw => lunchStr.includes(kw));
+    const hasHighSugar = ['주스','요구르트','케이크','쿠키','아이스크림','푸딩','탕후루'].some(kw => lunchStr.includes(kw));
+    const hasOily    = ['튀김','까스','강정','꿔바로우','탕수육','볶음밥'].some(kw => lunchStr.includes(kw));
+    const isLowProtein = !['소고기','돼지','닭','계란','두부','생선','어묵'].some(kw => lunchStr.includes(kw));
 
-    // ── 3종 추천 풀 ──
-    const allPools = {
-      cook: {
-        '소':    [{name:'소불고기',emoji:'🥩',spicy:false},{name:'소고기미역국',emoji:'🍲',spicy:false},{name:'떡갈비',emoji:'🍖',spicy:false}],
-        '돼지':  [{name:'돼지갈비찜',emoji:'🍖',spicy:false},{name:'제육볶음',emoji:'🐷',spicy:true},{name:'수육',emoji:'🥩',spicy:false}],
-        '닭고기':    [{name:'찜닭',emoji:'🍗',spicy:false},{name:'닭볶음탕',emoji:'🍗',spicy:true},{name:'삼계탕',emoji:'🍲',spicy:false}],
-        '어류':  [{name:'고등어구이',emoji:'🐟',spicy:false},{name:'갈치조림',emoji:'🐟',spicy:false},{name:'황태국',emoji:'🍲',spicy:false}],
-        default: [{name:'된장찌개',emoji:'🥘',spicy:false},{name:'계란말이',emoji:'🥚',spicy:false},{name:'잡채',emoji:'🍜',spicy:false}],
-      },
-      milkit: {
-        '소':    [{name:'소불고기 밀키트',emoji:'🥩',spicy:false},{name:'소고기국밥 밀키트',emoji:'🍲',spicy:false}],
-        '돼지':  [{name:'삼겹살구이 밀키트',emoji:'🐷',spicy:false},{name:'제육볶음 밀키트',emoji:'🐷',spicy:true}],
-        '닭고기':    [{name:'닭갈비 밀키트',emoji:'🍗',spicy:true},{name:'찜닭 밀키트',emoji:'🍗',spicy:false}],
-        '어류':  [{name:'연어스테이크 밀키트',emoji:'🐟',spicy:false},{name:'해물찜 밀키트',emoji:'🦐',spicy:false}],
-        default: [{name:'부대찌개 밀키트',emoji:'🥘',spicy:true},{name:'떡볶이 밀키트',emoji:'🍢',spicy:true},{name:'파스타 밀키트',emoji:'🍝',spicy:false}],
-      },
-      delivery: {
-        '소':    [{name:'소고기 덮밥',emoji:'🥩',spicy:false},{name:'불고기 버거',emoji:'🍔',spicy:false}],
-        '돼지':  [{name:'삼겹살 배달',emoji:'🐷',spicy:false},{name:'돼지갈비 배달',emoji:'🍖',spicy:false}],
-        '닭고기':    [{name:'치킨',emoji:'🍗',spicy:false},{name:'닭강정',emoji:'🍗',spicy:false}],
-        '어류':  [{name:'초밥 배달',emoji:'🍣',spicy:false},{name:'회덮밥 배달',emoji:'🐟',spicy:false}],
-        default: [{name:'피자',emoji:'🍕',spicy:false},{name:'족발·보쌈',emoji:'🥩',spicy:false},{name:'중국집',emoji:'🥡',spicy:false}],
-      },
-    };
+    // ── 메뉴 풀 (요리 80개) ──
+    const COOK_POOL = [
+      // 소고기
+      {name:'소불고기',       emoji:'🥩', meat:'소',   spicy:false, tags:['고단백','달콤']},
+      {name:'소고기미역국',   emoji:'🍲', meat:'소',   spicy:false, tags:['저염','칼슘']},
+      {name:'떡갈비',         emoji:'🍖', meat:'소',   spicy:false, tags:['고단백']},
+      {name:'소고기무국',     emoji:'🍲', meat:'소',   spicy:false, tags:['저염','소화']},
+      {name:'소고기덮밥',     emoji:'🍚', meat:'소',   spicy:false, tags:['든든']},
+      {name:'소고기볶음',     emoji:'🥩', meat:'소',   spicy:false, tags:['고단백']},
+      {name:'갈비찜',         emoji:'🍖', meat:'소',   spicy:false, tags:['고단백','든든']},
+      {name:'육전',           emoji:'🥩', meat:'소',   spicy:false, tags:['고단백']},
+      // 돼지
+      {name:'돼지갈비찜',     emoji:'🍖', meat:'돼지', spicy:false, tags:['고단백']},
+      {name:'수육',           emoji:'🥩', meat:'돼지', spicy:false, tags:['저염','고단백']},
+      {name:'두루치기',       emoji:'🐷', meat:'돼지', spicy:true,  tags:['매콤']},
+      {name:'보쌈',           emoji:'🥬', meat:'돼지', spicy:false, tags:['고단백','저탄']},
+      {name:'돼지고기두루치기',emoji:'🐷',meat:'돼지', spicy:true,  tags:['매콤']},
+      {name:'목살스테이크',   emoji:'🥩', meat:'돼지', spicy:false, tags:['고단백']},
+      // 닭
+      {name:'닭볶음탕',       emoji:'🍗', meat:'닭',   spicy:true,  tags:['매콤','든든']},
+      {name:'삼계탕',         emoji:'🍲', meat:'닭',   spicy:false, tags:['보양','저염']},
+      {name:'닭갈비',         emoji:'🍗', meat:'닭',   spicy:true,  tags:['매콤']},
+      {name:'찜닭',           emoji:'🍗', meat:'닭',   spicy:false, tags:['달콤','든든']},
+      {name:'닭가슴살볶음',   emoji:'🍗', meat:'닭',   spicy:false, tags:['고단백','저지방']},
+      {name:'닭한마리',       emoji:'🍲', meat:'닭',   spicy:false, tags:['보양','저염']},
+      {name:'닭도리탕',       emoji:'🍗', meat:'닭',   spicy:true,  tags:['매콤','든든']},
+      // 어류/해산물
+      {name:'고등어구이',     emoji:'🐟', meat:'어류', spicy:false, tags:['오메가3','저염']},
+      {name:'갈치구이',       emoji:'🐟', meat:'어류', spicy:false, tags:['고단백','저염']},
+      {name:'연어구이',       emoji:'🍣', meat:'어류', spicy:false, tags:['오메가3','고단백']},
+      {name:'갈치조림',       emoji:'🐟', meat:'어류', spicy:true,  tags:['매콤','고단백']},
+      {name:'황태국',         emoji:'🍲', meat:'어류', spicy:false, tags:['해장','저염']},
+      {name:'황태구이',       emoji:'🐟', meat:'어류', spicy:false, tags:['고단백','저지방']},
+      {name:'북어국',         emoji:'🍲', meat:'어류', spicy:false, tags:['저염','해장']},
+      {name:'동태찌개',       emoji:'🍲', meat:'어류', spicy:true,  tags:['매콤']},
+      {name:'해물파전',       emoji:'🥞', meat:'어류', spicy:false, tags:['고단백']},
+      {name:'오징어볶음',     emoji:'🦑', meat:'어류', spicy:true,  tags:['매콤','고단백']},
+      {name:'새우볶음',       emoji:'🦐', meat:'어류', spicy:false, tags:['고단백','저지방']},
+      // 계란/두부 (단백질 보충)
+      {name:'계란찜',         emoji:'🥚', meat:'none', spicy:false, tags:['고단백','부드러운','저염']},
+      {name:'계란말이',       emoji:'🥚', meat:'none', spicy:false, tags:['고단백','아이입맛']},
+      {name:'스크램블에그',   emoji:'🍳', meat:'none', spicy:false, tags:['고단백','간편']},
+      {name:'두부김치찌개',   emoji:'🥘', meat:'none', spicy:true,  tags:['식물성','매콤']},
+      {name:'두부조림',       emoji:'🟨', meat:'none', spicy:false, tags:['식물성','저염']},
+      {name:'두부스테이크',   emoji:'🟨', meat:'none', spicy:false, tags:['식물성','저지방']},
+      {name:'순두부찌개',     emoji:'🥘', meat:'none', spicy:true,  tags:['식물성','부드러운']},
+      // 채소/나물
+      {name:'된장찌개',       emoji:'🥘', meat:'none', spicy:false, tags:['저염','발효','칼륨']},
+      {name:'시금치나물무침', emoji:'🥬', meat:'none', spicy:false, tags:['칼슘','철분','저염']},
+      {name:'콩나물국',       emoji:'🍲', meat:'none', spicy:false, tags:['저염','칼륨','해장']},
+      {name:'나물비빔밥',     emoji:'🍚', meat:'none', spicy:false, tags:['채소','칼륨','균형']},
+      {name:'미역줄기볶음',   emoji:'🥬', meat:'none', spicy:false, tags:['칼슘','저염']},
+      {name:'감자조림',       emoji:'🥔', meat:'none', spicy:false, tags:['칼륨','아이입맛']},
+      {name:'애호박볶음',     emoji:'🥬', meat:'none', spicy:false, tags:['저칼로리','저염']},
+      {name:'버섯볶음',       emoji:'🍄', meat:'none', spicy:false, tags:['면역','저칼로리']},
+      // 면/국수
+      {name:'잔치국수',       emoji:'🍜', meat:'none', spicy:false, tags:['간편','부드러운']},
+      {name:'콩국수',         emoji:'🍜', meat:'none', spicy:false, tags:['식물성','고단백','여름']},
+      {name:'비빔국수',       emoji:'🍜', meat:'none', spicy:true,  tags:['매콤','간편']},
+      {name:'쌀국수',         emoji:'🍜', meat:'어류', spicy:false, tags:['저염','담백']},
+      {name:'칼국수',         emoji:'🍜', meat:'none', spicy:false, spicy:false, tags:['부드러운','따뜻']},
+      {name:'잡채',           emoji:'🍜', meat:'소',   spicy:false, tags:['채소','균형']},
+      // 국/탕
+      {name:'미역국',         emoji:'🍲', meat:'소',   spicy:false, tags:['칼슘','저염']},
+      {name:'부대찌개',       emoji:'🥘', meat:'돼지', spicy:true,  tags:['든든','매콤']},
+      {name:'김치찌개',       emoji:'🥘', meat:'돼지', spicy:true,  tags:['매콤']},
+      {name:'청국장찌개',     emoji:'🥘', meat:'none', spicy:false, tags:['발효','식물성']},
+      {name:'닭개장',         emoji:'🍲', meat:'닭',   spicy:true,  tags:['매콤','보양']},
+    ];
 
-    // 추천 생성 함수
-    const buildList = (pool) => {
+    // ── 메뉴 풀 (밀키트 40개) ──
+    const MILKIT_POOL = [
+      {name:'소불고기',     emoji:'🥩', meat:'소',   spicy:false, tags:['고단백']},
+      {name:'소고기국밥',   emoji:'🍲', meat:'소',   spicy:false, tags:['보양','저염']},
+      {name:'갈비찜',       emoji:'🍖', meat:'소',   spicy:false, tags:['든든']},
+      {name:'삼겹살구이',   emoji:'🐷', meat:'돼지', spicy:false, tags:['간편']},
+      {name:'돼지갈비',     emoji:'🍖', meat:'돼지', spicy:false, tags:['든든']},
+      {name:'제육볶음',     emoji:'🐷', meat:'돼지', spicy:true,  tags:['매콤']},
+      {name:'닭갈비',       emoji:'🍗', meat:'닭',   spicy:true,  tags:['매콤']},
+      {name:'찜닭',         emoji:'🍗', meat:'닭',   spicy:false, tags:['달콤']},
+      {name:'닭볶음탕',     emoji:'🍗', meat:'닭',   spicy:true,  tags:['매콤']},
+      {name:'연어스테이크', emoji:'🍣', meat:'어류', spicy:false, tags:['오메가3']},
+      {name:'해물찜',       emoji:'🦐', meat:'어류', spicy:true,  tags:['해산물']},
+      {name:'낙지볶음',     emoji:'🦑', meat:'어류', spicy:true,  tags:['매콤']},
+      {name:'부대찌개',     emoji:'🥘', meat:'돼지', spicy:true,  tags:['든든']},
+      {name:'순두부찌개',   emoji:'🥘', meat:'none', spicy:true,  tags:['식물성']},
+      {name:'된장찌개',     emoji:'🥘', meat:'none', spicy:false, tags:['저염']},
+      {name:'파스타',       emoji:'🍝', meat:'none', spicy:false, tags:['간편']},
+      {name:'봉골레파스타', emoji:'🍝', meat:'어류', spicy:false, tags:['해산물']},
+      {name:'크림파스타',   emoji:'🍝', meat:'닭',   spicy:false, tags:['부드러운']},
+      {name:'떡볶이',       emoji:'🍢', meat:'none', spicy:true,  tags:['아이입맛']},
+      {name:'잡채',         emoji:'🍜', meat:'소',   spicy:false, tags:['채소']},
+      {name:'비빔밥',       emoji:'🍚', meat:'none', spicy:false, tags:['균형']},
+      {name:'쌀국수',       emoji:'🍜', meat:'none', spicy:false, tags:['담백']},
+      {name:'우동',         emoji:'🍜', meat:'none', spicy:false, tags:['간편']},
+      {name:'삼계탕',       emoji:'🍲', meat:'닭',   spicy:false, tags:['보양']},
+      {name:'갈비탕',       emoji:'🍲', meat:'소',   spicy:false, tags:['보양']},
+    ];
+
+    // ── 메뉴 풀 (배달 30개) ──
+    const DELIVERY_POOL = [
+      {name:'치킨',         emoji:'🍗', meat:'닭',   spicy:false, tags:['아이입맛']},
+      {name:'양념치킨',     emoji:'🍗', meat:'닭',   spicy:false, tags:['달콤']},
+      {name:'피자',         emoji:'🍕', meat:'none', spicy:false, tags:['아이입맛']},
+      {name:'초밥',         emoji:'🍣', meat:'어류', spicy:false, tags:['신선']},
+      {name:'회덮밥',       emoji:'🐟', meat:'어류', spicy:false, tags:['신선','고단백']},
+      {name:'족발',         emoji:'🥩', meat:'돼지', spicy:false, tags:['든든']},
+      {name:'보쌈',         emoji:'🥬', meat:'돼지', spicy:false, tags:['저탄']},
+      {name:'삼겹살',       emoji:'🐷', meat:'돼지', spicy:false, tags:['든든']},
+      {name:'소고기국밥',   emoji:'🍲', meat:'소',   spicy:false, tags:['보양']},
+      {name:'설렁탕',       emoji:'🍲', meat:'소',   spicy:false, tags:['보양','저염']},
+      {name:'곱창',         emoji:'🍖', meat:'소',   spicy:true,  tags:['매콤']},
+      {name:'중국집',       emoji:'🥡', meat:'돼지', spicy:false, tags:['든든']},
+      {name:'쌀국수',       emoji:'🍜', meat:'none', spicy:false, tags:['담백']},
+      {name:'태국음식',     emoji:'🍛', meat:'닭',   spicy:true,  tags:['이색']},
+      {name:'돈까스',       emoji:'🍱', meat:'돼지', spicy:false, tags:['아이입맛']},
+      {name:'일식돈부리',   emoji:'🍚', meat:'돼지', spicy:false, tags:['든든']},
+      {name:'연어덮밥',     emoji:'🍣', meat:'어류', spicy:false, tags:['신선','오메가3']},
+      {name:'해물탕',       emoji:'🦐', meat:'어류', spicy:true,  tags:['해산물']},
+      {name:'감자탕',       emoji:'🍲', meat:'돼지', spicy:true,  tags:['든든','매콤']},
+      {name:'닭한마리',     emoji:'🍲', meat:'닭',   spicy:false, tags:['보양']},
+    ];
+
+    // ── 필터링 & 추천 빌더 ──
+    const buildRecommend = (pool) => {
+      // 1. 나온 고기 제외
+      let filtered = pool.filter(m => !appeared.has(m.meat));
+
+      // 2. 매운 급식이면 매운 메뉴 하단으로
+      if (hasSpicy) filtered = [
+        ...filtered.filter(m => !m.spicy),
+        ...filtered.filter(m => m.spicy),
+      ];
+
+      // 3. 고나트륨 급식이면 저염 태그 우선
+      if (hasHighNa) filtered = [
+        ...filtered.filter(m => m.tags.includes('저염') || m.tags.includes('칼륨')),
+        ...filtered.filter(m => !m.tags.includes('저염') && !m.tags.includes('칼륨')),
+      ];
+
+      // 4. 기름진 급식이면 저지방 우선
+      if (hasOily) filtered = [
+        ...filtered.filter(m => m.tags.includes('저지방') || m.tags.includes('채소') || m.tags.includes('식물성')),
+        ...filtered.filter(m => !m.tags.includes('저지방') && !m.tags.includes('채소')),
+      ];
+
+      // 5. 단백질 부족이면 고단백 우선
+      if (isLowProtein) filtered = [
+        ...filtered.filter(m => m.tags.includes('고단백')),
+        ...filtered.filter(m => !m.tags.includes('고단백')),
+      ];
+
+      // 6. 중복 제거 후 5개 선택
+      const seen = new Set();
       const result = [];
-      const usedNames = new Set();
-
-      missingMeats.forEach(type => {
-        const candidates = (pool[type] || []).filter(r => !hasSpicy || !r.spicy);
-        const pick = candidates[Math.floor(Math.random() * Math.max(1, candidates.length))];
-        if (pick && !usedNames.has(pick.name)) {
-          result.push({ ...pick, badge: hasSpicy ? '순한맛' : '고기균형', badgeColor: '#dc3545' });
-          usedNames.add(pick.name);
+      for (const m of filtered) {
+        if (!seen.has(m.name) && result.length < 5) {
+          seen.add(m.name);
+          // 뱃지 결정
+          const badge = m.tags.includes('저염') ? '저염추천'
+            : m.tags.includes('고단백') ? '단백질보충'
+            : m.tags.includes('오메가3') ? '오메가3'
+            : m.tags.includes('식물성') ? '식물성'
+            : m.tags.includes('보양') ? '보양식'
+            : m.tags.includes('아이입맛') ? '아이입맛'
+            : m.tags.includes('칼륨') ? '나트륨배출'
+            : '추천';
+          const badgeColor = m.tags.includes('저염') ? '#2d6a4f'
+            : m.tags.includes('고단백') ? '#1a5fa8'
+            : m.tags.includes('오메가3') ? '#0077b6'
+            : m.tags.includes('식물성') ? '#40916c'
+            : m.tags.includes('보양') ? '#9c6644'
+            : '#888';
+          result.push({ ...m, badge, badgeColor });
         }
-      });
-
-      // 부족하면 default로 보충
+      }
+      // 부족하면 appeared 고기도 포함해서 보충
       if (result.length < 3) {
-        (pool.default || []).forEach(r => {
-          if (!usedNames.has(r.name) && result.length < 4) {
-            result.push({ ...r, badge: '기본추천', badgeColor: '#888' });
-            usedNames.add(r.name);
+        for (const m of pool) {
+          if (!seen.has(m.name) && result.length < 4) {
+            seen.add(m.name);
+            result.push({ ...m, badge: '기본추천', badgeColor: '#888' });
           }
-        });
+        }
       }
       return result;
     };
 
     window._menuLists = {
-      cook:     buildList(allPools.cook),
-      milkit:   buildList(allPools.milkit),
-      delivery: buildList(allPools.delivery),
+      cook:     buildRecommend(COOK_POOL),
+      milkit:   buildRecommend(MILKIT_POOL),
+      delivery: buildRecommend(DELIVERY_POOL),
     };
     window._currentTab = 'cook';
     window._selectedMenuItem = null;
@@ -2206,16 +2346,21 @@ async function generateMenu() {
     document.getElementById('menu-results').style.display = 'block';
 
     const subEl = document.getElementById('menu-results-sub');
-    if (subEl) subEl.textContent = hasSpicy
-      ? '급식이 매웠어요 · 순한 메뉴로 추천했어요'
-      : '급식에 없던 고기류 위주로 추천했어요';
+    if (subEl) {
+      const reasons = [];
+      if (hasSpicy)   reasons.push('순한 메뉴 우선');
+      if (hasHighNa)  reasons.push('저염 우선');
+      if (hasOily)    reasons.push('담백한 메뉴 우선');
+      if (isLowProtein) reasons.push('단백질 보충');
+      subEl.textContent = reasons.length > 0
+        ? `오늘 급식 분석 · ${reasons.join(' · ')}`
+        : '급식에 없던 고기류 위주로 추천했어요';
+    }
 
     renderMenuTab('cook');
     renderMenuTab('milkit');
     renderMenuTab('delivery');
     switchMenuTab('cook');
-
-    // 장보기 버튼 제거됨
 
   } catch(err) {
     document.getElementById('menu-loading').style.display = 'none';
