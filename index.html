@@ -20,7 +20,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossorigin="anonymous"></script>
 <style>
 
 :root {
@@ -795,17 +794,6 @@ body {
 
     <button class="btn-primary" onclick="generateMenu()">메뉴 추천받기 ✨</button>
 
-    <!-- 카카오 공유 버튼 -->
-    <div style="margin-top:10px">
-      <button onclick="shareKakao()"
-        style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:#FEE500;border:none;border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:opacity .15s"
-        onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M9 1C4.582 1 1 3.91 1 7.5c0 2.332 1.476 4.38 3.717 5.558L3.75 17l4.17-2.784A10.3 10.3 0 009 14.25c4.418 0 8-2.91 8-6.75C17 3.91 13.418 1 9 1z" fill="#391B1B"/>
-        </svg>
-        <span style="font-size:13px;font-weight:800;color:#391B1B">엄마/아빠한테 오늘 급식 보내고 저녁 메뉴 조르기 😋</span>
-      </button>
-    </div>
   </div>
 
   <!-- ══ STEP 3: 메뉴 추천 ══ -->
@@ -2814,47 +2802,6 @@ function hideNotifInfoModal() {
   document.getElementById('notif-info-modal').style.display = 'none';
 }
 
-// ── 카카오 공유 ──
-function shareKakao() {
-  const child = members.find(m => m.type === 'child' && m.school && m.lunchItems?.length > 0);
-  const menuList  = child?.lunchItems?.slice(0,4).join(', ') || '오늘 급식';
-  const childName = child?.name || '아이';
-  const schoolName = child?.school?.name || '학교';
-
-  const messages = [
-    `${childName} 오늘 ${menuList} 먹었대요 🍱\n저녁은 달라요! 왓츠디너가 추천해줬어요 😋`,
-    `오늘 ${schoolName} 급식은 ${menuList}!\n저녁 고민하지 마세요 👉 왓츠디너`,
-    `${childName}가 오늘 ${menuList} 먹었어요\n저녁 메뉴는 왓츠디너한테 맡기세요 😄`,
-  ];
-  const msg = messages[Math.floor(Math.random() * messages.length)];
-  const fullText = `🍱 오늘 급식 분석\n\n${msg}\n\n👉 https://whatsdinner.co.kr`;
-
-  // 카카오 SDK
-  if (window.Kakao?.isInitialized()) {
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: `🍱 ${schoolName} 오늘 급식 분석`,
-        description: msg,
-        imageUrl: 'https://whatsdinner.co.kr/icon-512.png',
-        link: { mobileWebUrl: 'https://whatsdinner.co.kr', webUrl: 'https://whatsdinner.co.kr' },
-      },
-      buttons: [{ title: '저녁 메뉴 추천받기', link: { mobileWebUrl: 'https://whatsdinner.co.kr', webUrl: 'https://whatsdinner.co.kr' } }],
-    });
-    return;
-  }
-
-  // 모바일 네이티브 공유
-  if (navigator.share) {
-    navigator.share({ title: '왓츠디너 오늘 급식 분석', text: fullText, url: 'https://whatsdinner.co.kr' });
-    return;
-  }
-
-  // 클립보드 복사 fallback
-  navigator.clipboard?.writeText(fullText)
-    .then(() => showToast('📋 클립보드에 복사됐어요!'))
-    .catch(() => showToast('공유 기능을 지원하지 않는 브라우저예요', true));
-}
 
 // ── 알림 토글 ──
 function updateNotifUI(on) {
@@ -3073,9 +3020,6 @@ document.querySelectorAll('.step').forEach((s, i) => {
 // 알림 버튼 UI 초기화
 initNotifUI();
 
-// 카카오 SDK 초기화 (앱키 발급 후 입력)
-// https://developers.kakao.com 에서 JavaScript 앱키 발급
-// if (window.Kakao) window.Kakao.init('YOUR_JS_APP_KEY');
 
 if (restored) {
   setTimeout(() => {
