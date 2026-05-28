@@ -718,7 +718,7 @@ body {
     <div class="step" id="step2" onclick="goStep(2)">
       <div class="step-num">2</div> <span id="step2-label">오늘 급식</span>
     </div>
-    <div class="step" id="step3" onclick="goStep(3)">
+    <div class="step" id="step3" onclick="goToMenuStep()">
       <div class="step-num">3</div> 메뉴 추천
     </div>
 
@@ -1706,12 +1706,20 @@ function renderAllLunch(cards) {
             return `
               <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
-                ${items.map(i => `
+                ${items.map(i => {
+                  const isVitamin = i.n.includes('비타민');
+                  const coupangQuery = encodeURIComponent(`어린이 ${i.n} 영양제`);
+                  const coupangHref  = `https://www.coupang.com/np/search?q=${coupangQuery}&channel=user&sorter=reviewCountDESC`;
+                  return `
                   <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px">
                     <span style="font-size:13px">${i.icon}</span>
                     <span style="font-size:12px;font-weight:700;color:var(--accent)">${i.n}</span>
                     <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
-                  </div>`).join('')}
+                    ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
+                      onclick="event.stopPropagation()"
+                      style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>` : ''}
+                  </div>`;
+                }).join('')}
               </div>
               <div style="font-size:11px;color:var(--ink3);margin-top:6px">
                 💡 저녁에 위 영양소가 풍부한 메뉴를 추천해드려요
@@ -1936,10 +1944,17 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="margin-top:10px;padding:10px 12px;background:rgba(224,48,48,.07);border:1px solid rgba(224,48,48,.15);border-radius:8px">
               <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">🔴 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:5px">
-                ${deficient.map(n => `
-                  <span style="background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
+                ${deficient.map(n => {
+                  const isVitamin = n.label.includes('비타민');
+                  const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(`어린이 ${n.label} 영양제`)}&channel=user&sorter=reviewCountDESC`;
+                  return `
+                  <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
                     ${n.icon} ${n.label}
-                  </span>`).join('')}
+                    ${isVitamin ? `<a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
+                      onclick="event.stopPropagation()"
+                      style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>` : ''}
+                  </span>`;
+                }).join('')}
               </div>
               ${deficient.some(n => n.label.includes('비타민')) ? `` : ''}
             </div>` : `
@@ -2063,7 +2078,15 @@ async function fetchPastLunch() {
 }
 
 // ── 1달치 급식 인기 랭킹 기반 메뉴 추천 ──
-async function generateMenu() {
+async function goToMenuStep() {
+  goStep(3);
+  // 급식 데이터 있으면 바로 메뉴 추천 실행
+  if (state.lunchMenu?.length > 0 || members.some(m => m.lunchItems?.length > 0)) {
+    generateMenu();
+  }
+}
+
+function generateMenu() {
   goStep(3);
   document.getElementById('menu-loading').style.display = 'block';
   document.getElementById('menu-results').style.display = 'none';
