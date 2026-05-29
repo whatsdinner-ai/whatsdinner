@@ -1706,15 +1706,20 @@ function renderAllLunch(cards) {
             if (items.length === 0) return `
               <div style="font-size:12px;color:var(--green);font-weight:600">
                 ✅ 영양 균형이 좋아요! 저녁도 골고루 드세요
+              </div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px;width:fit-content">
+                <span style="font-size:13px">☀️</span>
+                <span style="font-size:12px;font-weight:700;color:var(--accent)">비타민D</span>
+                <span style="font-size:11px;color:var(--ink3)">NEIS 미제공</span>
+                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
+                  style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>
               </div>`;
 
             return `
               <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 부족한 영양소</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
                 ${(() => {
-                  // 수치 낮은 순 정렬 (가장 부족한 것 먼저)
                   const sorted = [...items].sort((a, b) => a.v - b.v);
-                  // 쿠팡 버튼 대상 중 첫 번째 항목 이름 찾기
                   const firstCoupangName = sorted.find(i =>
                     i.n.includes('비타민') || i.n.includes('칼슘') || i.n.includes('철분')
                   )?.n;
@@ -1734,6 +1739,14 @@ function renderAllLunch(cards) {
                     </div>`;
                   }).join('');
                 })()}
+                <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#fff8f0;border:1.5px solid var(--accent);border-radius:100px">
+                  <span style="font-size:13px">☀️</span>
+                  <span style="font-size:12px;font-weight:700;color:var(--accent)">비타민D</span>
+                  <span style="font-size:11px;color:var(--ink3)">NEIS 미제공</span>
+                  <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
+                    onclick="event.stopPropagation()"
+                    style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>
+                </div>
               </div>
               <div style="font-size:11px;color:var(--ink3);margin-top:6px">
                 💡 저녁에 위 영양소가 풍부한 메뉴를 추천해드려요
