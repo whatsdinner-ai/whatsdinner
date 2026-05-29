@@ -779,7 +779,7 @@ body {
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
   <div class="section" id="section2">
-    <div class="section-title" id="lunch-section-title">오늘 점심 현황</div>
+    <div class="section-title" id="lunch-section-title" style="display:none">오늘 점심 현황</div>
     <div class="section-sub" id="lunch-section-sub" style="display:none"></div>
 
     <div id="lunch-display"></div>
@@ -787,7 +787,7 @@ body {
     <!-- 매일 영양 분석 -->
     <div id="weekly-nutrition-card" style="display:none">
       <div style="font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:700;margin-bottom:10px">
-        📊 오늘 영양 분석
+        📊 영양 분석
       </div>
       <div id="weekly-nutrition-content"></div>
     </div>
@@ -1532,7 +1532,7 @@ async function fetchAllLunch() {
   const dayLabel = isTodayMode ? getTodayLabel() : getTomorrowLabel();
   const titleEl = document.getElementById('lunch-section-title');
   const subEl = document.getElementById('lunch-section-sub');
-  if (titleEl) titleEl.textContent = dayLabel.includes('급식') ? `${dayLabel} 현황` : `${dayLabel} 점심 현황`;
+  // titleEl 숨김 유지
   if (subEl) subEl.innerHTML = `가족 모두의 ${dayLabel} 점심을 분석했어요`;
   const step2Label = document.getElementById('step2-label');
   if (step2Label) step2Label.textContent = dayLabel.includes('급식') ? dayLabel : `${dayLabel} 급식`;
@@ -1699,7 +1699,7 @@ function renderAllLunch(cards) {
     return `
       <div class="lunch-card" style="margin-bottom:12px">
         <div class="lunch-school">🏫 ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
-        <div class="lunch-title">${(() => { const l = isTodayMode ? getTodayLabel() : getTomorrowLabel(); return l.includes('급식') ? l : l + ' 급식'; })()}</div>
+
         <div class="lunch-items">
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
         </div>
@@ -1979,7 +1979,7 @@ function renderLunch(schoolName, menu) {
   d.innerHTML = `
     <div class="lunch-card">
       <div class="lunch-school">🏫 ${schoolName} · ${state.schoolType} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
-      <div class="lunch-title">${(() => { const l = isTodayMode ? getTodayLabel() : getTomorrowLabel(); return l.includes('급식') ? l : l + ' 급식'; })()}</div>
+
       <div class="lunch-items">
         ${menu.items.map((item,i) => `
           <div class="lunch-item ${i < 2 ? 'highlight' : ''}">${item}</div>
