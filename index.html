@@ -836,36 +836,7 @@ body {
 </div><!-- /main-content -->
 
   <!-- ══ 디너카페 ══ -->
-  <!-- ══ COMMUNITY: 커뮤니티 ══ -->
-  <div class="section" id="section-community" style="display:none">
-
-    <div style="margin-bottom:16px">
-      <div style="font-size:20px;font-weight:900;color:var(--ink);margin-bottom:4px">💬 커뮤니티</div>
-      <div style="font-size:12px;color:var(--ink3)">맛있었던 메뉴에 하트를 눌러주세요</div>
     </div>
-
-    <!-- 메뉴별 하트 -->
-    <div id="community-my-school" class="card" style="margin-bottom:14px">
-      <div style="text-align:center;padding:20px;color:var(--ink3)">
-        <div style="font-size:32px;margin-bottom:8px">🏫</div>
-        <div style="font-size:14px">학교를 먼저 설정해주세요</div>
-      </div>
-    </div>
-
-    <!-- 영양샘 전달 버튼 -->
-    <div id="community-send" class="card" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--ink)">👩‍🍳 영양샘께 전달하기</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:3px" id="send-count-label">하트 결과를 영양샘께 보내드려요</div>
-        </div>
-        <button id="send-btn" onclick="sendToNutritionTeacher()"
-          style="padding:10px 16px;border-radius:100px;border:1.5px solid var(--accent);background:white;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit">
-          전달
-        </button>
-      </div>
-    </div>
-
   </div>
 
   <div class="section" id="section-cafe" style="display:none">
@@ -1037,13 +1008,6 @@ body {
     <span id="btab-lunch-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">급식</span>
   </button>
 
-  <button id="btab-community" onclick="setBottomTab('community');showCommunity()"
-    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <path d="M3 5 Q3 3 5 3 L17 3 Q19 3 19 5 L19 13 Q19 15 17 15 L12 15 L8 19 L8 15 L5 15 Q3 15 3 13 Z" stroke="#888888" stroke-width="1.6" fill="none" stroke-linejoin="round" id="btab-community-icon"/>
-    </svg>
-    <span id="btab-community-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">커뮤니티</span>
-  </button>
 
   <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goToMenuStep()"
     style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:10px 4px 12px;border-radius:0">
@@ -1283,7 +1247,7 @@ updateDateDisplay();
 })();
 
 function setBottomTab(tab) {
-  const tabs = ['school','lunch','community','dinner','cafe'];
+  const tabs = ['school','lunch','dinner','cafe'];
   tabs.forEach(t => {
     const btn = document.getElementById(`btab-${t}`);
     if (!btn) return;
@@ -3112,135 +3076,6 @@ function showToast(msg, isError=false) {
 
 // ── 탭 전환 ──
 // ══ 커뮤니티 ══
-function renderCommunity() {
-  const child = members.find(m => m.type === 'child' && m.school);
-  const el = document.getElementById('community-my-school');
-  const sendEl = document.getElementById('community-send');
-
-  if (!child) {
-    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink3)">
-      <div style="font-size:32px;margin-bottom:8px">🏫</div>
-      <div style="font-size:14px">학교를 먼저 설정해주세요</div></div>`;
-    if (sendEl) sendEl.style.display = 'none';
-    return;
-  }
-
-  const schoolName = child.school.name;
-  const dateKey = formatDate(targetDate);
-  const lunchItems = child.lunchItems || [];
-
-  if (lunchItems.length === 0) {
-    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink3)">
-      <div style="font-size:32px;margin-bottom:8px">🍱</div>
-      <div style="font-size:14px">급식 탭에서 오늘 급식을 먼저 불러오세요</div></div>`;
-    if (sendEl) sendEl.style.display = 'none';
-    return;
-  }
-
-  if (sendEl) sendEl.style.display = 'block';
-
-  // 전달 상태
-  const sentKey = `sent_${schoolName}_${dateKey}`;
-  const sent = localStorage.getItem(sentKey) === '1';
-  const sendBtn = document.getElementById('send-btn');
-  const sendLabel = document.getElementById('send-count-label');
-  const totalHearts = lunchItems.reduce((sum, menu) => {
-    return sum + parseInt(localStorage.getItem(`menucount_${menu}_${dateKey}`) || '0');
-  }, 0);
-  if (sendBtn) {
-    sendBtn.textContent = sent ? '전달완료 ✅' : '전달';
-    sendBtn.style.background = sent ? 'var(--accent)' : 'white';
-    sendBtn.style.color = sent ? 'white' : 'var(--accent)';
-  }
-  if (sendLabel) {
-    sendLabel.textContent = sent
-      ? `오늘 ❤️ ${totalHearts}개를 영양샘께 전달했어요!`
-      : `하트 ${totalHearts}개 · 영양샘께 오늘 급식 피드백을 전달해요`;
-  }
-
-  el.innerHTML = `
-    <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span style="font-size:16px">🏫</span>
-        <div>
-          <div style="font-size:14px;font-weight:800;color:var(--ink)">${schoolName}</div>
-          <div style="font-size:11px;color:var(--ink3)">맛있었던 메뉴에 하트를 눌러주세요!</div>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:7px">
-        ${lunchItems.map(menu => {
-          const countKey = `menucount_${menu}_${dateKey}`;
-          const liked = localStorage.getItem(`menulike_${menu}_${dateKey}`) === '1';
-          const count = parseInt(localStorage.getItem(countKey) || '0');
-          return `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${liked?'#fff0f0':'#f8f8f8'};border-radius:12px;border:1.5px solid ${liked?'#e03030':'transparent'};transition:all .2s">
-            <span style="font-size:14px;font-weight:${liked?'800':'600'};color:${liked?'#e03030':'var(--ink)'}">${menu}</span>
-            <button onclick="toggleMenuLike('${menu}','${dateKey}','${schoolName}')"
-              style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:100px;border:1.5px solid ${liked?'#e03030':'var(--border)'};background:${liked?'#fff0f0':'white'};cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s">
-              <span style="font-size:16px">${liked?'❤️':'🤍'}</span>
-              ${count > 0 ? `<span style="font-size:12px;font-weight:700;color:${liked?'#e03030':'var(--ink3)'}">${count}</span>` : ''}
-            </button>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-}
-
-function toggleMenuLike(menu, dateKey, schoolName) {
-  const likeKey = `menulike_${menu}_${dateKey}`;
-  const countKey = `menucount_${menu}_${dateKey}`;
-  const liked = localStorage.getItem(likeKey) === '1';
-  let count = parseInt(localStorage.getItem(countKey) || '0');
-  if (liked) {
-    localStorage.removeItem(likeKey);
-    count = Math.max(0, count - 1);
-  } else {
-    localStorage.setItem(likeKey, '1');
-    count += 1;
-    showToast(`❤️ ${menu} 맛있었군요!`);
-  }
-  localStorage.setItem(countKey, count);
-  renderCommunity();
-}
-
-function sendToNutritionTeacher() {
-  const child = members.find(m => m.type === 'child' && m.school);
-  if (!child) return;
-  const schoolName = child.school.name;
-  const dateKey = formatDate(targetDate);
-  const sentKey = `sent_${schoolName}_${dateKey}`;
-  if (localStorage.getItem(sentKey) === '1') return;
-
-  const lunchItems = child.lunchItems || [];
-  const results = lunchItems
-    .map(menu => ({ menu, count: parseInt(localStorage.getItem(`menucount_${menu}_${dateKey}`) || '0') }))
-    .filter(r => r.count > 0)
-    .sort((a,b) => b.count - a.count);
-
-  if (results.length === 0) {
-    showToast('먼저 마음에 드는 메뉴에 하트를 눌러주세요!', true);
-    return;
-  }
-
-  localStorage.setItem(sentKey, '1');
-  showToast('👩‍🍳 영양샘께 전달됐어요! 감사합니다 ❤️');
-  renderCommunity();
-}
-
-function showCommunity() {
-  document.getElementById('main-content').style.display = 'block';
-  document.getElementById('section-cafe').style.display = 'none';
-  document.querySelectorAll('.section').forEach(s => {
-    s.classList.remove('active');
-    s.style.display = 'none';
-  });
-  const comm = document.getElementById('section-community');
-  comm.classList.add('active');
-  comm.style.display = 'block';
-  renderCommunity();
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
