@@ -521,9 +521,9 @@ body {
 /* ── 토스트 ── */
 .toast {
   position: fixed;
-  top: 20px;
+  bottom: 80px;
   left: 50%;
-  transform: translateX(-50%) translateY(-80px);
+  transform: translateX(-50%) translateY(80px);
   background: var(--ink);
   color: var(--cream);
   border-radius: 100px;
@@ -1019,7 +1019,7 @@ body {
     <span id="btab-lunch-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">급식</span>
   </button>
 
-  <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goStepDirect(3)"
+  <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goToMenuStep()"
     style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:10px 4px 12px;border-radius:0">
     <span style="font-size:18px;line-height:1">✨</span>
     <span id="btab-dinner-lbl" style="font-size:10px;font-weight:800;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">저녁</span>
