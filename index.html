@@ -1844,7 +1844,7 @@ async function analyzeWeeklyNutrition() {
       <div class="card" style="margin-bottom:12px">
         <div style="margin-top:4px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
           ✅ ${label} 영양 균형 우수!<br>
-          <span style="font-size:11px;color:var(--ink2);font-weight:500">
+          <span style="font-size:12px;color:var(--green);font-weight:600">
             ✅ (NEIS미제공) 비타민D는 영양제로 해결!
             <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
               onclick="event.stopPropagation()"
@@ -1994,7 +1994,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             </div>` : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ ${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 영양 균형 우수!<br>
-              <span style="font-size:11px;color:var(--ink2);font-weight:500">
+              <span style="font-size:12px;color:var(--green);font-weight:600">
                 ✅ (NEIS미제공) 비타민D는 영양제로 해결!
                 <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
                   onclick="event.stopPropagation()"
