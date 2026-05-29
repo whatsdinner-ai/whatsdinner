@@ -1132,6 +1132,9 @@ const state = {
 // ── 날짜 ──
 const today = new Date();
 let targetDate = new Date(today); // 조회 날짜 (오늘 or 내일)
+// 초기 로드 시 주말이면 금요일로 조정
+if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() - 1);
+if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() - 2);
 
 function formatDate(d) {
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
@@ -1528,7 +1531,7 @@ async function fetchAllLunch() {
   if (titleEl) titleEl.textContent = `${dayLabel} 점심 현황`;
   if (subEl) subEl.innerHTML = `가족 모두의 ${dayLabel} 점심을 분석했어요`;
   const step2Label = document.getElementById('step2-label');
-  if (step2Label) step2Label.textContent = `${dayLabel} 급식`;
+  if (step2Label) step2Label.textContent = dayLabel.includes('급식') ? dayLabel : `${dayLabel} 급식`;
 
   document.getElementById('lunch-display').innerHTML = `
     <div style="text-align:center;padding:40px 20px">
