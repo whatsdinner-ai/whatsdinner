@@ -769,12 +769,6 @@ body {
       <div style="font-size:12px;color:var(--accent);font-weight:600">위에서 가족을 먼저 추가해주세요</div>
     </div>
 
-    <!-- 시작 버튼 -->
-    <button id="fetch-btn" class="btn-primary" onclick="fetchAllLunch()"
-      style="background:#cccccc;color:white;pointer-events:none">
-      점심 메뉴 가져오기
-    </button>
-
   </div>
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
@@ -792,7 +786,7 @@ body {
       <div id="weekly-nutrition-content"></div>
     </div>
 
-    <button class="btn-primary" onclick="generateMenu()">메뉴 추천받기 ✨</button>
+    <button class="btn-primary" style="display:none" onclick="generateMenu()">메뉴 추천받기 ✨</button>
 
   </div>
 
@@ -1441,7 +1435,6 @@ function renderMembers() {
               </div>`;
             }).join('')}
           </div>
-          <div style="font-size:10px;color:var(--ink3);margin-top:5px">NEIS 급식 알레르기 번호 기준 · 급식에 포함 시 바로 알림</div>
         </div>
       </div>` : ''}
     </div>
