@@ -1693,7 +1693,6 @@ function renderAllLunch(cards) {
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
         </div>
         <div style="margin-top:10px">
-          <div style="font-size:10px;color:var(--ink3);margin-bottom:6px">📊 1일 권장량 대비 · 점심 1끼 기준 · 부족분은 저녁 추천에 반영</div>
           ${(() => {
             const items = [
               {n:'탄수화물', v:card.nutrition.carb,    icon:'🌾', threshold:50, rda:'130g'},
