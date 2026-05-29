@@ -1138,10 +1138,12 @@ function formatDate(d) {
 }
 
 // ── 내일 메뉴 ──
+let isTodayMode = true; // 오늘/지난급식 모드 여부
+
 function goTomorrow() {
+  isTodayMode = false;
   targetDate = new Date(today);
   targetDate.setDate(targetDate.getDate() + 1);
-  // 토→월, 일→월
   if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
   if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
   updateDateDisplay();
@@ -1156,8 +1158,8 @@ function goTomorrow() {
 
 // ── 오늘 메뉴 ──
 function goToday() {
+  isTodayMode = true;
   targetDate = new Date(today);
-  // 토→금, 일→금
   if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() - 1);
   if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() - 2);
   updateDateDisplay();
@@ -1186,12 +1188,11 @@ function getTomorrowLabel() {
 
 function updateDateDisplay() {
   const d = targetDate;
-  const isToday = d.toDateString() === today.toDateString();
   const el = document.getElementById('today-date');
   const dateText = `${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
 
   // 날짜 표시
-  if (isToday) {
+  if (isTodayMode) {
     el.innerHTML = dateText;
     el.style.cssText = 'font-size:12px;color:var(--ink3)';
   } else {
@@ -1204,7 +1205,7 @@ function updateDateDisplay() {
   const tomorrowToggle = document.getElementById('tomorrow-toggle');
   const arrow          = document.getElementById('toggle-arrow');
 
-  if (isToday) {
+  if (isTodayMode) {
     if (todayToggle) {
       todayToggle.style.background = 'white';
       todayToggle.style.color = 'var(--accent)';
@@ -1521,10 +1522,7 @@ async function fetchAllLunch() {
   goStep(2);
 
   // 오늘/내일/지난급식/다음급식 제목 동적 변경
-  const isToday = targetDate.toDateString() === today.toDateString()
-    || (today.getDay() === 6 && targetDate.toDateString() === (() => { const d = new Date(today); d.setDate(d.getDate()-1); return d.toDateString(); })())
-    || (today.getDay() === 0 && targetDate.toDateString() === (() => { const d = new Date(today); d.setDate(d.getDate()-2); return d.toDateString(); })());
-  const dayLabel = isToday ? getTodayLabel() : getTomorrowLabel();
+  const dayLabel = isTodayMode ? getTodayLabel() : getTomorrowLabel();
   const titleEl = document.getElementById('lunch-section-title');
   const subEl = document.getElementById('lunch-section-sub');
   if (titleEl) titleEl.textContent = `${dayLabel} 점심 현황`;
@@ -1806,7 +1804,7 @@ async function analyzeWeeklyNutrition() {
     const card = document.getElementById('weekly-nutrition-card');
     const content = document.getElementById('weekly-nutrition-content');
     card.style.display = 'block';
-    const label = targetDate.toDateString() === today.toDateString() ? '오늘' : '내일';
+    const label = isTodayMode ? getTodayLabel() : getTomorrowLabel();
     content.innerHTML = `
       <div class="card" style="margin-bottom:12px">
         <div style="margin-top:4px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
