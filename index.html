@@ -1661,8 +1661,6 @@ async function fetchAllLunch() {
           }
         }
         if (flags.includes('sodium') && sodiumRaw > 0) warnings.push({ type:'sodium', val:sodiumRaw, limit:800,   unit:'mg', label:'나트륨', icon:'🧂' });
-        if (flags.includes('flour')  && carbRaw   > 0) warnings.push({ type:'flour',  val:carbRaw,   limit:130,   unit:'g',  label:'탄수화물', icon:'🌾' });
-        if (flags.includes('fat')    && fatRaw    > 0) warnings.push({ type:'fat',    val:fatRaw,    limit:25,    unit:'g',  label:'지방',   icon:'🥓' });
 
         member.lunchNutritionRaw = { sugar: sugarRaw, sodium: sodiumRaw, carb: carbRaw, fat: fatRaw };
         member.healthWarnings = warnings;
@@ -3368,6 +3366,12 @@ setTimeout(initPushPrompt, 5000);
 
 // ── 초기화 ──
 const restored = loadFromLocal();
+// flour, fat 플래그 레거시 제거
+members.forEach(m => {
+  if (m.healthFlags) {
+    m.healthFlags = m.healthFlags.filter(f => f !== 'flour' && f !== 'fat' && f !== 'sodium');
+  }
+});
 renderMembers();
 
 // 항상 1번 화면으로 시작
