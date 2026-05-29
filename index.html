@@ -1804,17 +1804,10 @@ async function analyzeWeeklyNutrition() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
 
-  // 오늘 날짜 기준
-  const getMonday = (d) => {
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const mon = new Date(d);
-    mon.setDate(diff);
-    return mon;
-  };
-  const monday = getMonday(today);
-  const fromStr = `${monday.getFullYear()}${String(monday.getMonth()+1).padStart(2,'0')}${String(monday.getDate()).padStart(2,'0')}`;
-  const toStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  // targetDate 기준 (오늘 또는 내일)
+  const baseDate = targetDate || today;
+  const fromStr = `${baseDate.getFullYear()}${String(baseDate.getMonth()+1).padStart(2,'0')}${String(baseDate.getDate()).padStart(2,'0')}`;
+  const toStr = fromStr;
 
   // 모든 아이 데이터 수집
   const allChildData = [];
