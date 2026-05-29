@@ -585,40 +585,37 @@ body {
 <div class="container">
 
 <!-- 알림 안내 팝업 -->
-<div id="notif-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999" onclick="if(event.target===this)hideNotifInfoModal()">
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 48px);max-width:360px;background:white;border-radius:16px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+<div id="notif-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center"
+  onclick="if(event.target===this)hideNotifInfoModal()">
+  <div style="width:calc(100% - 48px);max-width:340px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
 
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <span style="font-size:22px">🔔</span>
-      <div>
-        <div style="font-size:14px;font-weight:800;color:var(--ink)">매일 아침 7시 알림</div>
-        <div style="font-size:11px;color:var(--ink3)">이런 정보를 보내드려요</div>
+    <!-- 헤더 -->
+    <div style="padding:20px 20px 14px;text-align:center;border-bottom:0.5px solid #e0e0e0">
+      <div style="font-size:36px;margin-bottom:8px">🔔</div>
+      <div style="font-size:16px;font-weight:700;color:#000">매일 아침 7시 알림</div>
+      <div style="font-size:12px;color:#888;margin-top:3px">이런 정보를 보내드려요</div>
+    </div>
+
+    <!-- 항목 -->
+    <div style="padding:0 20px">
+      <div style="display:flex;align-items:center;padding:11px 0;border-bottom:0.5px solid #e8e8e8">
+        <span style="font-size:18px;margin-right:10px">🚨</span>
+        <span style="font-size:14px;color:#000">알레르기 포함 급식 주의</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 0">
+        <span style="font-size:18px;margin-right:10px">🍬</span>
+        <span style="font-size:14px;color:#000">당류 높을 때 간식 주의보</span>
       </div>
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fde8e8;border-radius:8px">
-        <span style="font-size:16px">🚨</span>
-        <span style="font-size:12px;font-weight:600;color:#dc3545">알레르기 포함 급식 주의</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff3cd;border-radius:8px">
-        <span style="font-size:16px">🍬</span>
-        <span style="font-size:12px;font-weight:600;color:#856404">당류 높을 때 간식 주의보</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e8f4fd;border-radius:8px">
-        <span style="font-size:16px">🧂</span>
-        <span style="font-size:12px;font-weight:600;color:#1a6496">나트륨 높을 때 영양 주의보</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accent-light);border-radius:8px">
-        <span style="font-size:16px">🍽️</span>
-        <span style="font-size:12px;font-weight:600;color:var(--accent)">오늘 급식 메뉴 미리 알림</span>
-      </div>
+    <!-- 버튼 -->
+    <div style="border-top:0.5px solid #e0e0e0">
+      <button onclick="hideNotifInfoModal()"
+        style="width:100%;padding:14px;border:none;background:white;color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
+        닫기
+      </button>
     </div>
 
-    <button onclick="hideNotifInfoModal()"
-      style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
-      확인 ✅
-    </button>
   </div>
 </div>
 
@@ -995,8 +992,9 @@ body {
   <button id="btab-school" onclick="setBottomTab('school');showMain();goStepDirect(1)"
     style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <circle cx="11" cy="8" r="4" stroke="#888888" stroke-width="1.8" fill="none" id="btab-school-icon-c"/>
-      <path d="M4 19 Q4 14 11 14 Q18 14 18 19" stroke="#888888" stroke-width="1.8" fill="none" stroke-linecap="round" id="btab-school-icon-p"/>
+      <path d="M11 2 L2 7 L11 12 L20 7 Z" stroke="#888888" stroke-width="1.6" fill="none" stroke-linejoin="round" id="btab-school-icon-r"/>
+      <path d="M5 10 L5 17 L17 17 L17 10" stroke="#888888" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" id="btab-school-icon-p"/>
+      <rect x="8.5" y="13" width="5" height="4" rx="1" stroke="#888888" stroke-width="1.4" fill="none" id="btab-school-icon-d"/>
     </svg>
     <span id="btab-school-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">학교</span>
   </button>
@@ -1018,14 +1016,12 @@ body {
   </button>
 
   <button id="btab-cafe" onclick="setBottomTab('cafe');showCafe()"
-    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;padding:12px 4px 14px">
-    <svg id="nav-cafe-icon" width="20" height="20" viewBox="0 0 22 22" fill="none">
-      <path d="M4 7 H15 L13.5 17 Q13 19 11 19 H8 Q6 19 5.5 17 Z" stroke="#bbbbbb" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-      <path d="M15 9 Q19 9 19 12 Q19 15 15 15" stroke="#bbbbbb" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-      <path d="M7 5 Q7.5 3.5 7 2" stroke="#bbbbbb" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M10 5 Q10.5 3.5 10 2" stroke="#bbbbbb" stroke-width="1.2" stroke-linecap="round"/>
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="8" r="4" stroke="#888888" stroke-width="1.8" fill="none" id="btab-cafe-icon-c"/>
+      <path d="M4 19 Q4 14 11 14 Q18 14 18 19" stroke="#888888" stroke-width="1.8" fill="none" stroke-linecap="round" id="btab-cafe-icon-p"/>
     </svg>
-    <span id="btab-cafe-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px;margin-top:3px">라운지</span>
+    <span id="btab-cafe-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">정보</span>
   </button>
 
 </div>
@@ -3182,7 +3178,7 @@ function clearLocal() {
 }
 
 function showNotifInfoPopup() {
-  document.getElementById('notif-info-modal').style.display = 'block';
+  document.getElementById('notif-info-modal').style.display = 'flex';
 }
 function hideNotifInfoModal() {
   document.getElementById('notif-info-modal').style.display = 'none';
