@@ -1020,9 +1020,9 @@ body {
   </button>
 
   <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goStepDirect(3)"
-    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:#FF6B00;cursor:pointer;padding:10px 4px 12px;border-radius:0">
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:10px 4px 12px;border-radius:0">
     <span style="font-size:18px;line-height:1">✨</span>
-    <span id="btab-dinner-lbl" style="font-size:10px;font-weight:800;color:white;font-family:inherit;letter-spacing:-.3px">저녁</span>
+    <span id="btab-dinner-lbl" style="font-size:10px;font-weight:800;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">저녁</span>
   </button>
 
   <button id="btab-cafe" onclick="setBottomTab('cafe');showCafe()"
@@ -1247,6 +1247,8 @@ updateDateDisplay();
   if (tb)  tb.textContent = todayLabel;
   if (tmb) tmb.textContent = tomorrowLabel;
   if (s2)  s2.textContent = '급식';
+  // 하단 탭 초기 활성: 학교
+  setBottomTab('school');
 })();
 
 function setBottomTab(tab) {
@@ -3417,6 +3419,13 @@ if (restored) {
     const names = members.map(m => m.name || '아이').join(', ');
     showToast(`✅ ${names} 설정을 불러왔어요!`);
     renderMembers();
+
+    // 학교 저장된 유저 → 급식 탭으로 자동 이동
+    const hasSchool = members.some(m => m.type === 'child' && m.school);
+    if (hasSchool) {
+      setBottomTab('lunch');
+      fetchAllLunch();
+    }
   }, 300);
 }
 
