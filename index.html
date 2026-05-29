@@ -1693,16 +1693,17 @@ function renderAllLunch(cards) {
           ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
         </div>
         <div style="margin-top:10px">
+          <div style="font-size:10px;color:var(--ink3);margin-bottom:6px">📊 1일 권장량 대비 · 점심 1끼 기준 · 부족분은 저녁 추천에 반영</div>
           ${(() => {
             const items = [
-              {n:'탄수화물', v:card.nutrition.carb,    icon:'🌾', threshold:50},
-              {n:'단백질',   v:card.nutrition.protein, icon:'💪', threshold:50},
-              {n:'지방',     v:card.nutrition.fat,     icon:'🥑', threshold:40},
-              {n:'칼로리',   v:card.nutrition.cal,     icon:'🔥', threshold:50},
-              {n:'칼슘',     v:card.nutrition.calcium  != null ? Math.round(card.nutrition.calcium  / 900  * 100) : 100, icon:'🦴', threshold:80},
-              {n:'철분',     v:card.nutrition.iron     != null ? Math.round(card.nutrition.iron     / 14   * 100) : 100, icon:'🩸', threshold:80},
-              {n:'비타민A',  v:card.nutrition.vitA     != null ? Math.round(card.nutrition.vitA     / 750  * 100) : 100, icon:'👁️', threshold:80},
-              {n:'비타민C',  v:card.nutrition.vitC     != null ? Math.round(card.nutrition.vitC     / 100  * 100) : 100, icon:'🍊', threshold:80},
+              {n:'탄수화물', v:card.nutrition.carb,    icon:'🌾', threshold:50, rda:'130g'},
+              {n:'단백질',   v:card.nutrition.protein, icon:'💪', threshold:50, rda:'55g'},
+              {n:'지방',     v:card.nutrition.fat,     icon:'🥑', threshold:40, rda:'50g'},
+              {n:'칼로리',   v:card.nutrition.cal,     icon:'🔥', threshold:50, rda:'2000kcal'},
+              {n:'칼슘',     v:card.nutrition.calcium  != null ? Math.round(card.nutrition.calcium  / 900  * 100) : 100, icon:'🦴', threshold:80, rda:'900mg'},
+              {n:'철분',     v:card.nutrition.iron     != null ? Math.round(card.nutrition.iron     / 14   * 100) : 100, icon:'🩸', threshold:80, rda:'14mg'},
+              {n:'비타민A',  v:card.nutrition.vitA     != null ? Math.round(card.nutrition.vitA     / 750  * 100) : 100, icon:'👁️', threshold:80, rda:'750μg'},
+              {n:'비타민C',  v:card.nutrition.vitC     != null ? Math.round(card.nutrition.vitC     / 100  * 100) : 100, icon:'🍊', threshold:80, rda:'100mg'},
             ].filter(i => i.v < i.threshold);
 
             if (items.length === 0) return `
@@ -1727,6 +1728,7 @@ function renderAllLunch(cards) {
                       <span style="font-size:13px">${i.icon}</span>
                       <span style="font-size:12px;font-weight:700;color:var(--accent)">${i.n}</span>
                       <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
+                      <span style="font-size:10px;color:var(--ink3)">/ 1일 ${i.rda}</span>
                       ${isFirstCoupang ? `
                         <span style="font-size:10px;color:var(--ink3);margin-left:2px">오늘 가장 부족해요</span>
                         <a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
@@ -1864,9 +1866,9 @@ async function analyzeWeeklyNutrition() {
     vitC:    { val: 100,  unit: 'mg',   label: '비타민C',  icon: '🍊' },
   };
 
-  // 급식 1일 권장량의 1/3
+  // 급식 1일 권장량 기준
   const lunchRDA = Object.fromEntries(
-    Object.entries(RDA).map(([k, v]) => [k, Math.round(v.val / 3 * 10) / 10])
+    Object.entries(RDA).map(([k, v]) => [k, v.val])
   );
 
   // 아이별 영양 분석
@@ -2017,7 +2019,8 @@ function renderLunch(schoolName, menu) {
         `).join('')}
       </div>
       <div class="nutrition-bar">
-        <div class="nutrition-label">영양소 충족률 (권장량 대비)</div>
+        <div class="nutrition-label">영양소 충족률 (1일 권장량 대비)</div>
+        <div style="font-size:10px;color:var(--ink3);margin-bottom:8px">점심 1끼 기준 · 부족분은 저녁 추천에 반영</div>
         <div class="nutrition-items">
           ${[
             {n:'탄수화물', v: menu.nutrition.carb},
