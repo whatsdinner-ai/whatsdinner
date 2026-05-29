@@ -1039,22 +1039,13 @@ body {
 </div>
 
 <!-- 앱 정보 모달 -->
-<div id="info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999"
+<div id="info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:9999;display:none;align-items:center;justify-content:center"
   onclick="if(event.target===this)hideInfoModal()">
-  <div style="position:absolute;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:24px 24px 40px;overflow-y:auto;max-height:90vh">
+  <div style="background:white;border-radius:20px;padding:28px 24px;width:min(320px,88vw);box-shadow:0 20px 60px rgba(0,0,0,.2)">
 
-    <!-- 핸들 + 닫기 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:auto"></div>
-      <button onclick="hideInfoModal()"
-        style="width:32px;height:32px;border-radius:50%;border:none;background:#f4f4f4;color:var(--ink3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0">
-        ✕
-      </button>
-    </div>
-
-    <!-- 로고 -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <div style="width:52px;height:52px;background:#FF6B00;border-radius:14px;display:flex;align-items:center;justify-content:center">
+    <!-- 로고 + 이름 -->
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:56px;height:56px;background:#FF6B00;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
         <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
           <rect x="1" y="1" width="42" height="42" rx="9" stroke="white" stroke-width="2" fill="none"/>
           <line x1="1" y1="22" x2="43" y2="22" stroke="white" stroke-width="1.6"/>
@@ -1062,82 +1053,43 @@ body {
           <path d="M26 10 L29.5 14 L36 7.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div>
-        <div style="font-size:18px;font-weight:900;color:var(--ink)">왓츠디너</div>
-        <div style="font-size:12px;color:var(--ink3)">급식과는 다른저녁</div>
+      <div style="font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-0.5px">왓츠디너</div>
+      <div style="font-size:13px;color:var(--ink3);margin-top:4px">급식과는 다른 저녁</div>
+    </div>
+
+    <!-- 구분선 -->
+    <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
+
+    <!-- 핵심 정보만 -->
+    <div style="font-size:12px;color:var(--ink3);line-height:2">
+      <div style="display:flex;justify-content:space-between">
+        <span>버전</span><span style="color:var(--ink);font-weight:600">1.0.0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span>데이터</span><span style="color:var(--ink);font-weight:600">교육부 NEIS</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span>상표출원</span><span style="color:var(--ink);font-weight:600">40-2026-0106193</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span>특허출원</span><span style="color:var(--ink);font-weight:600">10-2026-0097528</span>
       </div>
     </div>
 
     <!-- 구분선 -->
-    <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+    <div style="height:1px;background:var(--border);margin:16px 0"></div>
 
-    <!-- 지식재산권 -->
-    <div style="margin-bottom:20px">
-      <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">지식재산권</div>
-
-      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fff3e8;border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,107,0,.15)">
-        <div style="width:36px;height:36px;background:#FF6B00;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">™</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px">상표출원</div>
-          <div style="font-size:11px;line-height:2">
-            <div><span style="font-weight:700;color:var(--ink)">왓츠디너</span></div>
-            <div style="color:var(--ink3)">제 40-2026-0106193 호</div>
-            <div><span style="font-weight:700;color:var(--ink)">WhatsDinner</span></div>
-            <div style="color:var(--ink3)">제 40-2026-0106230 호</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fff3e8;border-radius:12px;border:1px solid rgba(255,107,0,.15)">
-        <div style="width:36px;height:36px;background:#FF6B00;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚙️</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px">특허출원</div>
-          <div style="font-size:11px;line-height:2">
-            <div style="font-weight:700;color:var(--ink)">학교 급식 공공데이터 기반 AI 저녁 식단 추천<br>및 구매·주문 연계 시스템 및 방법</div>
-            <div style="color:var(--ink3)">제 10-2026-0097528 호</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 구분선 -->
-    <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
-
-    <!-- 앱 정보 -->
-    <div style="margin-bottom:20px">
-      <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">앱 정보</div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px;color:var(--ink2)">버전</span>
-        <span style="font-size:13px;font-weight:600;color:var(--ink)">1.0.0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px;color:var(--ink2)">서비스</span>
-        <span style="font-size:13px;font-weight:600;color:var(--ink)">whatsdinner.co.kr</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0">
-        <span style="font-size:13px;color:var(--ink2)">데이터</span>
-        <span style="font-size:13px;font-weight:600;color:var(--ink)">교육부 NEIS Open API</span>
-      </div>
-    </div>
-
-    <!-- 저작권 -->
-    <div style="text-align:center;font-size:11px;color:var(--ink3);line-height:1.6;margin-bottom:16px">
-      © 2026 왓츠디너. All rights reserved.<br>
-      본 서비스의 알고리즘 및 UI는 저작권법의 보호를 받습니다.
-    </div>
-
-    <!-- 닫기 버튼 -->
+    <!-- 알림 + 닫기 -->
+    <button onclick="localStorage.removeItem('pushDismissed');hideInfoModal();setTimeout(initPushPrompt,500);"
+      style="width:100%;padding:12px;border-radius:12px;border:none;background:#FF6B00;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">
+      🔔 알림 설정
+    </button>
     <button onclick="hideInfoModal()"
-      style="width:100%;padding:14px;border-radius:12px;border:none;background:#f4f4f4;color:var(--ink2);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
+      style="width:100%;padding:12px;border-radius:12px;border:none;background:#f5f5f5;color:var(--ink3);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
       닫기
     </button>
 
-    <!-- 알림 설정 (개발용) -->
-    <button onclick="localStorage.removeItem('pushDismissed');hideInfoModal();setTimeout(initPushPrompt,500);"
-      style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:white;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-      🔔 알림 설정하기
-    </button>
-
+    <div style="text-align:center;font-size:10px;color:#ccc;margin-top:12px">© 2026 왓츠디너</div>
   </div>
 </div>
 
@@ -1148,7 +1100,8 @@ body {
 // ── 내일 메뉴 바로 보기 ──
 // ── 앱 정보 모달 ──
 function showInfoModal() {
-  document.getElementById('info-modal').style.display = 'block';
+  const m = document.getElementById('info-modal');
+  m.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 function hideInfoModal() {
@@ -1460,7 +1413,9 @@ function renderMembers() {
 
 async function searchSchoolForMember(memberId, val) {
   const dropdown = document.getElementById(`school-dd-${memberId}`);
-  if (val.length < 2) { dropdown.style.display = 'none'; return; }
+  const trimmed = val.replace(/\s/g, '');          // 공백 전부 제거
+  const query = trimmed.length >= 2 ? trimmed : ''; // 2글자 이상만 검색
+  if (query.length < 2) { dropdown.style.display = 'none'; return; }
 
   clearTimeout(searchTimers[memberId]);
   searchTimers[memberId] = setTimeout(async () => {
@@ -1468,7 +1423,7 @@ async function searchSchoolForMember(memberId, val) {
     dropdown.style.display = 'block';
     try {
       const res = await fetch(
-        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(val)}`
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(query)}`
       );
       const data = await res.json();
       const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
