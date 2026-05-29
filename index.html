@@ -713,13 +713,13 @@ body {
   <!-- 스텝 네비 -->
   <div class="step-nav">
     <div class="step active" id="step1" onclick="goStep(1)">
-      <div class="step-num">1</div> 학교 설정
+      <div class="step-num">1</div> 학교
     </div>
     <div class="step" id="step2" onclick="goToLunchStep()">
-      <div class="step-num">2</div> <span id="step2-label">오늘 급식</span>
+      <div class="step-num">2</div> <span id="step2-label">급식</span>
     </div>
     <div class="step" id="step3" onclick="goToMenuStep()">
-      <div class="step-num">3</div> 메뉴 추천
+      <div class="step-num">3</div> ✨ 저녁
     </div>
 
   </div>
@@ -1172,15 +1172,11 @@ function goToday() {
 // 탭 레이블 계산 (주말 고려)
 function getTodayLabel() {
   const day = today.getDay();
-  if (day === 6) return '지난 급식'; // 토요일
-  if (day === 0) return '지난 급식'; // 일요일
   return '오늘';
 }
 function getTomorrowLabel() {
   const day = today.getDay();
-  if (day === 5) return '다음 급식'; // 금요일 → 월요일
-  if (day === 6) return '다음 급식'; // 토요일 → 월요일
-  return '내일';                     // 일요일 포함 나머지 → 내일
+  return '내일';
 }
 
 function updateDateDisplay() {
@@ -1238,7 +1234,7 @@ updateDateDisplay();
   const tomorrowLabel = getTomorrowLabel();
   if (tb)  tb.textContent = todayLabel;
   if (tmb) tmb.textContent = tomorrowLabel;
-  if (s2)  s2.textContent = todayLabel.includes('급식') ? todayLabel : `${todayLabel} 급식`;
+  if (s2)  s2.textContent = '급식';
 })();
 
 // ── 스텝 이동 ──
@@ -1528,7 +1524,7 @@ async function fetchAllLunch() {
   // titleEl 숨김 유지
   if (subEl) subEl.innerHTML = `가족 모두의 ${dayLabel} 점심을 분석했어요`;
   const step2Label = document.getElementById('step2-label');
-  if (step2Label) step2Label.textContent = dayLabel.includes('급식') ? dayLabel : `${dayLabel} 급식`;
+  if (step2Label) step2Label.textContent = '급식';
 
   document.getElementById('lunch-display').innerHTML = `
     <div style="text-align:center;padding:40px 20px">
