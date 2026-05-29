@@ -689,16 +689,22 @@ body {
       </div>
 
       <!-- 오늘↔내일 토글 -->
-      <div style="display:flex;align-items:center;background:#f0f0f0;border-radius:100px;padding:3px;gap:1px">
-        <button id="today-toggle" onclick="goToday()"
-          style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
-          오늘
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="notif-toggle-btn" onclick="toggleNotification()"
+          style="width:34px;height:34px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .2s;flex-shrink:0">
+          🔔
         </button>
-        <span id="toggle-arrow" style="font-size:12px;color:var(--ink3);padding:0 3px;transition:all .2s">→</span>
-        <button id="tomorrow-toggle" onclick="goTomorrow()"
-          style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:transparent;color:var(--ink3)">
-          내일
-        </button>
+        <div style="display:flex;align-items:center;background:#f0f0f0;border-radius:100px;padding:3px;gap:1px">
+          <button id="today-toggle" onclick="goToday()"
+            style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
+            오늘
+          </button>
+          <span id="toggle-arrow" style="font-size:12px;color:var(--ink3);padding:0 3px;transition:all .2s">→</span>
+          <button id="tomorrow-toggle" onclick="goTomorrow()"
+            style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:transparent;color:var(--ink3)">
+            내일
+          </button>
+        </div>
       </div>
     </div>
 
