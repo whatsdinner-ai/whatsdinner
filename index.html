@@ -1437,7 +1437,7 @@ function renderMembers() {
               const checked = (m.allergyNos||[]).includes(a.no);
               return `<div onclick="toggleAllergy(${m.id},'${a.no}')"
                 style="padding:4px 9px;border-radius:100px;border:1.5px solid ${checked ? '#dc3545' : 'var(--border)'};background:${checked ? 'rgba(220,53,69,.08)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${checked ? '#dc3545' : 'var(--ink3)'}">
-                ${a.label}
+                <span style="font-size:9px;opacity:.6;margin-right:2px">${a.no}</span>${a.label}
               </div>`;
             }).join('')}
           </div>
@@ -1605,6 +1605,18 @@ async function fetchAllLunch() {
           .replace(/<br\/>/g, ',').split(',')
           .map(d => d.replace(/\([^)]*\)/g, '').trim())
           .filter(d => d.length > 0);
+
+        // 알레르기 번호 포함 items (표시용)
+        const itemsWithAllergy = rawDdish
+          .replace(/<br\/>/g, ',').split(',')
+          .map(d => {
+            const name = d.replace(/\([^)]*\)/g, '').trim();
+            const nos = [...d.matchAll(/\(([^)]+)\)/g)]
+              .flatMap(m => m[1].split('.').map(s => s.trim()))
+              .filter(s => /^\d+$/.test(s));
+            return { name, nos };
+          })
+          .filter(d => d.name.length > 0);
         member.lunchItems = items;
         member.allergyHits = allergyHits;
         allLunchItems = [...allLunchItems, ...items];
@@ -1656,7 +1668,7 @@ async function fetchAllLunch() {
         member.lunchNutritionRaw = { sugar: sugarRaw, sodium: sodiumRaw, carb: carbRaw, fat: fatRaw };
         member.healthWarnings = warnings;
 
-        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, nutrition: { cal, carb, protein, fat }, warnings, healthFlags: flags, lunchNutritionRaw: member.lunchNutritionRaw, allergyHits: member.allergyHits || [] });
+        cards.push({ type: 'school', name: member.name || '아이', school: member.school.name, items, itemsWithAllergy, nutrition: { cal, carb, protein, fat }, warnings, healthFlags: flags, lunchNutritionRaw: member.lunchNutritionRaw, allergyHits: member.allergyHits || [] });
       } else {
         member.lunchItems = [];
         cards.push({ type: 'nodata', name: member.name || '아이', school: member.school.name });
@@ -1701,7 +1713,10 @@ function renderAllLunch(cards) {
         <div class="lunch-school">🏫 ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
 
         <div class="lunch-items">
-          ${card.items.map((item,i) => `<div class="lunch-item ${i<2?'highlight':''}">${item}</div>`).join('')}
+          ${(card.itemsWithAllergy || card.items.map(i => ({name:i, nos:[]}))).map((item,i) => `
+            <div class="lunch-item ${i<2?'highlight':''}">
+              ${item.name}${item.nos && item.nos.length > 0 ? `<span style="font-size:9px;color:var(--ink3);margin-left:3px;opacity:.7">${item.nos.join('.')}</span>` : ''}
+            </div>`).join('')}
         </div>
 
         ${card.warnings && card.warnings.length > 0 ? `
