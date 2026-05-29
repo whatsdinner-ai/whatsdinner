@@ -1419,15 +1419,12 @@ function renderMembers() {
       ${m.school ? `
       <!-- 건강/알레르기 설정 -->
       <div style="margin-top:12px">
-        <!-- 건강 주의 -->
+        <!-- 성분 주의 -->
         <div style="margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 건강 주의 설정 (선택)</div>
+          <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px">⚠️ 성분 주의 설정 (선택)</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
             ${[
-              {key:'sugar',  label:'🍬 당류',   desc:'인슐린·당뇨'},
-              {key:'sodium', label:'🧂 나트륨', desc:'고혈압·신장'},
-              {key:'flour',  label:'🌾 밀가루', desc:'글루텐 프리'},
-              {key:'fat',    label:'🥓 지방',   desc:'비만·고지혈'},
+              {key:'sugar', label:'🍬 당류', desc:'인슐린·당뇨'},
             ].map(opt => `
               <div onclick="toggleHealthOption(${m.id},'${opt.key}')"
                 style="padding:5px 10px;border-radius:100px;border:1.5px solid ${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--border)'};background:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent-light)' : 'white'};cursor:pointer;font-size:11px;font-weight:600;color:${(m.healthFlags||[]).includes(opt.key) ? 'var(--accent)' : 'var(--ink3)'}">
@@ -1636,8 +1633,33 @@ async function fetchAllLunch() {
 
         // 건강 경고 체크
         const flags = member.healthFlags || [];
+        // 당류 디저트 감지
+        const DESSERT_KEYWORDS = [
+          '아이스크림','아이스','소프트콘','콘아이스','빙과','쥬스','주스','음료',
+          '케이크','초코','초콜릿','사탕','젤리','푸딩','요거트','요구르트','야쿠르트',
+          '카스테라','파이','도넛','마카롱','크림빵','단팥빵','빵','쿠키','과자',
+          '핫초코','코코아','밀크티','식혜','수정과','화채'
+        ];
+        const dessertHits = items.filter(item =>
+          DESSERT_KEYWORDS.some(kw => item.includes(kw))
+        );
+
         const warnings = [];
-        if (flags.includes('sugar')  && sugarRaw  > 0) warnings.push({ type:'sugar',  val:sugarRaw,  limit:25,    unit:'g',  label:'당류',   icon:'🍬' });
+        if (flags.includes('sugar')) {
+          if (dessertHits.length > 0) {
+            warnings.push({
+              type: 'sugar_dessert',
+              val: sugarRaw,
+              limit: 25,
+              unit: 'g',
+              label: '당류',
+              icon: '🍬',
+              desserts: dessertHits
+            });
+          } else if (sugarRaw > 15) {
+            warnings.push({ type:'sugar', val:sugarRaw, limit:25, unit:'g', label:'당류', icon:'🍬' });
+          }
+        }
         if (flags.includes('sodium') && sodiumRaw > 0) warnings.push({ type:'sodium', val:sodiumRaw, limit:800,   unit:'mg', label:'나트륨', icon:'🧂' });
         if (flags.includes('flour')  && carbRaw   > 0) warnings.push({ type:'flour',  val:carbRaw,   limit:130,   unit:'g',  label:'탄수화물', icon:'🌾' });
         if (flags.includes('fat')    && fatRaw    > 0) warnings.push({ type:'fat',    val:fatRaw,    limit:25,    unit:'g',  label:'지방',   icon:'🥓' });
@@ -1696,9 +1718,23 @@ function renderAllLunch(cards) {
         ${card.warnings && card.warnings.length > 0 ? `
         <div style="margin-top:12px;padding:12px 14px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px">
           <div style="font-size:12px;font-weight:700;color:#856404;margin-bottom:8px">
-            ⚠️ 건강 주의 알림
+            ⚠️ 성분 주의 알림
           </div>
           ${card.warnings.map(w => {
+            if (w.type === 'sugar_dessert') {
+              return `
+              <div style="margin-bottom:8px">
+                <div style="font-size:12px;font-weight:700;color:#dc3545;margin-bottom:6px">
+                  🍬 당류 주의 · 디저트 감지!
+                </div>
+                <div style="font-size:12px;color:#856404;margin-bottom:4px">
+                  오늘 급식에 <strong>${w.desserts.join(', ')}</strong>이(가) 포함돼 있어요
+                </div>
+                <div style="font-size:11px;color:#856404">
+                  💡 저녁 간식은 단 음식·주스·과자를 피해주세요
+                </div>
+              </div>`;
+            }
             const pct = Math.round(w.val / w.limit * 100);
             const isOver = pct >= 80;
             const color = pct >= 100 ? '#dc3545' : pct >= 80 ? '#fd7e14' : '#856404';
@@ -1736,9 +1772,6 @@ function renderAllLunch(cards) {
                 ${hit.menus.map(m => `<span style="background:rgba(220,53,69,.1);padding:1px 6px;border-radius:4px;font-weight:600">${m}</span>`).join(' ')}
               </div>
             </div>`).join('')}
-          <div style="font-size:11px;color:#dc3545;margin-top:4px;font-weight:600">
-            💊 학교에 미리 알리거나 대체식을 요청하세요
-          </div>
         </div>` : ''}
       </div>`;
   }).join('') + `
