@@ -1730,7 +1730,6 @@ function renderAllLunch(cards) {
                       <span style="font-size:11px;color:var(--ink3)">${i.v}%</span>
                       <span style="font-size:10px;color:var(--ink3)">/ 1일 ${i.rda}</span>
                       ${isFirstCoupang ? `
-                        <span style="font-size:10px;color:var(--ink3);margin-left:2px">오늘 가장 부족해요</span>
                         <a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
                           onclick="event.stopPropagation();handleCoupangClick(this.dataset.kw)" data-kw="${_vitKeyword}"
                           style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none;margin-left:2px">쿠팡↗</a>` : ''}
@@ -1934,7 +1933,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
     ${childResults.map(({ child, nutrients, dayCount }) => {
       const childName = child.name || '아이';
       const schoolName = child.school.name;
-      const deficient = nutrients.filter(n => n.avg > 0 && n.avg < n.rda * 0.8);
+      const deficient = nutrients.filter(n => n.avg > 0 && (33 + Math.round(n.avg / n.rda * 100)) < 80);
 
       return `
         <div class="card" style="margin-bottom:12px">
@@ -1942,10 +1941,15 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="font-weight:700;font-size:14px">🧒 ${childName}</div>
             <div style="font-size:11px;color:var(--ink3)">📅 ${schoolName} · 오늘 급식 기준</div>
           </div>
+          <div style="font-size:10px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:6px 10px;margin-bottom:10px">
+            💡 아침에 1일 권장량의 1/3을 충분히 드셨다고 가정한 수치입니다. 남은 부분은 저녁에 채워주세요!
+          </div>
 
           ${nutrients.filter(n => n.avg > 0).map(n => {
-            const pct = Math.min(Math.round(n.avg / n.rda * 100), 120);
-            const status = pct >= 100 ? 'good' : pct >= 80 ? 'ok' : 'low';
+            const breakfastPct = 33; // 아침 1/3 가정
+            const lunchPct = Math.round(n.avg / n.rda * 100);
+            const totalPct = Math.min(breakfastPct + lunchPct, 120);
+            const status = totalPct >= 100 ? 'good' : totalPct >= 80 ? 'ok' : 'low';
             const color = status === 'good' ? 'var(--green)' : status === 'ok' ? 'var(--accent2)' : '#e03030';
             const bg = status === 'good' ? 'rgba(45,106,79,.1)' : status === 'ok' ? 'rgba(232,130,42,.1)' : 'rgba(224,48,48,.1)';
             const statusLabel = status === 'good' ? '✅ 충분' : status === 'ok' ? '⚠️ 보통' : '🔴 부족';
@@ -1958,10 +1962,14 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                     <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${bg};color:${color}">${statusLabel}</span>
                   </div>
                 </div>
-                <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden">
-                  <div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:100px;transition:width .8s ease"></div>
+                <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
+                  <div style="height:100%;width:${Math.min(breakfastPct,100)}%;background:#d0d0d0;border-radius:100px 0 0 100px;position:absolute;left:0"></div>
+                  <div style="height:100%;width:${Math.min(totalPct,100)}%;background:${color};border-radius:100px;transition:width .8s ease"></div>
                 </div>
-                <div style="font-size:10px;color:var(--ink3);margin-top:2px">권장량 대비 ${pct}%</div>
+                <div style="display:flex;justify-content:space-between;margin-top:2px">
+                  <div style="font-size:10px;color:var(--ink3)">🌅 아침 ${breakfastPct}% 가정 + 점심 ${lunchPct}%</div>
+                  <div style="font-size:10px;color:${color};font-weight:600">합계 ${totalPct}%</div>
+                </div>
               </div>`;
           }).join('')}
 
@@ -1969,29 +1977,13 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="margin-top:10px;padding:10px 12px;background:rgba(224,48,48,.07);border:1px solid rgba(224,48,48,.15);border-radius:8px">
               <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">💊 추천 영양제</div>
               <div style="display:flex;flex-wrap:wrap;gap:5px">
-                ${(() => {
-                  const sorted2 = [...deficient].sort((a, b) => (a.avg/a.rda) - (b.avg/b.rda));
-                  const firstCoupangLabel = sorted2.find(n =>
-                    n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분')
-                  )?.label;
-                  return sorted2.map(n => {
-                    const isVitamin = n.label.includes('비타민') || n.label.includes('칼슘') || n.label.includes('철분');
-                    const _q2 = n.label.includes('칼슘') ? '어린이 칼슘 영양제' : n.label.includes('철분') ? '어린이 철분 영양제' : `어린이 ${n.label} 영양제`;
-                    const coupangHref = `https://www.coupang.com/np/search?q=${encodeURIComponent(_q2)}&channel=user&sorter=reviewCountDESC`;
-                    const isFirstCoupang = n.label === firstCoupangLabel;
-                    return `
-                    <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
-                      ${n.icon} ${n.label}
-                      ${isFirstCoupang ? `
-                        <span style="font-size:10px;color:var(--ink3);font-weight:400">오늘 가장 부족해요</span>
-                        <a href="${coupangHref}" target="_blank" rel="noopener noreferrer"
-                          onclick="event.stopPropagation();handleCoupangClick(this.dataset.kw)" data-kw="${_q2}"
-                          style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>` : ''}
-                    </span>`;
-                  }).join('');
-                })()}
+                <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
+                  ☀️ 비타민D
+                  <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
+                    onclick="event.stopPropagation()"
+                    style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
+                </span>
               </div>
-              ${deficient.some(n => n.label.includes('비타민')) ? `` : ''}
             </div>` : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ ${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 영양 균형 우수!<br>
