@@ -1141,6 +1141,7 @@ function formatDate(d) {
 function goTomorrow() {
   targetDate = new Date(today);
   targetDate.setDate(targetDate.getDate() + 1);
+  // 토→월, 일→월
   if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);
   if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);
   updateDateDisplay();
@@ -1156,6 +1157,9 @@ function goTomorrow() {
 // ── 오늘 메뉴 ──
 function goToday() {
   targetDate = new Date(today);
+  // 토→금, 일→금
+  if (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() - 1);
+  if (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() - 2);
   updateDateDisplay();
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) {
@@ -1164,6 +1168,20 @@ function goToday() {
     return;
   }
   fetchAllLunch();
+}
+
+// 탭 레이블 계산 (주말 고려)
+function getTodayLabel() {
+  const day = today.getDay();
+  if (day === 6) return '지난 급식'; // 토요일
+  if (day === 0) return '지난 급식'; // 일요일
+  return '오늘';
+}
+function getTomorrowLabel() {
+  const day = today.getDay();
+  if (day === 5) return '다음 급식'; // 금요일 → 월요일
+  if (day === 6) return '다음 급식'; // 토요일 → 월요일
+  return '내일';                     // 일요일 포함 나머지 → 내일
 }
 
 function updateDateDisplay() {
@@ -1213,6 +1231,13 @@ function updateDateDisplay() {
   }
 }
 updateDateDisplay();
+// 주말 토글 버튼 텍스트 초기화
+(function() {
+  const tb  = document.getElementById('today-toggle');
+  const tmb = document.getElementById('tomorrow-toggle');
+  if (tb)  tb.textContent  = getTodayLabel();
+  if (tmb) tmb.textContent = getTomorrowLabel();
+})();
 
 // ── 스텝 이동 ──
 let currentStep = 1;
@@ -1495,9 +1520,11 @@ async function fetchAllLunch() {
 
   goStep(2);
 
-  // 오늘/내일 제목 동적 변경
-  const isToday = targetDate.toDateString() === today.toDateString();
-  const dayLabel = isToday ? '오늘' : '내일';
+  // 오늘/내일/지난급식/다음급식 제목 동적 변경
+  const isToday = targetDate.toDateString() === today.toDateString()
+    || (today.getDay() === 6 && targetDate.toDateString() === (() => { const d = new Date(today); d.setDate(d.getDate()-1); return d.toDateString(); })())
+    || (today.getDay() === 0 && targetDate.toDateString() === (() => { const d = new Date(today); d.setDate(d.getDate()-2); return d.toDateString(); })());
+  const dayLabel = isToday ? getTodayLabel() : getTomorrowLabel();
   const titleEl = document.getElementById('lunch-section-title');
   const subEl = document.getElementById('lunch-section-sub');
   if (titleEl) titleEl.textContent = `${dayLabel} 점심 현황`;
