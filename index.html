@@ -521,9 +521,9 @@ body {
 /* ── 토스트 ── */
 .toast {
   position: fixed;
-  bottom: 80px;
+  top: 20px;
   left: 50%;
-  transform: translateX(-50%) translateY(80px);
+  transform: translateX(-50%) translateY(-80px);
   background: var(--ink);
   color: var(--cream);
   border-radius: 100px;
@@ -709,20 +709,6 @@ body {
   </div>
 
 <div id="main-content">
-
-  <!-- 스텝 네비 -->
-  <div class="step-nav">
-    <div class="step active" id="step1" onclick="goStep(1)">
-      <div class="step-num">1</div> 학교
-    </div>
-    <div class="step" id="step2" onclick="goToLunchStep()">
-      <div class="step-num">2</div> <span id="step2-label">급식</span>
-    </div>
-    <div class="step" id="step3" onclick="goToMenuStep()">
-      <div class="step-num">3</div> ✨ 저녁
-    </div>
-
-  </div>
 
   <!-- ══ STEP 1: 가족 구성원 설정 ══ -->
   <div class="section active" id="section1">
