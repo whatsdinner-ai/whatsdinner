@@ -687,10 +687,6 @@ body {
 
       <!-- 오늘↔내일 토글 -->
       <div style="display:flex;align-items:center;gap:8px">
-        <button id="notif-toggle-btn" onclick="toggleNotification()"
-          style="width:34px;height:34px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .2s;flex-shrink:0">
-          🔔
-        </button>
         <div style="display:flex;align-items:center;background:#f0f0f0;border-radius:100px;padding:3px;gap:1px">
           <button id="today-toggle" onclick="goToday()"
             style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
@@ -840,6 +836,32 @@ body {
 </div><!-- /main-content -->
 
   <!-- ══ 디너카페 ══ -->
+  <!-- ══ COMMUNITY: 커뮤니티 ══ -->
+  <div class="section" id="section-community" style="display:none">
+
+    <div style="font-size:18px;font-weight:900;color:var(--ink);margin-bottom:4px">💬 커뮤니티</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">오늘 급식 좋아요로 인근 학교와 비교해요</div>
+
+    <!-- 오늘 우리 학교 급식 + 좋아요 -->
+    <div id="community-my-school" class="card" style="margin-bottom:16px">
+      <div style="text-align:center;padding:20px;color:var(--ink3)">
+        <div style="font-size:32px;margin-bottom:8px">🏫</div>
+        <div style="font-size:14px">학교를 먼저 설정해주세요</div>
+      </div>
+    </div>
+
+    <!-- 지역 랭킹 -->
+    <div class="card">
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:14px">🏆 오늘의 지역 급식 랭킹</div>
+      <div id="community-ranking">
+        <div style="text-align:center;padding:20px;color:var(--ink3);font-size:13px">
+          급식 좋아요를 누르면 랭킹에 참여돼요!
+        </div>
+      </div>
+    </div>
+
+  </div>
+
   <div class="section" id="section-cafe" style="display:none">
 
     <!-- 디너카페 헤더 -->
@@ -1007,6 +1029,14 @@ body {
       <line x1="6" y1="13" x2="13" y2="13" stroke="#888888" stroke-width="1.4" stroke-linecap="round" id="btab-lunch-icon-l2"/>
     </svg>
     <span id="btab-lunch-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">급식</span>
+  </button>
+
+  <button id="btab-community" onclick="setBottomTab('community');showCommunity()"
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M3 5 Q3 3 5 3 L17 3 Q19 3 19 5 L19 13 Q19 15 17 15 L12 15 L8 19 L8 15 L5 15 Q3 15 3 13 Z" stroke="#888888" stroke-width="1.6" fill="none" stroke-linejoin="round" id="btab-community-icon"/>
+    </svg>
+    <span id="btab-community-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">커뮤니티</span>
   </button>
 
   <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goToMenuStep()"
@@ -1247,7 +1277,7 @@ updateDateDisplay();
 })();
 
 function setBottomTab(tab) {
-  const tabs = ['school','lunch','dinner','cafe'];
+  const tabs = ['school','lunch','community','dinner','cafe'];
   tabs.forEach(t => {
     const btn = document.getElementById(`btab-${t}`);
     if (!btn) return;
@@ -3075,10 +3105,122 @@ function showToast(msg, isError=false) {
 }
 
 // ── 탭 전환 ──
+function renderCommunity() {
+  const child = members.find(m => m.type === 'child' && m.school);
+  if (!child) return;
+
+  const schoolName = child.school.name;
+  const dateKey = formatDate(targetDate);
+  const likeKey = `like_${schoolName}_${dateKey}`;
+  const liked = localStorage.getItem(likeKey) === '1';
+
+  // 좋아요 수 (localStorage 기반 MVP)
+  const likeCountKey = `likeCount_${schoolName}_${dateKey}`;
+  let likeCount = parseInt(localStorage.getItem(likeCountKey) || '0');
+
+  // 오늘 급식 메뉴
+  const lunchItems = child.lunchItems || members.find(m=>m.school?.name===schoolName)?.lunchItems || [];
+
+  const el = document.getElementById('community-my-school');
+  el.innerHTML = `
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px">오늘의 급식</div>
+        </div>
+        <div style="text-align:center">
+          <button onclick="toggleLike('${schoolName}','${dateKey}')"
+            style="width:56px;height:56px;border-radius:50%;border:2px solid ${liked ? '#e03030' : 'var(--border)'};background:${liked ? '#fff0f0' : 'white'};cursor:pointer;font-size:24px;transition:all .2s;-webkit-tap-highlight-color:transparent">
+            ${liked ? '❤️' : '🤍'}
+          </button>
+          <div style="font-size:13px;font-weight:700;color:${liked ? '#e03030' : 'var(--ink3)'};margin-top:4px" id="like-count-${schoolName}">${likeCount}</div>
+        </div>
+      </div>
+      ${lunchItems.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+          ${lunchItems.slice(0,6).map((item,i) => `
+            <span style="padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;background:${i<2?'var(--accent)':'#f5f5f5'};color:${i<2?'white':'var(--ink2)'}">
+              ${item}
+            </span>`).join('')}
+        </div>` : `<div style="font-size:12px;color:var(--ink3);margin-bottom:8px">급식 탭에서 오늘 급식을 먼저 불러오세요</div>`}
+      <div style="font-size:11px;color:var(--ink3)">❤️ 오늘 급식이 맛있었다면 좋아요를 눌러주세요!</div>
+    </div>`;
+
+  renderRanking(schoolName, dateKey);
+}
+
+function toggleLike(schoolName, dateKey) {
+  const likeKey = `like_${schoolName}_${dateKey}`;
+  const likeCountKey = `likeCount_${schoolName}_${dateKey}`;
+  const liked = localStorage.getItem(likeKey) === '1';
+  let count = parseInt(localStorage.getItem(likeCountKey) || '0');
+
+  if (liked) {
+    localStorage.removeItem(likeKey);
+    count = Math.max(0, count - 1);
+  } else {
+    localStorage.setItem(likeKey, '1');
+    count = count + 1;
+    showToast('❤️ 좋아요!');
+  }
+  localStorage.setItem(likeCountKey, count);
+  renderCommunity();
+}
+
+function renderRanking(mySchool, dateKey) {
+  // MVP: localStorage 기반 + 샘플 학교로 랭킹 시뮬레이션
+  const sampleSchools = [mySchool, '의정부중학교', '녹양중학교', '신곡중학교', '발곡중학교', '부용중학교'];
+  const ranking = sampleSchools.map(s => {
+    let count = parseInt(localStorage.getItem(`likeCount_${s}_${dateKey}`) || '0');
+    if (s !== mySchool && count === 0) count = Math.floor(Math.random() * 40) + 5;
+    return { name: s, count };
+  }).sort((a,b) => b.count - a.count);
+
+  const el = document.getElementById('community-ranking');
+  el.innerHTML = ranking.map((s, i) => {
+    const isMe = s.name === mySchool;
+    const medal = ['🥇','🥈','🥉'][i] || `${i+1}위`;
+    const barW = Math.round(s.count / (ranking[0].count || 1) * 100);
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:${i < ranking.length-1 ? '1px solid var(--border)' : 'none'}">
+        <span style="font-size:18px;width:28px;text-align:center;flex-shrink:0">${medal}</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:${isMe?'800':'500'};color:${isMe?'var(--accent)':'var(--ink)'}">${s.name}${isMe?' ⭐':''}</span>
+            <span style="font-size:12px;font-weight:700;color:${isMe?'#e03030':'var(--ink3)'}">❤️ ${s.count}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:${isMe?'#e03030':'var(--accent)'};border-radius:100px;transition:width .6s ease"></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function showCommunity() {
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('section-cafe').style.display = 'none';
+  document.querySelectorAll('.section').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const comm = document.getElementById('section-community');
+  comm.classList.add('active');
+  comm.style.display = 'block';
+  renderCommunity();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
-  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i === currentStep-1));
+  const comm = document.getElementById('section-community');
+  if (comm) { comm.classList.remove('active'); comm.style.display = 'none'; }
+  document.querySelectorAll('#main-content > .section:not(#section-community)').forEach((s,i) => {
+    s.style.display = '';
+    s.classList.toggle('active', i === currentStep-1);
+  });
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
