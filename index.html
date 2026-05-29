@@ -1239,8 +1239,12 @@ updateDateDisplay();
 (function() {
   const tb  = document.getElementById('today-toggle');
   const tmb = document.getElementById('tomorrow-toggle');
-  if (tb)  tb.textContent  = getTodayLabel();
-  if (tmb) tmb.textContent = getTomorrowLabel();
+  const s2  = document.getElementById('step2-label');
+  const todayLabel    = getTodayLabel();
+  const tomorrowLabel = getTomorrowLabel();
+  if (tb)  tb.textContent = todayLabel;
+  if (tmb) tmb.textContent = tomorrowLabel;
+  if (s2)  s2.textContent = todayLabel.includes('급식') ? todayLabel : `${todayLabel} 급식`;
 })();
 
 // ── 스텝 이동 ──
