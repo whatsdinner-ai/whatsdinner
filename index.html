@@ -1807,21 +1807,30 @@ async function analyzeWeeklyNutrition() {
   }
 
   if (allChildData.length === 0) {
-    // 급식 데이터 없어도 비타민D 카드 표시
     const card = document.getElementById('weekly-nutrition-card');
     const content = document.getElementById('weekly-nutrition-content');
     card.style.display = 'block';
-    const label = isTodayMode ? getTodayLabel() : getTomorrowLabel();
     content.innerHTML = `
       <div class="card" style="margin-bottom:12px">
-        <div style="margin-top:4px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
-          ✅ ${label} 영양 균형 우수!<br>
-          <span style="font-size:12px;color:var(--green);font-weight:600">
-            ✅ (NEIS미제공) 비타민D는 영양제로 해결!
-            <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
-              onclick="event.stopPropagation()"
-              style="color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
-          </span>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div style="font-size:13px;font-weight:600">☀️ 비타민D</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;color:var(--ink3)">NEIS 미제공</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(224,48,48,.1);color:#e03030">🔴 부족</span>
+              <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC"
+                target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+                style="font-size:11px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
+            </div>
+          </div>
+          <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
+            <div style="height:100%;width:33%;background:#d0d0d0;border-radius:100px 0 0 100px;position:absolute;left:0"></div>
+            <div style="height:100%;width:33%;background:#e03030;border-radius:100px"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:2px">
+            <div style="font-size:10px;color:var(--ink3)">🌅 아침 33% 가정 + 점심 0%</div>
+            <div style="font-size:10px;color:#e03030;font-weight:600">합계 33%</div>
+          </div>
         </div>
       </div>`;
     return;
@@ -1920,7 +1929,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
           </div>
 
           ${nutrients.filter(n => n.avg > 0).map(n => {
-            const breakfastPct = 33; // 아침 1/3 가정
+            const breakfastPct = 33;
             const lunchPct = Math.round(n.avg / n.rda * 100);
             const totalPct = Math.min(breakfastPct + lunchPct, 120);
             const status = totalPct >= 100 ? 'good' : totalPct >= 80 ? 'ok' : 'low';
@@ -1947,26 +1956,31 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
               </div>`;
           }).join('')}
 
-          ${deficient.length > 0 ? `
-            <div style="margin-top:10px;padding:10px 12px;background:rgba(224,48,48,.07);border:1px solid rgba(224,48,48,.15);border-radius:8px">
-              <div style="font-size:12px;font-weight:700;color:#e03030;margin-bottom:6px">💊 추천 영양제</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px">
-                <span style="display:flex;align-items:center;gap:4px;background:rgba(224,48,48,.1);border:1px solid rgba(224,48,48,.2);border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;color:#e03030">
-                  ☀️ 비타민D
-                  <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
-                    onclick="event.stopPropagation()"
-                    style="font-size:10px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
-                </span>
+          <!-- 비타민D 고정 행 -->
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <div style="font-size:13px;font-weight:600">☀️ 비타민D</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;color:var(--ink3)">NEIS 미제공</span>
+                <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(224,48,48,.1);color:#e03030">🔴 부족</span>
+                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC"
+                  target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+                  style="font-size:11px;color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
               </div>
-            </div>` : `
+            </div>
+            <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
+              <div style="height:100%;width:33%;background:#d0d0d0;border-radius:100px 0 0 100px;position:absolute;left:0"></div>
+              <div style="height:100%;width:33%;background:#e03030;border-radius:100px;transition:width .8s ease"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:2px">
+              <div style="font-size:10px;color:var(--ink3)">🌅 아침 33% 가정 + 점심 0%</div>
+              <div style="font-size:10px;color:#e03030;font-weight:600">합계 33%</div>
+            </div>
+          </div>
+
+          ${deficient.length > 0 ? '' : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
-              ✅ ${targetDate.toDateString() === today.toDateString() ? '오늘' : '내일'} 영양 균형 우수!<br>
-              <span style="font-size:12px;color:var(--green);font-weight:600">
-                ✅ (NEIS미제공) 비타민D는 영양제로 해결!
-                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer"
-                  onclick="event.stopPropagation()"
-                  style="color:#e8232a;font-weight:700;text-decoration:none">쿠팡↗</a>
-              </span>
+              ✅ ${isTodayMode ? getTodayLabel() : getTomorrowLabel()} 영양 균형 우수!
             </div>`}
         </div>`;
     }).join('')}
