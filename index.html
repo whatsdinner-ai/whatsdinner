@@ -41,6 +41,21 @@
   --warm: #fff3e8;
 }
 
+[data-theme="dark"] {
+  --bg: #121212;
+  --paper: #1e1e1e;
+  --card: #2a2a2a;
+  --ink: #f0f0f0;
+  --ink2: #c0c0c0;
+  --ink3: #888888;
+  --border: #3a3a3a;
+  --shadow: rgba(0,0,0,.3);
+  --green-light: #1a2e23;
+  --cream: #f0f0f0;
+  --warm: #2a1f15;
+  --accent-light: #2a1a0a;
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
@@ -841,148 +856,37 @@ body {
 
   <div class="section" id="section-cafe" style="display:none">
 
-    <!-- 디너카페 헤더 -->
-    <div style="text-align:center;padding:8px 0 20px">
-      <div style="font-family:'Noto Sans KR',sans-serif;font-size:22px;font-weight:900;color:var(--ink);margin-bottom:4px">☕ 디너카페</div>
-      <div style="font-size:12px;color:var(--ink3)">왓츠디너 개발팀이 직접 운영해요</div>
-    </div>
+    <div style="font-size:18px;font-weight:900;color:var(--ink);margin-bottom:20px">설정</div>
 
-    <!-- 서브 탭 -->
-    <div style="display:flex;gap:8px;margin-bottom:20px;padding:0 2px">
-      <button id="cafe-tab-notice"  onclick="switchCafeTab('notice')"  style="flex:1;padding:8px;border-radius:100px;border:1.5px solid var(--accent);background:var(--accent);color:white;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">📢 공지</button>
-      <button id="cafe-tab-survey"  onclick="switchCafeTab('survey')"  style="flex:1;padding:8px;border-radius:100px;border:1.5px solid var(--border);background:var(--paper);color:var(--ink2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer">📊 설문</button>
-      <button id="cafe-tab-diary"   onclick="switchCafeTab('diary')"   style="flex:1;padding:8px;border-radius:100px;border:1.5px solid var(--border);background:var(--paper);color:var(--ink2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer">📖 일기</button>
-    </div>
-
-    <!-- 공지 탭 -->
-    <div id="cafe-notice">
-
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">📢</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--accent);color:white;border-radius:100px">공지</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
+    <!-- 알림 설정 -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">🔔 알림 설정</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:3px">매일 아침 7시 급식 알림</div>
         </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:8px;line-height:1.4">왓츠디너 서비스를 시작합니다 🎉</div>
-        <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-          안녕하세요. 왓츠디너 개발자입니다.<br><br>
-          매일 저녁 "오늘 뭐 먹지?" 고민하는 부모님들을 위해 이 서비스를 만들었어요.<br><br>
-          학교 급식과는 다른저녁 메뉴를 매일 추천해드릴게요. 많은 관심 부탁드립니다!
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">🏫</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--accent);color:white;border-radius:100px">공지</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:8px;line-height:1.4">NEIS 급식 API 연동 완료</div>
-        <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-          전국 초·중·고등학교 급식 데이터를 실시간으로 불러옵니다.<br><br>
-          학교 이름 2글자만 입력하면 오늘 급식을 바로 확인할 수 있어요.
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">🛒</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--accent);color:white;border-radius:100px">공지</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:8px;line-height:1.4">쿠팡 파트너스 연동 — 재료 바로 구매</div>
-        <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-          추천 메뉴의 필요 재료를 클릭하면 쿠팡에서 리뷰 많은 순으로 바로 검색돼요.<br><br>
-          신선한 재료로 맛있는 저녁 만드세요!
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 설문 탭 -->
-    <div id="cafe-survey" style="display:none">
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">📊</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:#2d6a4f;color:white;border-radius:100px">설문</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:6px">오늘 저녁 고민이 얼마나 되세요?</div>
-        <div style="font-size:13px;color:var(--ink3);margin-bottom:16px">하루에 저녁 메뉴 고민하는 시간을 알려주세요</div>
-        <button onclick="voteSurvey(this,0)" class="survey-btn">😊 <span>5분 미만</span></button>
-        <button onclick="voteSurvey(this,1)" class="survey-btn">🤔 <span>5~15분</span></button>
-        <button onclick="voteSurvey(this,2)" class="survey-btn">😥 <span>15~30분</span></button>
-        <button onclick="voteSurvey(this,3)" class="survey-btn">😫 <span>30분 이상</span></button>
-        <div id="survey-result" style="display:none;margin-top:8px;font-size:12px;color:var(--ink3);text-align:center;padding:8px;background:var(--green-light);border-radius:8px">
-          소중한 의견 감사해요! 더 나은 서비스 만들게요 😊
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">📊</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:#2d6a4f;color:white;border-radius:100px">설문</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:6px">가장 원하는 기능은?</div>
-        <div style="font-size:13px;color:var(--ink3);margin-bottom:16px">다음 업데이트에 반영할게요</div>
-        <button onclick="voteSurvey2(this,0)" class="survey-btn">📅 <span>일주일치 식단 한번에 짜주기</span></button>
-        <button onclick="voteSurvey2(this,1)" class="survey-btn">📷 <span>냉장고 재료 인식 (사진 찍기)</span></button>
-        <button onclick="voteSurvey2(this,2)" class="survey-btn">💬 <span>카카오톡 알림</span></button>
-        <button onclick="voteSurvey2(this,3)" class="survey-btn">👨‍👩‍👧 <span>가족 공유 기능</span></button>
-        <div id="survey-result2" style="display:none;margin-top:8px;font-size:12px;color:var(--ink3);text-align:center;padding:8px;background:var(--green-light);border-radius:8px">
-          다음 업데이트에 반영할게요! 😄
-        </div>
+        <button id="setting-notif-toggle" onclick="toggleNotification()"
+          style="width:48px;height:28px;border-radius:100px;border:none;background:#e0e0e0;cursor:pointer;position:relative;transition:background .2s;-webkit-tap-highlight-color:transparent">
+          <div id="setting-notif-knob" style="width:22px;height:22px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
+        </button>
       </div>
     </div>
 
-    <!-- 일기 탭 -->
-    <div id="cafe-diary" style="display:none">
-
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">👨‍🍳</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--ink);color:white;border-radius:100px">개발일기</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
+    <!-- 다크모드 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">🌙 다크모드</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:3px">어두운 화면으로 전환</div>
         </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:10px;line-height:1.4">전업 아빠가 앱을 만든 이유</div>
-        <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-          매일 저녁 아이들 밥을 챙기다 보면<br>
-          "오늘 점심에 뭐 먹었지?" 물어보는 게 일상이 됐어요.<br><br>
-          급식이랑 겹치면 아이들이 "또 이거야?" 하고...<br>
-          그 고민을 줄이고 싶어서 만들기 시작했어요.<br><br>
-          아직 부족한 점이 많지만, 매일 조금씩 나아지고 있어요.<br>
-          함께 만들어가는 왓츠디너가 됐으면 해요. 🙏
-        </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--ink3)">
-          왓츠디너 개발팀
-        </div>
+        <button id="setting-dark-toggle" onclick="toggleDarkMode()"
+          style="width:48px;height:28px;border-radius:100px;border:none;background:#e0e0e0;cursor:pointer;position:relative;transition:background .2s;-webkit-tap-highlight-color:transparent">
+          <div id="setting-dark-knob" style="width:22px;height:22px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
+        </button>
       </div>
-
-      <div class="card" style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:18px">🏫</span>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--ink);color:white;border-radius:100px">개발일기</span>
-          <span style="font-size:11px;color:var(--ink3);margin-left:auto">2026.05.26</span>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:var(--ink);margin-bottom:10px;line-height:1.4">NEIS 급식 데이터를 쓰게 된 이유</div>
-        <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-          교육부에서 운영하는 NEIS 시스템에<br>
-          전국 모든 학교 급식 데이터가 있더라고요.<br><br>
-          영양사 선생님들이 설계한 균형 잡힌 급식 메뉴들...<br>
-          이걸 저녁 추천에 활용하면 어떨까 싶었어요.<br><br>
-          영양사가 검증한 데이터 + 집밥 버전 변형<br>
-          = 왓츠디너만의 추천 방식이에요.
-        </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--ink3)">
-          왓츠디너 개발팀
-        </div>
-      </div>
-
     </div>
 
   </div>
-
 </div>
 
 <!-- 하단 탭바 (항상 표시) -->
@@ -1021,7 +925,7 @@ body {
       <circle cx="11" cy="8" r="4" stroke="#888888" stroke-width="1.8" fill="none" id="btab-cafe-icon-c"/>
       <path d="M4 19 Q4 14 11 14 Q18 14 18 19" stroke="#888888" stroke-width="1.8" fill="none" stroke-linecap="round" id="btab-cafe-icon-p"/>
     </svg>
-    <span id="btab-cafe-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">정보</span>
+    <span id="btab-cafe-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">설정</span>
   </button>
 
 </div>
@@ -3092,7 +2996,38 @@ function showCafe() {
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('section-cafe').style.display = 'block';
   setBottomTab('cafe');
+  updateSettingToggles();
   window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateSettingToggles() {
+  // 알림 토글 상태
+  const notifOn = Notification?.permission === 'granted';
+  const notifToggle = document.getElementById('setting-notif-toggle');
+  const notifKnob   = document.getElementById('setting-notif-knob');
+  if (notifToggle) notifToggle.style.background = notifOn ? '#FF6B00' : '#e0e0e0';
+  if (notifKnob)   notifKnob.style.left = notifOn ? '23px' : '3px';
+
+  // 다크모드 토글 상태
+  const darkOn = localStorage.getItem('darkMode') === '1';
+  const darkToggle = document.getElementById('setting-dark-toggle');
+  const darkKnob   = document.getElementById('setting-dark-knob');
+  if (darkToggle) darkToggle.style.background = darkOn ? '#FF6B00' : '#e0e0e0';
+  if (darkKnob)   darkKnob.style.left = darkOn ? '23px' : '3px';
+}
+
+function toggleDarkMode() {
+  const darkOn = localStorage.getItem('darkMode') === '1';
+  if (darkOn) {
+    localStorage.removeItem('darkMode');
+    document.documentElement.removeAttribute('data-theme');
+    showToast('☀️ 라이트 모드로 전환됐어요');
+  } else {
+    localStorage.setItem('darkMode', '1');
+    document.documentElement.setAttribute('data-theme', 'dark');
+    showToast('🌙 다크 모드로 전환됐어요');
+  }
+  updateSettingToggles();
 }
 
 function switchCafeTab(tab) {
@@ -3398,6 +3333,10 @@ setTimeout(initPushPrompt, 5000);
 
 // ── 초기화 ──
 const restored = loadFromLocal();
+// 다크모드 복원
+if (localStorage.getItem('darkMode') === '1') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+}
 // flour, fat 플래그 레거시 제거
 members.forEach(m => {
   if (m.healthFlags) {
