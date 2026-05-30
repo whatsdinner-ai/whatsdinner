@@ -886,6 +886,12 @@ body {
       </div>
     </div>
 
+    <!-- 파트너스 고지 -->
+    <div style="margin-top:24px;text-align:center;font-size:11px;color:var(--ink3);line-height:1.7">
+      이 앱은 쿠팡 파트너스 활동으로 운영됩니다.<br>
+      추천 상품 구매 시 소정의 수수료를 받을 수 있어요.
+    </div>
+
   </div>
 </div>
 
@@ -1785,6 +1791,7 @@ async function analyzeWeeklyNutrition() {
             <div style="height:100%;width:0%;background:#e03030;border-radius:100px"></div>
           </div>
         </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--ink3);text-align:right">* 파트너스 링크 포함</div>
       </div>`;
     return;
   }
@@ -1928,6 +1935,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ ${isTodayMode ? getTodayLabel() : getTomorrowLabel()} 영양 균형 우수!
             </div>`}
+          <div style="margin-top:6px;font-size:10px;color:var(--ink3);text-align:right">* 파트너스 링크 포함</div>
         </div>`;
     }).join('')}
   `;
