@@ -860,7 +860,7 @@ body {
   <!-- ══ 왓슐랭 ══ -->
   <div class="section" id="section-watschelin">
     <div style="font-size:20px;font-weight:900;color:var(--ink);margin-bottom:4px">🌟 왓슐랭</div>
-    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생·학부모가 뽑은 올해의 급식명문</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생·학부모가 뽑은 급식명문</div>
 
     <!-- 영양샘 투표 -->
     <div class="card" style="margin-bottom:14px">
@@ -877,7 +877,7 @@ body {
     <!-- 이달의 TOP 3 -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:14px;font-weight:800;color:var(--ink)">🏆 올해의 급식명문 TOP 10</div>
+        <div style="font-size:14px;font-weight:800;color:var(--ink)">🏆 급식명문 TOP 10</div>
         <div style="font-size:11px;color:var(--ink3)">${new Date().getFullYear()}년 집계</div>
       </div>
       <div id="watschelin-ranking"></div>
@@ -3040,7 +3040,7 @@ function renderWatschelin() {
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:3px">올해 응원 ❤️ ${count.toLocaleString()}개</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:3px">응원 ❤️ ${count.toLocaleString()}개</div>
         </div>
         <button onclick="toggleWatschelinHeart('${schoolName}','${dateKey}')"
           style="width:56px;height:56px;border-radius:50%;border:2px solid ${hearted?'#e03030':'var(--border)'};background:${hearted?'#fff0f0':'white'};cursor:pointer;font-size:26px;-webkit-tap-highlight-color:transparent;transition:all .2s">
@@ -3051,11 +3051,16 @@ function renderWatschelin() {
 
   // 랭킹 (샘플 + 실제 데이터)
   const SAMPLE_SCHOOLS = [
-    {name:'의정부중학교', base:247},
-    {name:'녹양중학교',   base:312},
-    {name:'신곡중학교',   base:189},
-    {name:'발곡중학교',   base:156},
-    {name:'부용중학교',   base:134},
+    {name:'녹양중학교',     base:1247, region:'경기'},
+    {name:'세종시청초등학교',base:1189, region:'세종'},
+    {name:'대전동산중학교',  base:1134, region:'대전'},
+    {name:'부산해운대초등학교',base:1098,region:'부산'},
+    {name:'서울은빛초등학교',base:987,  region:'서울'},
+    {name:'광주첨단중학교',  base:934,  region:'광주'},
+    {name:'인천계산초등학교',base:876,  region:'인천'},
+    {name:'대구달서중학교',  base:823,  region:'대구'},
+    {name:'의정부중학교',    base:798,  region:'경기'},
+    {name:'울산신정중학교',  base:756,  region:'울산'},
   ];
   if (child) {
     const myReal = parseInt(localStorage.getItem(`ws_count_${child.school.name}_${dateKey}`) || '0');
@@ -3067,14 +3072,19 @@ function renderWatschelin() {
   const ranking = SAMPLE_SCHOOLS.sort((a,b) => b.base - a.base).slice(0,10);
   const medal = ['🥇','🥈','🥉'];
 
-  rankEl.innerHTML = ranking.map((s,i) => `
+  rankEl.innerHTML = `
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">전국 초·중·고 통합 집계</div>
+  ` + ranking.map((s,i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:${i<ranking.length-1?'0.5px solid var(--border)':'none'}">
-      <span style="font-size:20px;width:26px;text-align:center;flex-shrink:0">${medal[i]||`<span style="font-size:12px;color:var(--ink3)">${i+1}</span>`}</span>
+      <span style="font-size:${i<3?'20':'14'}px;width:26px;text-align:center;flex-shrink:0;color:var(--ink3);font-weight:700">${medal[i]||`${i+1}`}</span>
       <div style="flex:1">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:13px;font-weight:${child?.school?.name===s.name?'800':'600'};color:${child?.school?.name===s.name?'var(--accent)':'var(--ink)'}">
-            ${s.name}${child?.school?.name===s.name?' ⭐':''}
-          </span>
+          <div>
+            <span style="font-size:13px;font-weight:${child?.school?.name===s.name?'800':'600'};color:${child?.school?.name===s.name?'var(--accent)':'var(--ink)'}">
+              ${s.name}${child?.school?.name===s.name?' ⭐':''}
+            </span>
+            <span style="font-size:10px;color:var(--ink3);margin-left:4px">${s.region}</span>
+          </div>
           <span style="font-size:12px;font-weight:700;color:var(--ink3)">❤️ ${s.base.toLocaleString()}</span>
         </div>
         <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
