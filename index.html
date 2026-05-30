@@ -1061,7 +1061,7 @@ body {
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
 // ── 내일 메뉴 바로 보기 ──
 // ── 앱 정보 모달 ──
 function showInfoModal() {
@@ -1835,7 +1835,7 @@ function renderSeasonalFruits() {
   }).join('');
 }
 
-function analyzeWeeklyNutrition() { (async () => {
+async function analyzeWeeklyNutrition() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
 
@@ -1938,7 +1938,7 @@ function analyzeWeeklyNutrition() { (async () => {
   state.deficientNutrients = [...allDeficient];
 
   renderWeeklyNutrition(childResults, RDA, lunchRDA);
-  })(); }
+}
 
 function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
   const card = document.getElementById('weekly-nutrition-card');
@@ -2002,6 +2002,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
         </div>`;
     }).join('')}
   `;
+
 }
 
 function renderLunch(schoolName, menu) {
