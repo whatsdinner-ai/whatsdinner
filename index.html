@@ -3003,27 +3003,24 @@ function showToast(msg, isError=false) {
 function showMain() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
-  const comm = document.getElementById('section-community');
-  if (comm) { comm.classList.remove('active'); comm.style.display = 'none'; }
-  const ws = document.getElementById('section-watschelin');
-  if (ws) { ws.classList.remove('active'); ws.style.display = 'none'; }
-  document.querySelectorAll('#main-content > .section:not(#section-community):not(#section-watschelin)').forEach((s,i) => {
-    s.style.display = '';
-    s.classList.toggle('active', i === currentStep-1);
+  document.querySelectorAll('#main-content .section').forEach(s => {
+    s.classList.remove('active');
   });
+  const target = ['section1','section2','section3'][currentStep-1];
+  const el = document.getElementById(target);
+  if (el) el.classList.add('active');
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function showWatschelin() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
-  document.querySelectorAll('.section').forEach(s => {
+  // main-content 안 섹션만 숨기기
+  document.querySelectorAll('#main-content .section').forEach(s => {
     s.classList.remove('active');
-    s.style.display = 'none';
   });
   const el = document.getElementById('section-watschelin');
   el.classList.add('active');
-  el.style.display = 'block';
   renderWatschelin();
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -3106,6 +3103,8 @@ function toggleWatschelinHeart(schoolName, dateKey) {
   localStorage.setItem(countKey, count);
   renderWatschelin();
 }
+
+function showCafe() {
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('section-cafe').style.display = 'block';
   setBottomTab('cafe');
