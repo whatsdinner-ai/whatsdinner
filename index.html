@@ -3136,8 +3136,7 @@ function getNickname() {
 function toggleWatschelinHeart(schoolName, dateKey) {
   // 닉네임 체크
   if (!getNickname()) {
-    showToast('투표하려면 설정에서 닉네임을 먼저 등록해주세요!', true);
-    setTimeout(() => { setBottomTab('cafe'); showCafe(); }, 1200);
+    showToast('설정 탭에서 닉네임을 먼저 등록해주세요!', true);
     return;
   }
   const todayStr = formatDate(today);
