@@ -1659,7 +1659,7 @@ function renderAllLunch(cards) {
         <div class="lunch-items">
           ${(card.itemsWithAllergy || card.items.map(i => ({name:i, nos:[]}))).map((item,i) => `
             <div class="lunch-item ${i<2?'highlight':''}">
-              ${item.name}${item.nos && item.nos.length > 0 ? `<span style="font-size:9px;color:var(--ink3);margin-left:3px;opacity:.7">${item.nos.join('.')}</span>` : ''}
+              ${item.name}
             </div>`).join('')}
         </div>
 
