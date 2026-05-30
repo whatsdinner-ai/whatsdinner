@@ -778,6 +778,11 @@ body {
         📊 영양 분석
       </div>
       <div id="weekly-nutrition-content"></div>
+      <div id="seasonal-fruit-card" class="card" style="margin-top:10px">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">🍎 오늘의 제철 과일</div>
+        <div id="seasonal-fruit-list"></div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:8px;text-align:right">* 파트너스 링크 포함</div>
+      </div>
     </div>
 
     <button class="btn-primary" style="display:none" onclick="generateMenu()">메뉴 추천받기 ✨</button>
@@ -1694,6 +1699,7 @@ async function fetchAllLunch() {
 
   // 매일 영양 분석 자동 실행
   analyzeWeeklyNutrition();
+  renderSeasonalFruits();
 }
 
 function renderAllLunch(cards) {
@@ -1795,6 +1801,40 @@ function renderAllLunch(cards) {
 async function fetchLunch() { await fetchAllLunch(); }
 
 // ── 매일 영양 분석 (모든 아이) ──
+async // ── 제철 과일 ──
+const SEASONAL_FRUITS = {
+  1:  [{name:'한라봉', emoji:'🍊'}, {name:'딸기', emoji:'🍓'}, {name:'사과', emoji:'🍎'}],
+  2:  [{name:'딸기', emoji:'🍓'}, {name:'한라봉', emoji:'🍊'}, {name:'사과', emoji:'🍎'}],
+  3:  [{name:'딸기', emoji:'🍓'}, {name:'참외', emoji:'🍈'}, {name:'사과', emoji:'🍎'}],
+  4:  [{name:'딸기', emoji:'🍓'}, {name:'참외', emoji:'🍈'}, {name:'토마토', emoji:'🍅'}],
+  5:  [{name:'토마토', emoji:'🍅'}, {name:'참외', emoji:'🍈'}, {name:'수박', emoji:'🍉'}],
+  6:  [{name:'수박', emoji:'🍉'}, {name:'참외', emoji:'🍈'}, {name:'토마토', emoji:'🍅'}],
+  7:  [{name:'수박', emoji:'🍉'}, {name:'복숭아', emoji:'🍑'}, {name:'자두', emoji:'🟣'}],
+  8:  [{name:'복숭아', emoji:'🍑'}, {name:'포도', emoji:'🍇'}, {name:'수박', emoji:'🍉'}],
+  9:  [{name:'포도', emoji:'🍇'}, {name:'배', emoji:'🍐'}, {name:'사과', emoji:'🍎'}],
+  10: [{name:'사과', emoji:'🍎'}, {name:'배', emoji:'🍐'}, {name:'감', emoji:'🟠'}],
+  11: [{name:'사과', emoji:'🍎'}, {name:'감', emoji:'🟠'}, {name:'귤', emoji:'🍊'}],
+  12: [{name:'귤', emoji:'🍊'}, {name:'사과', emoji:'🍎'}, {name:'한라봉', emoji:'🍊'}],
+};
+
+function renderSeasonalFruits() {
+  const el = document.getElementById('seasonal-fruit-list');
+  if (!el) return;
+  const month = today.getMonth() + 1;
+  const fruits = SEASONAL_FRUITS[month] || SEASONAL_FRUITS[1];
+  el.innerHTML = fruits.map((f, i) => {
+    const coupangUrl = 'https://www.coupang.com/np/search?q=' + encodeURIComponent(f.name) + '&channel=user&sorter=reviewCountDESC';
+    const btnStyle = i === 0
+      ? 'font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(232,35,42,.1);color:#e8232a;text-decoration:none'
+      : 'font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:#f5f5f5;color:var(--ink3);text-decoration:none';
+    const btnText = i === 0 ? '쿠팡↗' : '↗';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:' + (i < fruits.length-1 ? '0.5px solid var(--border)' : 'none') + '">'
+      + '<span style="font-size:13px;font-weight:600;color:var(--ink)">' + f.emoji + ' ' + f.name + '</span>'
+      + '<a href="' + coupangUrl + '" target="_blank" rel="noopener noreferrer" style="' + btnStyle + '">' + btnText + '</a>'
+      + '</div>';
+  }).join('');
+}
+
 async function analyzeWeeklyNutrition() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
