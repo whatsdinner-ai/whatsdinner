@@ -763,12 +763,6 @@ body {
     <!-- 구성원 목록 -->
     <div id="members-list"></div>
 
-    <!-- 단계 안내 -->
-    <div id="step-guide" style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--accent-light);border-radius:12px;margin-bottom:12px">
-      <div style="width:6px;height:6px;background:var(--accent);border-radius:50%;flex-shrink:0"></div>
-      <div style="font-size:12px;color:var(--accent);font-weight:600">위에서 가족을 먼저 추가해주세요</div>
-    </div>
-
   </div>
 
   <!-- ══ STEP 2: 오늘 점심 현황 ══ -->
@@ -833,7 +827,7 @@ body {
           </button>
         </div>
       </div>
-      <button class="btn-secondary" onclick="generateMenu()">🔄 다시 추천받기</button>
+
       <div style="margin-top:12px;font-size:10px;color:var(--ink3);text-align:center">
         * 밀키트·식재료 링크는 쿠팡 파트너스 링크입니다
       </div>
@@ -1930,7 +1924,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="font-weight:700;font-size:14px">🧒 ${childName}</div>
           </div>
           <div style="font-size:10px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:6px 10px;margin-bottom:10px">
-            💡 아침에 1일 권장량의 1/3을 충분히 드셨다고 가정한 수치입니다.<br>&nbsp;&nbsp;&nbsp;남은 부분은 저녁에 채워주세요!
+            💡 아침에 1일 권장량의 1/3을 충분히 드셨다고 가정한 수치입니다.<br>&nbsp;&nbsp;&nbsp;남은 부분은 저녁에 채우시면 됩니다.
           </div>
 
           ${nutrients.filter(n => n.avg > 0).map(n => {
