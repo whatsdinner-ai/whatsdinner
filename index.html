@@ -1778,24 +1778,6 @@ async function analyzeWeeklyNutrition() {
     const card = document.getElementById('weekly-nutrition-card');
     const content = document.getElementById('weekly-nutrition-content');
     card.style.display = 'block';
-    content.innerHTML = `
-      <div class="card" style="margin-bottom:12px">
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div style="font-size:13px;font-weight:600">☀️ 비타민D</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;color:var(--ink3)">NEIS 미제공 / 600IU</span>
-              <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC"
-                target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
-                style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(224,48,48,.1);color:#e03030;text-decoration:none;display:inline-block;font-size:11px">쿠팡↗</a>
-            </div>
-          </div>
-          <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
-            <div style="height:100%;width:0%;background:#e03030;border-radius:100px"></div>
-          </div>
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:var(--ink3);text-align:right">* 파트너스 링크 포함</div>
-      </div>`;
     return;
   }
 
@@ -1918,27 +1900,10 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
               </div>`;
           }).join('')}
 
-          <!-- 비타민D 고정 행 -->
-          <div style="margin-bottom:10px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-              <div style="font-size:13px;font-weight:600">☀️ 비타민D</div>
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:11px;color:var(--ink3)">NEIS 미제공 / 600IU</span>
-                <a href="https://www.coupang.com/np/search?q=${encodeURIComponent('어린이 비타민D 영양제')}&channel=user&sorter=reviewCountDESC"
-                  target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
-                  style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(224,48,48,.1);color:#e03030;text-decoration:none;display:inline-block;font-size:11px">쿠팡↗</a>
-              </div>
-            </div>
-            <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
-              <div style="height:100%;width:0%;background:#e03030;border-radius:100px;transition:width .8s ease"></div>
-            </div>
-          </div>
-
           ${deficient.length > 0 ? '' : `
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ ${isTodayMode ? getTodayLabel() : getTomorrowLabel()} 영양 균형 우수!
             </div>`}
-          <div style="margin-top:6px;font-size:10px;color:var(--ink3);text-align:right">* 파트너스 링크 포함</div>
         </div>`;
     }).join('')}
   `;
