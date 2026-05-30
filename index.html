@@ -1888,13 +1888,23 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             const color = status === 'good' ? 'var(--green)' : status === 'ok' ? 'var(--accent2)' : '#e03030';
             const bg = status === 'good' ? 'rgba(45,106,79,.1)' : status === 'ok' ? 'rgba(232,130,42,.1)' : 'rgba(224,48,48,.1)';
             const statusLabel = status === 'good' ? '✅ 충분' : status === 'ok' ? '⚠️ 보통' : '🔴 부족';
+            // 부족 시 쿠팡 링크 (비타민·칼슘·철분)
+            const coupangMap = {
+              '칼슘':'어린이 칼슘 영양제', '철분':'어린이 철분 영양제',
+              '비타민A':'어린이 비타민A 영양제', '비타민C':'어린이 비타민C 영양제'
+            };
+            const coupangKw = coupangMap[n.label];
+            const coupangBtn = (status === 'low' && coupangKw)
+              ? `<a href="https://www.coupang.com/np/search?q=${encodeURIComponent(coupangKw)}&channel=user&sorter=reviewCountDESC" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+                  style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(224,48,48,.1);color:#e8232a;text-decoration:none;display:inline-block">쿠팡↗</a>`
+              : `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${bg};color:${color}">${statusLabel}</span>`;
             return `
               <div style="margin-bottom:10px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                   <div style="font-size:13px;font-weight:600">${n.icon} ${n.label}</div>
                   <div style="display:flex;align-items:center;gap:6px">
                     <span style="font-size:11px;color:var(--ink3)">${n.avg}${n.unit} / ${n.rda}${n.unit}</span>
-                    <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${bg};color:${color}">${statusLabel}</span>
+                    ${coupangBtn}
                   </div>
                 </div>
                 <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
