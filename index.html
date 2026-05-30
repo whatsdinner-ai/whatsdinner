@@ -1853,18 +1853,21 @@ function renderSeasonalFruits() {
   if (!el) return;
   const month = today.getMonth() + 1;
   const fruits = SEASONAL_FRUITS[month] || SEASONAL_FRUITS[1];
-  el.innerHTML = fruits.map((f, i) => {
-    const url = 'https://www.coupang.com/np/search?q=' + encodeURIComponent(f.name) + '&channel=user&sorter=reviewCountDESC';
-    const btn = i === 0
-      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(232,35,42,.1);color:#e8232a">쿠팡↗</span>'
-      : '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:#f5f5f5;color:var(--ink3)">↗</span>';
-    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" '
-      + 'style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;'
-      + 'border-bottom:' + (i < fruits.length-1 ? '0.5px solid var(--border)' : 'none') + ';text-decoration:none">'
-      + '<span style="font-size:13px;font-weight:600;color:var(--ink)">' + f.emoji + ' ' + f.name + '</span>'
-      + btn
-      + '</a>';
-  }).join('');
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px">'
+    + fruits.map((f, i) => {
+        const url = 'https://www.coupang.com/np/search?q=' + encodeURIComponent(f.name) + '&channel=user&sorter=reviewCountDESC';
+        const badge = i === 0
+          ? '<span style="font-size:10px;font-weight:700;color:#e8232a">쿠팡↗</span>'
+          : '<span style="font-size:10px;color:var(--ink3)">↗</span>';
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" '
+          + 'style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;'
+          + 'border-radius:100px;background:#f5f5f5;text-decoration:none">'
+          + '<span style="font-size:13px">' + f.emoji + '</span>'
+          + '<span style="font-size:12px;font-weight:600;color:var(--ink)">' + f.name + '</span>'
+          + badge
+          + '</a>';
+      }).join('')
+    + '</div>';
 }
 
 function analyzeWeeklyNutrition() {
