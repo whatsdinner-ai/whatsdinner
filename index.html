@@ -860,12 +860,12 @@ body {
   <!-- ══ 왓슐랭 ══ -->
   <div class="section" id="section-watschelin">
     <div style="font-size:20px;font-weight:900;color:var(--ink);margin-bottom:4px">🌟 왓슐랭</div>
-    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생이 직접 뽑은 이달의 영양샘</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생·학부모가 뽑은 올해의 급식명문</div>
 
     <!-- 영양샘 투표 -->
     <div class="card" style="margin-bottom:14px">
-      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">👩‍🍳 우리 영양샘을 응원해요</div>
-      <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">하트를 눌러 영양샘께 응원을 전달하세요</div>
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">🍱 우리 학교 급식팀을 응원해요</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">하트를 눌러 급식팀에게 응원을 보내주세요</div>
       <div id="watschelin-school-card">
         <div style="text-align:center;padding:20px;color:var(--ink3)">
           <div style="font-size:32px;margin-bottom:8px">🏫</div>
@@ -877,13 +877,10 @@ body {
     <!-- 이달의 TOP 3 -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:14px;font-weight:800;color:var(--ink)">🏆 이달의 영양샘 TOP 10</div>
-        <div style="font-size:11px;color:var(--ink3)">${new Date().getMonth()+1}월 집계</div>
+        <div style="font-size:14px;font-weight:800;color:var(--ink)">🏆 올해의 급식명문 TOP 10</div>
+        <div style="font-size:11px;color:var(--ink3)">${new Date().getFullYear()}년 집계</div>
       </div>
       <div id="watschelin-ranking"></div>
-      <div style="margin-top:12px;padding:10px 12px;background:var(--accent-light);border-radius:10px;font-size:11px;color:var(--accent);font-weight:600;text-align:center">
-        🎁 매월 말 TOP 3 영양샘께 신라호텔 뷔페권 증정
-      </div>
     </div>
 
   </div>
@@ -3027,7 +3024,7 @@ function showWatschelin() {
 
 function renderWatschelin() {
   const child = members.find(m => m.type === 'child' && m.school);
-  const dateKey = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}`;
+  const dateKey = `${today.getFullYear()}`;
   const cardEl = document.getElementById('watschelin-school-card');
   const rankEl = document.getElementById('watschelin-ranking');
 
@@ -3043,7 +3040,7 @@ function renderWatschelin() {
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:3px">이달 누적 ❤️ ${count.toLocaleString()}개</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:3px">올해 응원 ❤️ ${count.toLocaleString()}개</div>
         </div>
         <button onclick="toggleWatschelinHeart('${schoolName}','${dateKey}')"
           style="width:56px;height:56px;border-radius:50%;border:2px solid ${hearted?'#e03030':'var(--border)'};background:${hearted?'#fff0f0':'white'};cursor:pointer;font-size:26px;-webkit-tap-highlight-color:transparent;transition:all .2s">
@@ -3098,7 +3095,7 @@ function toggleWatschelinHeart(schoolName, dateKey) {
   } else {
     localStorage.setItem(heartKey, '1');
     count += 1;
-    showToast('❤️ 영양샘께 응원을 전달했어요!');
+    showToast('❤️ 급식팀에게 응원을 보냈어요!');
   }
   localStorage.setItem(countKey, count);
   renderWatschelin();
