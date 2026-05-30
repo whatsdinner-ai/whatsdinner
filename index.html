@@ -857,6 +857,37 @@ body {
     </div>
   </div>
 
+  <!-- ══ 왓슐랭 ══ -->
+  <div class="section" id="section-watschelin" style="display:none">
+    <div style="font-size:20px;font-weight:900;color:var(--ink);margin-bottom:4px">🌟 왓슐랭</div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생이 직접 뽑은 이달의 영양샘</div>
+
+    <!-- 영양샘 투표 -->
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">👩‍🍳 우리 영양샘을 응원해요</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">하트를 눌러 영양샘께 응원을 전달하세요</div>
+      <div id="watschelin-school-card">
+        <div style="text-align:center;padding:20px;color:var(--ink3)">
+          <div style="font-size:32px;margin-bottom:8px">🏫</div>
+          <div style="font-size:14px">급식 탭에서 학교를 먼저 설정해주세요</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 이달의 TOP 3 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:800;color:var(--ink)">🏆 이달의 영양샘 TOP 10</div>
+        <div style="font-size:11px;color:var(--ink3)">${new Date().getMonth()+1}월 집계</div>
+      </div>
+      <div id="watschelin-ranking"></div>
+      <div style="margin-top:12px;padding:10px 12px;background:var(--accent-light);border-radius:10px;font-size:11px;color:var(--accent);font-weight:600;text-align:center">
+        🎁 매월 말 TOP 3 영양샘께 신라호텔 뷔페권 증정
+      </div>
+    </div>
+
+  </div>
+
   <div class="section" id="section-cafe" style="display:none">
 
     <div style="font-size:18px;font-weight:900;color:var(--ink);margin-bottom:20px">설정</div>
@@ -921,6 +952,11 @@ body {
     <span id="btab-lunch-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">급식</span>
   </button>
 
+  <button id="btab-watschelin" onclick="setBottomTab('watschelin');showWatschelin()"
+    style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
+    <span style="font-size:18px;line-height:1">🌟</span>
+    <span id="btab-watschelin-lbl" style="font-size:10px;font-weight:500;color:#bbbbbb;font-family:inherit;letter-spacing:-.3px">왓슐랭</span>
+  </button>
 
   <button id="btab-dinner" onclick="setBottomTab('dinner');showMain();goToMenuStep()"
     style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:10px 4px 12px;border-radius:0">
@@ -1162,7 +1198,7 @@ updateDateDisplay();
 })();
 
 function setBottomTab(tab) {
-  const tabs = ['school','lunch','dinner','cafe'];
+  const tabs = ['school','lunch','watschelin','dinner','cafe'];
   tabs.forEach(t => {
     const btn = document.getElementById(`btab-${t}`);
     if (!btn) return;
@@ -1412,18 +1448,13 @@ async function searchSchoolForMember(memberId, val) {
     dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 중...</div>`;
     dropdown.style.display = 'block';
     try {
-      // 일반 학교 + 유치원 동시 검색
-      const [schoolRes, kinderRes] = await Promise.all([
-        fetch(`https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(query)}`),
-        fetch(`https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&SCHUL_NM=${encodeURIComponent(query)}&SCHUL_KND_SC_NM=%EC%9C%A0%EC%B9%98%EC%9B%90`)
-      ]);
-      const [schoolData, kinderData] = await Promise.all([schoolRes.json(), kinderRes.json()]);
-
-      const schoolRows = (schoolData?.schoolInfo?.[1]?.row || []).filter(r =>
+      const res = await fetch(
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(query)}`
+      );
+      const data = await res.json();
+      const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
         ['초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
       );
-      const kinderRows = (kinderData?.schoolInfo?.[1]?.row || []);
-      const rows = [...kinderRows, ...schoolRows];
       if (rows.length === 0) {
         dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
         return;
@@ -1431,8 +1462,7 @@ async function searchSchoolForMember(memberId, val) {
       dropdown.innerHTML = rows.map(r => {
         const safeName = r.SCHUL_NM.replace(/'/g, "\\'");
         const safeAddr = (r.ORG_RDNMA||'').replace(/'/g, "\\'");
-        const kindLabel = r.SCHUL_KND_SC_NM?.includes('유치원') ? '🧒 유치원' :
-                          r.SCHUL_NM.includes('초등') ? '🏫 초등' :
+        const kindLabel = r.SCHUL_NM.includes('초등') ? '🏫 초등' :
                           r.SCHUL_NM.includes('중학') ? '📚 중학' :
                           r.SCHUL_NM.includes('고등') ? '🎓 고등' : '🏫';
         return `
@@ -1464,7 +1494,6 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     if (name.includes('초등학교')) shortName = name.replace('초등학교', '') + '초';
     else if (name.includes('중학교')) shortName = name.replace('중학교', '') + '중';
     else if (name.includes('고등학교')) shortName = name.replace('고등학교', '') + '고';
-    else if (name.includes('유치원')) shortName = name.replace('유치원', '') + '원';
     else shortName = name.replace('학교', '');
     shortName = shortName.trim();
 
@@ -1671,15 +1700,7 @@ function renderAllLunch(cards) {
     if (card.type === 'nodata') return `
       <div class="card" style="margin-bottom:12px;opacity:.8">
         <div style="font-size:13px;color:var(--ink3)">🏫 ${card.school}</div>
-        <div style="font-size:13px;color:var(--ink3);margin-top:6px">
-          ${card.school.includes('유치원')
-            ? '해당 유치원은 식단 정보를 제공하지 않습니다'
-            : '오늘 급식 정보 없음'}
-        </div>
-        ${card.school.includes('유치원') ? `
-        <div style="font-size:11px;color:var(--ink3);margin-top:4px">
-          💡 NEIS 미등록 사립 유치원이거나 방학일 수 있어요
-        </div>` : ''}
+        <div style="font-size:13px;color:var(--ink3);margin-top:6px">오늘 급식 정보 없음</div>
       </div>`;
 
     return `
@@ -2984,14 +3005,107 @@ function showMain() {
   document.getElementById('section-cafe').style.display = 'none';
   const comm = document.getElementById('section-community');
   if (comm) { comm.classList.remove('active'); comm.style.display = 'none'; }
-  document.querySelectorAll('#main-content > .section:not(#section-community)').forEach((s,i) => {
+  const ws = document.getElementById('section-watschelin');
+  if (ws) { ws.classList.remove('active'); ws.style.display = 'none'; }
+  document.querySelectorAll('#main-content > .section:not(#section-community):not(#section-watschelin)').forEach((s,i) => {
     s.style.display = '';
     s.classList.toggle('active', i === currentStep-1);
   });
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function showCafe() {
+function showWatschelin() {
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('section-cafe').style.display = 'none';
+  document.querySelectorAll('.section').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const el = document.getElementById('section-watschelin');
+  el.classList.add('active');
+  el.style.display = 'block';
+  renderWatschelin();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderWatschelin() {
+  const child = members.find(m => m.type === 'child' && m.school);
+  const dateKey = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}`;
+  const cardEl = document.getElementById('watschelin-school-card');
+  const rankEl = document.getElementById('watschelin-ranking');
+
+  // 내 학교 카드
+  if (child) {
+    const schoolName = child.school.name;
+    const heartKey = `ws_heart_${schoolName}_${dateKey}`;
+    const countKey = `ws_count_${schoolName}_${dateKey}`;
+    const hearted = localStorage.getItem(heartKey) === '1';
+    const count = parseInt(localStorage.getItem(countKey) || '0') + 128;
+
+    cardEl.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:3px">이달 누적 ❤️ ${count.toLocaleString()}개</div>
+        </div>
+        <button onclick="toggleWatschelinHeart('${schoolName}','${dateKey}')"
+          style="width:56px;height:56px;border-radius:50%;border:2px solid ${hearted?'#e03030':'var(--border)'};background:${hearted?'#fff0f0':'white'};cursor:pointer;font-size:26px;-webkit-tap-highlight-color:transparent;transition:all .2s">
+          ${hearted?'❤️':'🤍'}
+        </button>
+      </div>`;
+  }
+
+  // 랭킹 (샘플 + 실제 데이터)
+  const SAMPLE_SCHOOLS = [
+    {name:'의정부중학교', base:247},
+    {name:'녹양중학교',   base:312},
+    {name:'신곡중학교',   base:189},
+    {name:'발곡중학교',   base:156},
+    {name:'부용중학교',   base:134},
+  ];
+  if (child) {
+    const myReal = parseInt(localStorage.getItem(`ws_count_${child.school.name}_${dateKey}`) || '0');
+    const myBase = 128;
+    const found = SAMPLE_SCHOOLS.find(s => s.name === child.school.name);
+    if (!found) SAMPLE_SCHOOLS.push({name: child.school.name, base: myBase + myReal});
+    else found.base += myReal;
+  }
+  const ranking = SAMPLE_SCHOOLS.sort((a,b) => b.base - a.base).slice(0,10);
+  const medal = ['🥇','🥈','🥉'];
+
+  rankEl.innerHTML = ranking.map((s,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:${i<ranking.length-1?'0.5px solid var(--border)':'none'}">
+      <span style="font-size:20px;width:26px;text-align:center;flex-shrink:0">${medal[i]||`<span style="font-size:12px;color:var(--ink3)">${i+1}</span>`}</span>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:${child?.school?.name===s.name?'800':'600'};color:${child?.school?.name===s.name?'var(--accent)':'var(--ink)'}">
+            ${s.name}${child?.school?.name===s.name?' ⭐':''}
+          </span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink3)">❤️ ${s.base.toLocaleString()}</span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(s.base/ranking[0].base*100)}%;background:${i===0?'#FF6B00':i===1?'#888':'#aaa'};border-radius:100px;transition:width .6s ease"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleWatschelinHeart(schoolName, dateKey) {
+  const heartKey = `ws_heart_${schoolName}_${dateKey}`;
+  const countKey = `ws_count_${schoolName}_${dateKey}`;
+  const hearted = localStorage.getItem(heartKey) === '1';
+  let count = parseInt(localStorage.getItem(countKey) || '0');
+  if (hearted) {
+    localStorage.removeItem(heartKey);
+    count = Math.max(0, count - 1);
+  } else {
+    localStorage.setItem(heartKey, '1');
+    count += 1;
+    showToast('❤️ 영양샘께 응원을 전달했어요!');
+  }
+  localStorage.setItem(countKey, count);
+  renderWatschelin();
+}
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('section-cafe').style.display = 'block';
   setBottomTab('cafe');
@@ -3090,7 +3204,6 @@ function loadFromLocal() {
           if (sn.includes('초등학교'))      name = sn.replace('초등학교','') + '초';
           else if (sn.includes('중학교'))   name = sn.replace('중학교','')   + '중';
           else if (sn.includes('고등학교')) name = sn.replace('고등학교','') + '고';
-          else if (sn.includes('유치원'))   name = sn.replace('유치원','')   + '원';
           else                              name = sn.replace('학교','');
           name = name.trim();
         } else {
