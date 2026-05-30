@@ -1835,9 +1835,13 @@ function renderSeasonalFruits() {
   }).join('');
 }
 
-async function analyzeWeeklyNutrition() {
+function analyzeWeeklyNutrition() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) return;
+  _analyzeWeeklyNutritionAsync(children);
+}
+
+async function _analyzeWeeklyNutritionAsync(children) {
 
   // targetDate 기준 (오늘 또는 내일)
   const baseDate = targetDate || today;
