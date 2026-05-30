@@ -866,6 +866,10 @@ body {
     <div class="card" style="margin-bottom:14px">
       <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">🍱 우리 학교 급식팀을 응원해요</div>
       <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">하트를 눌러 급식팀에게 응원을 보내주세요</div>
+      <div style="font-size:11px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
+        💡 1일 1회만 가능해요<br>
+        📅 집계기간: 매년 급식일 동안 (3월 ~ 12월)
+      </div>
       <div id="watschelin-school-card">
         <div style="text-align:center;padding:20px;color:var(--ink3)">
           <div style="font-size:32px;margin-bottom:8px">🏫</div>
@@ -888,6 +892,22 @@ body {
   <div class="section" id="section-cafe" style="display:none">
 
     <div style="font-size:18px;font-weight:900;color:var(--ink);margin-bottom:20px">설정</div>
+
+    <!-- 닉네임 등록 -->
+    <div class="card" style="margin-bottom:12px" id="nickname-card">
+      <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px">👤 닉네임 등록</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:10px">왓슐랭 투표에 참여하려면 닉네임이 필요해요</div>
+      <div style="display:flex;gap:8px">
+        <input id="nickname-input" type="text" maxlength="10"
+          placeholder="닉네임 입력 (최대 10자)"
+          style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--bg);outline:none"/>
+        <button onclick="saveNickname()"
+          style="padding:9px 16px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">
+          저장
+        </button>
+      </div>
+      <div id="nickname-status" style="font-size:12px;color:var(--green);margin-top:6px;display:none"></div>
+    </div>
 
     <!-- 알림 설정 -->
     <div class="card" style="margin-bottom:12px">
@@ -3037,6 +3057,10 @@ function renderWatschelin() {
     const count = parseInt(localStorage.getItem(countKey) || '0') + 128;
 
     cardEl.innerHTML = `
+      ${!getNickname() ? `
+      <div style="padding:10px 12px;background:#fff3e8;border-radius:8px;font-size:12px;color:var(--accent);margin-bottom:12px;font-weight:600">
+        ⚠️ 투표하려면 설정에서 닉네임을 먼저 등록해주세요!
+      </div>` : ''}
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
@@ -3094,16 +3118,46 @@ function renderWatschelin() {
     </div>`).join('');
 }
 
+function saveNickname() {
+  const input = document.getElementById('nickname-input');
+  const status = document.getElementById('nickname-status');
+  const val = input.value.trim();
+  if (!val) { showToast('닉네임을 입력해주세요', true); return; }
+  localStorage.setItem('wd_nickname', val);
+  status.textContent = `✅ ${val} 으로 등록됐어요!`;
+  status.style.display = 'block';
+  showToast(`✅ ${val} 닉네임 등록 완료!`);
+}
+
+function getNickname() {
+  return localStorage.getItem('wd_nickname') || '';
+}
+
 function toggleWatschelinHeart(schoolName, dateKey) {
-  const heartKey = `ws_heart_${schoolName}_${dateKey}`;
-  const countKey = `ws_count_${schoolName}_${dateKey}`;
+  // 닉네임 체크
+  if (!getNickname()) {
+    showToast('투표하려면 설정에서 닉네임을 먼저 등록해주세요!', true);
+    setTimeout(() => { setBottomTab('cafe'); showCafe(); }, 1200);
+    return;
+  }
+  const todayStr = formatDate(today);
+  const lastVoteKey = `ws_lastvote_${schoolName}`;
+  const lastVote = localStorage.getItem(lastVoteKey);
   const hearted = localStorage.getItem(heartKey) === '1';
+
+  if (!hearted && lastVote === todayStr) {
+    showToast('오늘은 이미 응원했어요! 내일 또 눌러주세요 😄', true);
+    return;
+  }
+
   let count = parseInt(localStorage.getItem(countKey) || '0');
   if (hearted) {
     localStorage.removeItem(heartKey);
+    localStorage.removeItem(lastVoteKey);
     count = Math.max(0, count - 1);
   } else {
     localStorage.setItem(heartKey, '1');
+    localStorage.setItem(lastVoteKey, todayStr);
     count += 1;
     showToast('❤️ 급식팀에게 응원을 보냈어요!');
   }
@@ -3116,6 +3170,15 @@ function showCafe() {
   document.getElementById('section-cafe').style.display = 'block';
   setBottomTab('cafe');
   updateSettingToggles();
+  // 닉네임 복원
+  const nick = getNickname();
+  const input = document.getElementById('nickname-input');
+  const status = document.getElementById('nickname-status');
+  if (input && nick) {
+    input.value = nick;
+    status.textContent = `✅ ${nick} 으로 등록됐어요!`;
+    status.style.display = 'block';
+  }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
