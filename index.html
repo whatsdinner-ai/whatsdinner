@@ -1413,12 +1413,16 @@ async function searchSchoolForMember(memberId, val) {
     dropdown.style.display = 'block';
     try {
       const res = await fetch(
-        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(query)}`
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10&SCHUL_NM=${encodeURIComponent(query)}`
       );
       const data = await res.json();
-      const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
-        ['유치원','초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
-      );
+      const rows = (data?.schoolInfo?.[1]?.row || []).filter(r => {
+        const kind = r.SCHUL_KND_SC_NM || '';
+        const name = r.SCHUL_NM || '';
+        return ['유치원','초등학교','중학교','고등학교'].some(t =>
+          kind.includes(t) || name.includes(t)
+        );
+      });
       if (rows.length === 0) {
         dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
         return;
@@ -1426,10 +1430,17 @@ async function searchSchoolForMember(memberId, val) {
       dropdown.innerHTML = rows.map(r => {
         const safeName = r.SCHUL_NM.replace(/'/g, "\\'");
         const safeAddr = (r.ORG_RDNMA||'').replace(/'/g, "\\'");
+        const kindLabel = r.SCHUL_KND_SC_NM?.includes('유치원') ? '🧒 유치원' :
+                          r.SCHUL_NM.includes('초등') ? '🏫 초등' :
+                          r.SCHUL_NM.includes('중학') ? '📚 중학' :
+                          r.SCHUL_NM.includes('고등') ? '🎓 고등' : '🏫';
         return `
           <div onclick="selectSchoolForMember(${memberId},'${safeName}','${r.SD_SCHUL_CODE}','${r.ATPT_OFCDC_SC_CODE}','${safeAddr}')"
             style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent">
-            <div style="font-weight:600;font-size:14px">${r.SCHUL_NM}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;color:var(--accent);font-weight:600">${kindLabel}</span>
+              <span style="font-weight:600;font-size:14px">${r.SCHUL_NM}</span>
+            </div>
             <div style="font-size:11px;color:var(--ink3);margin-top:2px">${r.ORG_RDNMA||''}</div>
           </div>`;
       }).join('');
