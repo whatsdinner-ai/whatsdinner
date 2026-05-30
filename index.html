@@ -1478,13 +1478,16 @@ async function searchSchoolForMember(memberId, val) {
         return;
       }
       dropdown.innerHTML = rows.map(r => {
-        const safeName = r.SCHUL_NM.replace(/'/g, "\\'");
-        const safeAddr = (r.ORG_RDNMA||'').replace(/'/g, "\\'");
         const kindLabel = r.SCHUL_NM.includes('초등') ? '🏫 초등' :
                           r.SCHUL_NM.includes('중학') ? '📚 중학' :
                           r.SCHUL_NM.includes('고등') ? '🎓 고등' : '🏫';
         return `
-          <div onclick="selectSchoolForMember(${memberId},'${safeName}','${r.SD_SCHUL_CODE}','${r.ATPT_OFCDC_SC_CODE}','${safeAddr}')"
+          <div class="school-result-item"
+            data-member-id="${memberId}"
+            data-name="${encodeURIComponent(r.SCHUL_NM)}"
+            data-code="${r.SD_SCHUL_CODE}"
+            data-sido="${r.ATPT_OFCDC_SC_CODE}"
+            data-addr="${encodeURIComponent(r.ORG_RDNMA||'')}"
             style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent">
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:11px;color:var(--accent);font-weight:600">${kindLabel}</span>
@@ -1499,7 +1502,32 @@ async function searchSchoolForMember(memberId, val) {
   }, 400);
 }
 
-function selectSchoolForMember(memberId, name, code, sido, addr) {
+// ── 학교 검색 결과 클릭 이벤트 위임 ──
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('.school-result-item');
+  if (!item) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const memberId = parseInt(item.dataset.memberId);
+  const name = decodeURIComponent(item.dataset.name);
+  const code = item.dataset.code;
+  const sido = item.dataset.sido;
+  const addr = decodeURIComponent(item.dataset.addr);
+  selectSchoolForMember(memberId, name, code, sido, addr);
+});
+
+document.addEventListener('touchend', function(e) {
+  const item = e.target.closest('.school-result-item');
+  if (!item) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const memberId = parseInt(item.dataset.memberId);
+  const name = decodeURIComponent(item.dataset.name);
+  const code = item.dataset.code;
+  const sido = item.dataset.sido;
+  const addr = decodeURIComponent(item.dataset.addr);
+  selectSchoolForMember(memberId, name, code, sido, addr);
+});
   const member = members.find(m => m.id === memberId);
   if (member) {
     if (member.school?.code !== code) {
