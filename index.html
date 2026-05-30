@@ -3120,10 +3120,12 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     showToast('설정 탭에서 닉네임을 먼저 등록해주세요!', true);
     return;
   }
-  const todayStr = formatDate(today);
+  const heartKey   = `ws_heart_${schoolName}_${dateKey}`;
+  const countKey   = `ws_count_${schoolName}_${dateKey}`;
+  const todayStr   = formatDate(today);
   const lastVoteKey = `ws_lastvote_${schoolName}`;
-  const lastVote = localStorage.getItem(lastVoteKey);
-  const hearted = localStorage.getItem(heartKey) === '1';
+  const lastVote   = localStorage.getItem(lastVoteKey);
+  const hearted    = localStorage.getItem(heartKey) === '1';
 
   if (!hearted && lastVote === todayStr) {
     showToast('오늘은 이미 응원했어요! 내일 또 눌러주세요 😄', true);
