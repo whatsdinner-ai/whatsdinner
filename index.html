@@ -1417,7 +1417,7 @@ async function searchSchoolForMember(memberId, val) {
       );
       const data = await res.json();
       const rows = (data?.schoolInfo?.[1]?.row || []).filter(r =>
-        ['초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
+        ['유치원','초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
       );
       if (rows.length === 0) {
         dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
@@ -1452,6 +1452,7 @@ function selectSchoolForMember(memberId, name, code, sido, addr) {
     if (name.includes('초등학교')) shortName = name.replace('초등학교', '') + '초';
     else if (name.includes('중학교')) shortName = name.replace('중학교', '') + '중';
     else if (name.includes('고등학교')) shortName = name.replace('고등학교', '') + '고';
+    else if (name.includes('유치원')) shortName = name.replace('유치원', '') + '원';
     else shortName = name.replace('학교', '');
     shortName = shortName.trim();
 
@@ -1656,9 +1657,17 @@ function renderAllLunch(cards) {
 
   d.innerHTML = cards.map(card => {
     if (card.type === 'nodata') return `
-      <div class="card" style="margin-bottom:12px;opacity:.6">
+      <div class="card" style="margin-bottom:12px;opacity:.8">
         <div style="font-size:13px;color:var(--ink3)">🏫 ${card.school}</div>
-        <div style="font-size:13px;color:var(--ink3);margin-top:6px">오늘 급식 정보 없음</div>
+        <div style="font-size:13px;color:var(--ink3);margin-top:6px">
+          ${card.school.includes('유치원')
+            ? '해당 유치원은 식단 정보를 제공하지 않습니다'
+            : '오늘 급식 정보 없음'}
+        </div>
+        ${card.school.includes('유치원') ? `
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">
+          💡 NEIS 미등록 사립 유치원이거나 방학일 수 있어요
+        </div>` : ''}
       </div>`;
 
     return `
@@ -3069,6 +3078,7 @@ function loadFromLocal() {
           if (sn.includes('초등학교'))      name = sn.replace('초등학교','') + '초';
           else if (sn.includes('중학교'))   name = sn.replace('중학교','')   + '중';
           else if (sn.includes('고등학교')) name = sn.replace('고등학교','') + '고';
+          else if (sn.includes('유치원'))   name = sn.replace('유치원','')   + '원';
           else                              name = sn.replace('학교','');
           name = name.trim();
         } else {
