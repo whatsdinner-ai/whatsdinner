@@ -1051,9 +1051,10 @@ function goTomorrow() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) {
     showToast('먼저 학생 학교를 설정해주세요', true);
-    goStep(1);
+    setBottomTab('school'); showMain(); goStepDirect(1);
     return;
   }
+  setBottomTab('lunch'); showMain();
   fetchAllLunch();
 }
 
@@ -1067,9 +1068,10 @@ function goToday() {
   const children = members.filter(m => m.type === 'child' && m.school);
   if (children.length === 0) {
     showToast('먼저 학생 학교를 설정해주세요', true);
-    goStep(1);
+    setBottomTab('school'); showMain(); goStepDirect(1);
     return;
   }
+  setBottomTab('lunch'); showMain();
   fetchAllLunch();
 }
 
