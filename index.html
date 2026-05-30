@@ -1528,6 +1528,8 @@ document.addEventListener('touchend', function(e) {
   const addr = decodeURIComponent(item.dataset.addr);
   selectSchoolForMember(memberId, name, code, sido, addr);
 });
+
+function selectSchoolForMember(memberId, name, code, sido, addr) {
   const member = members.find(m => m.id === memberId);
   if (member) {
     if (member.school?.code !== code) {
@@ -1829,7 +1831,8 @@ function renderAllLunch(cards) {
 async function fetchLunch() { await fetchAllLunch(); }
 
 // ── 매일 영양 분석 (모든 아이) ──
-async // ── 제철 과일 ──
+
+// ── 제철 과일 ──
 const SEASONAL_FRUITS = {
   1:  [{name:'한라봉', emoji:'🍊'}, {name:'딸기', emoji:'🍓'}, {name:'사과', emoji:'🍎'}],
   2:  [{name:'딸기', emoji:'🍓'}, {name:'한라봉', emoji:'🍊'}, {name:'사과', emoji:'🍎'}],
