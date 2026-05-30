@@ -849,8 +849,14 @@ body {
 
     <!-- 영양샘 투표 -->
     <div class="card" style="margin-bottom:14px">
-      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">🍱 우리 학교 급식팀을 응원해요</div>
-      <div style="font-size:12px;color:var(--ink3);margin-bottom:14px">하트를 눌러 급식팀에게 응원을 보내주세요</div>
+      <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:6px">🍱 영양선생님과 조리사님들께 응원을 전해요</div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.8;margin-bottom:14px">
+        따뜻한 밥을 준비해주시는<br>
+        <strong style="color:var(--ink)">영양선생님과 조리사님들께</strong><br>
+        따뜻한 하트를 남겨 응원해주세요<br>
+        여러분의 이름으로<br>
+        <span style="font-size:11px;color:var(--accent);font-weight:600">왓츠디너가 후원하겠습니다!</span>
+      </div>
       <div style="font-size:11px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
         💡 1일 1회만 가능해요<br>
         📅 집계기간: 매년 급식일 동안 (3월 ~ 12월)
@@ -3141,7 +3147,7 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     localStorage.setItem(heartKey, '1');
     localStorage.setItem(lastVoteKey, todayStr);
     count += 1;
-    showToast('❤️ 급식팀에게 응원을 보냈어요!');
+    showToast('❤️ 영양선생님과 조리사님들께 응원을 보냈어요!');
   }
   localStorage.setItem(countKey, count);
   renderWatschelin();
