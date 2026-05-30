@@ -2542,7 +2542,14 @@ function renderMenuTab(tab) {
           style="display:flex;align-items:center;gap:14px;padding:14px 16px;padding-left:54px;cursor:pointer">
           <div style="font-size:32px;flex-shrink:0">${m.emoji}</div>
           <div style="flex:1">
-            <div style="font-size:15px;font-weight:${i < 3 ? '800' : '700'};color:var(--ink);margin-bottom:3px">${m.name}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-size:15px;font-weight:${i < 3 ? '800' : '700'};color:var(--ink)">${m.name}</span>
+              ${tab === 'milkit' ? `<a href="${coupangUrl(m.name)}" target="_blank" rel="noopener noreferrer"
+                onclick="event.stopPropagation();handleCoupangClick('${m.name.replace(/'/g,"\\'")}')"
+                style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(232,35,42,.1);color:#e8232a;text-decoration:none;flex-shrink:0">쿠팡↗</a>` : ''}
+              ${tab === 'delivery' ? `<button onclick="event.stopPropagation();window._selectedMenu='${m.name.replace(/'/g,"\\'")}';openDeliveryApp('baemin')"
+                style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(42,193,188,.15);color:#2ac1bc;border:none;cursor:pointer;font-family:inherit;flex-shrink:0">배민↗</button>` : ''}
+            </div>
             <div style="font-size:11px;color:var(--ink3)">${m.spicy ? '🌶️ 매운 맛' : '순한 맛'}</div>
           </div>
           <span style="font-size:10px;font-weight:700;color:${m.badgeColor};background:${m.badgeColor}18;padding:3px 8px;border-radius:100px;flex-shrink:0">${m.badge}</span>
@@ -2579,13 +2586,6 @@ function renderMenuTab(tab) {
           </div>` : ''}
         </div>` : ''}
 
-        <!-- 밀키트 탭: 쿠팡 버튼 -->
-        ${tab === 'milkit' ? `
-        <div style="border-top:1px solid #f4f4f4;padding:10px 14px;text-align:right">
-          <a href="${coupangUrl(m.name)}" target="_blank" rel="noopener noreferrer"
-            onclick="event.stopPropagation();handleCoupangClick('${m.name.replace(/'/g,"\\'")}')"
-            style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(232,35,42,.1);color:#e8232a;text-decoration:none;display:inline-block">쿠팡↗</a>
-        </div>` : ''}
 
       </div>
     `;
