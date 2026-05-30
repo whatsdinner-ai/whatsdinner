@@ -1412,17 +1412,18 @@ async function searchSchoolForMember(memberId, val) {
     dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 중...</div>`;
     dropdown.style.display = 'block';
     try {
-      const res = await fetch(
-        `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=10&SCHUL_NM=${encodeURIComponent(query)}`
+      // 일반 학교 + 유치원 동시 검색
+      const [schoolRes, kinderRes] = await Promise.all([
+        fetch(`https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=8&SCHUL_NM=${encodeURIComponent(query)}`),
+        fetch(`https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=5&SCHUL_NM=${encodeURIComponent(query)}&SCHUL_KND_SC_NM=%EC%9C%A0%EC%B9%98%EC%9B%90`)
+      ]);
+      const [schoolData, kinderData] = await Promise.all([schoolRes.json(), kinderRes.json()]);
+
+      const schoolRows = (schoolData?.schoolInfo?.[1]?.row || []).filter(r =>
+        ['초등학교','중학교','고등학교'].some(t => r.SCHUL_NM.includes(t))
       );
-      const data = await res.json();
-      const rows = (data?.schoolInfo?.[1]?.row || []).filter(r => {
-        const kind = r.SCHUL_KND_SC_NM || '';
-        const name = r.SCHUL_NM || '';
-        return ['유치원','초등학교','중학교','고등학교'].some(t =>
-          kind.includes(t) || name.includes(t)
-        );
-      });
+      const kinderRows = (kinderData?.schoolInfo?.[1]?.row || []);
+      const rows = [...kinderRows, ...schoolRows];
       if (rows.length === 0) {
         dropdown.innerHTML = `<div style="padding:10px;text-align:center;color:var(--ink3);font-size:13px">검색 결과 없음</div>`;
         return;
