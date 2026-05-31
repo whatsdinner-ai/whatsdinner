@@ -3154,6 +3154,8 @@ function renderWatschelin() {
     else found.base += myReal;
   }
   const ranking = SAMPLE_SCHOOLS.sort((a,b) => b.base - a.base).slice(0,10);
+  // 참여점수 계산 (base ÷ 샘플 급식일 200일 ÷ 샘플 사용자수 기준)
+  const getScore = (base) => (base / 200).toFixed(1);
   const medal = ['🥇','🥈','🥉'];
 
   rankEl.innerHTML = `
@@ -3222,7 +3224,10 @@ function renderWatschelin() {
             </span>
             <span style="font-size:10px;color:var(--ink3);margin-left:4px">${s.region}</span>
           </div>
-          <span style="font-size:12px;font-weight:700;color:var(--ink3)">❤️ ${s.base.toLocaleString()}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;font-weight:700;color:var(--accent)">${getScore(s.base)}점</span>
+            <span style="font-size:10px;color:var(--ink3)">❤️ ${s.base.toLocaleString()}</span>
+          </div>
         </div>
         <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
           <div style="height:100%;width:${Math.round(s.base/ranking[0].base*100)}%;background:${i===0?'#FF6B00':i===1?'#888':'#aaa'};border-radius:100px;transition:width .6s ease"></div>
