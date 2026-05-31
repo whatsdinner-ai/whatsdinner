@@ -902,9 +902,9 @@ body {
       <div style="margin-top:14px;padding:12px 14px;background:var(--accent-light);border-radius:10px;line-height:1.8">
         <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:4px">🎁 연말 왓슐랭 시상</div>
         <div style="font-size:11px;color:var(--ink3)">
-          🥇 1위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">100만원</strong><br>
-          🥈 2위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">70만원</strong><br>
-          🥉 3위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">50만원</strong><br>
+          🥇 1위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">300만원</strong><br>
+          🥈 2위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">200만원</strong><br>
+          🥉 3위 학교 급식팀 회식 지원금 <strong style="color:var(--accent)">100만원</strong><br>
           <span style="font-size:10px;color:var(--ink3)">여러분의 하트로 왓츠디너가 후원합니다 ❤️</span>
         </div>
       </div>
@@ -3157,9 +3157,9 @@ function showMain() {
 const HALL_OF_FAME = {
   2026: null, // 진행 중
   2025: [
-    { school:'고양국제고등학교', region:'경기', score:'98.7', star:'⭐⭐⭐' },
-    { school:'송양중학교',       region:'경기', score:'91.2', star:'⭐⭐'  },
-    { school:'옥빛고등학교',     region:'경기', score:'84.5', star:'⭐'    },
+    { school:'고양국제고등학교', region:'경기 고양', score:'98.7', star:'⭐⭐⭐' },
+    { school:'송양중학교',       region:'경기 의정부', score:'91.2', star:'⭐⭐'  },
+    { school:'옥빛고등학교',     region:'경기 양주', score:'84.5', star:'⭐'    },
   ],
 };
 
@@ -3185,7 +3185,7 @@ function showHofModal(year) {
     content.innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:32px;margin-bottom:10px">🏆</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">' + year + '년 진행 중</div><div style="font-size:12px;color:#888;line-height:1.7">지금 하트를 눌러 우리 학교를<br>왓슐랭에 올려주세요!<br>연말에 최종 수상 학교가 발표돼요 🎉</div></div>';
   } else if (HALL_OF_FAME[year] && HALL_OF_FAME[year].length > 0) {
     const medals = ['🥇','🥈','🥉'];
-    const starLabels = ['쓰리스타','투스타','원스타'];
+    const starLabels = ['','',''];
     content.innerHTML = HALL_OF_FAME[year].map((w,i) => 
       '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:' + (i<HALL_OF_FAME[year].length-1?'0.5px solid #e8e8e8':'none') + '">'
       + '<span style="font-size:24px">' + medals[i] + '</span>'
@@ -3193,7 +3193,7 @@ function showHofModal(year) {
       + '<div style="font-size:13px;font-weight:800;color:#000">' + w.school + '</div>'
       + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'
       + '<span style="font-size:12px">' + w.star + '</span>'
-      + '<span style="font-size:11px;color:#888">' + starLabels[i] + ' · ' + w.region + ' · ' + w.score + '점</span>'
+      + '<span style="font-size:11px;color:#888">' + w.region + ' · ' + w.score + '점</span>'
       + '</div>'
       + '</div>'
       + '</div>'
