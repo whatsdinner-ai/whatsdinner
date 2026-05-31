@@ -2057,8 +2057,12 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
                   </div>
                 </div>
                 <div style="height:7px;background:var(--border);border-radius:100px;overflow:hidden;position:relative">
-                  <div style="height:100%;width:${Math.min(breakfastPct,100)}%;background:#d0d0d0;border-radius:100px 0 0 100px;position:absolute;left:0"></div>
-                  <div style="height:100%;width:${Math.min(totalPct,100)}%;background:${color};border-radius:100px;transition:width .8s ease"></div>
+                  <div class="nutrition-bar-fill"
+                    data-width="${Math.min(breakfastPct,100)}"
+                    style="height:100%;width:0%;background:#d0d0d0;border-radius:100px 0 0 100px;position:absolute;left:0;transition:width .9s cubic-bezier(.4,0,.2,1)"></div>
+                  <div class="nutrition-bar-fill"
+                    data-width="${Math.min(totalPct,100)}"
+                    style="height:100%;width:0%;background:${color};border-radius:100px;transition:width .9s cubic-bezier(.4,0,.2,1)"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:2px">
                   <div style="font-size:10px;color:var(--ink3)">🌅 아침 ${breakfastPct}% 가정 + 점심 ${lunchPct}%</div>
@@ -2077,6 +2081,15 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
         </div>`;
     }).join('')}
   `;
+
+  // 영양 바 서서히 채우기
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.querySelectorAll('.nutrition-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+    }, 100);
+  });
 
 }
 
