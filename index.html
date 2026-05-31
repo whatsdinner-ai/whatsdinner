@@ -526,6 +526,18 @@ body {
   margin: 0 auto 16px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.5); }
+  60%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes heartSparkle {
+  0%   { opacity:1; transform: scale(1); }
+  50%  { opacity:.6; transform: scale(1.8); }
+  100% { opacity:0; transform: scale(2.5); }
+}
+.heart-pop { animation: heartPop .35s cubic-bezier(.36,.07,.19,.97) both; }
 .loading-text {
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 16px;
@@ -3114,7 +3126,7 @@ function renderWatschelin() {
           <div style="font-size:14px;font-weight:800;color:var(--ink)">🏫 ${schoolName}</div>
           <div style="font-size:11px;color:var(--ink3);margin-top:3px">응원 ❤️ ${count.toLocaleString()}개</div>
         </div>
-        <button onclick="toggleWatschelinHeart('${schoolName}','${dateKey}')"
+        <button id="watschelin-heart-btn" onclick="toggleWatschelinHeart('${schoolName}','${dateKey}')"
           style="width:56px;height:56px;border-radius:50%;border:2px solid ${hearted?'#e03030':'var(--border)'};background:${hearted?'#fff0f0':'white'};cursor:pointer;font-size:26px;-webkit-tap-highlight-color:transparent;transition:all .2s">
           ${hearted?'❤️':'🤍'}
         </button>
@@ -3255,11 +3267,42 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     localStorage.removeItem(heartKey);
     localStorage.removeItem(lastVoteKey);
     count = Math.max(0, count - 1);
+    // 취소 시 페이드 효과
+    const btn = document.getElementById('watschelin-heart-btn');
+    if (btn) {
+      btn.style.transition = 'opacity .4s ease';
+      btn.style.opacity = '0.3';
+      setTimeout(() => { btn.style.opacity = '1'; }, 400);
+    }
   } else {
     localStorage.setItem(heartKey, '1');
     localStorage.setItem(lastVoteKey, todayStr);
     count += 1;
     showToast('❤️ 영양선생님과 조리사님들께 응원을 보냈어요!');
+    // 하트 파티클 효과
+    const btn = document.getElementById('watschelin-heart-btn');
+    if (btn) {
+      btn.classList.remove('heart-pop');
+      void btn.offsetWidth;
+      btn.classList.add('heart-pop');
+      const rect = btn.getBoundingClientRect();
+      for (let i = 0; i < 6; i++) {
+        const spark = document.createElement('span');
+        const angle = (i / 6) * Math.PI * 2;
+        const dist = 35 + Math.random() * 20;
+        spark.textContent = '❤️';
+        spark.style.cssText = 'position:fixed;font-size:14px;pointer-events:none;z-index:9999;'
+          + 'left:' + (rect.left + rect.width/2 - 8) + 'px;'
+          + 'top:' + (rect.top + rect.height/2 - 8) + 'px;'
+          + 'transition:all .5s ease-out;opacity:1;';
+        document.body.appendChild(spark);
+        requestAnimationFrame(() => {
+          spark.style.transform = 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist) + 'px) scale(0)';
+          spark.style.opacity = '0';
+        });
+        setTimeout(() => spark.remove(), 600);
+      }
+    }
   }
   localStorage.setItem(countKey, count);
   renderWatschelin();
