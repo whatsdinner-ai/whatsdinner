@@ -3286,9 +3286,9 @@ function toggleWatschelinHeart(schoolName, dateKey) {
       for (let i = 0; i < 16; i++) {
         const spark = document.createElement('span');
         const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-        const dist = 160 + Math.random() * 160;
-        const size = 40 + Math.random() * 40;
-        const duration = 9600 + Math.random() * 6400;
+        const dist = 80 + Math.random() * 60;
+        const size = 24 + Math.random() * 24;
+        const duration = 1500 + Math.random() * 1000;
         spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         spark.style.cssText = 'position:fixed;font-size:' + size + 'px;pointer-events:none;z-index:9999;'
           + 'left:' + (cx - size/2) + 'px;'
@@ -3299,7 +3299,7 @@ function toggleWatschelinHeart(schoolName, dateKey) {
           spark.style.transform = 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist - 20) + 'px) scale(0) rotate(' + (Math.random()*360) + 'deg)';
           spark.style.opacity = '0';
         }));
-        setTimeout(() => spark.remove(), duration + 600);
+        setTimeout(() => spark.remove(), duration + 200);
       }
     }
   }
