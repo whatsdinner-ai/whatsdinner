@@ -3265,13 +3265,7 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     localStorage.removeItem(heartKey);
     localStorage.removeItem(lastVoteKey);
     count = Math.max(0, count - 1);
-    // 취소 시 페이드 효과
-    const btn = document.getElementById('watschelin-heart-btn');
-    if (btn) {
-      btn.style.transition = 'opacity 4.8s ease';
-      btn.style.opacity = '0.3';
-      setTimeout(() => { btn.style.opacity = '1'; }, 4800);
-    }
+
   } else {
     // 진동 (추가 시만)
     if (navigator.vibrate) navigator.vibrate(60);
@@ -3292,9 +3286,9 @@ function toggleWatschelinHeart(schoolName, dateKey) {
       for (let i = 0; i < 16; i++) {
         const spark = document.createElement('span');
         const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-        const dist = 80 + Math.random() * 80;
+        const dist = 160 + Math.random() * 160;
         const size = 40 + Math.random() * 40;
-        const duration = 2400 + Math.random() * 1600;
+        const duration = 4800 + Math.random() * 3200;
         spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         spark.style.cssText = 'position:fixed;font-size:' + size + 'px;pointer-events:none;z-index:9999;'
           + 'left:' + (cx - size/2) + 'px;'
@@ -3305,7 +3299,7 @@ function toggleWatschelinHeart(schoolName, dateKey) {
           spark.style.transform = 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist - 20) + 'px) scale(0) rotate(' + (Math.random()*360) + 'deg)';
           spark.style.opacity = '0';
         }));
-        setTimeout(() => spark.remove(), duration + 400);
+        setTimeout(() => spark.remove(), duration + 500);
       }
     }
   }
