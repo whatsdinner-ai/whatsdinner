@@ -2000,10 +2000,6 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
           <div style="font-size:10px;color:var(--ink3);background:var(--border);border-radius:8px;padding:6px 10px;margin-bottom:10px">
             💡 아침에 1일 권장량의 1/3을 충분히 드셨다고 가정한 수치입니다.<br>&nbsp;&nbsp;&nbsp;남은 부분은 저녁에 채우시면 됩니다.
           </div>
-          <div style="font-size:10px;color:var(--ink3);text-align:right;margin-top:4px">
-            2020 한국인 영양소 섭취기준 적용<br>출처: 보건복지부·한국영양학회
-          </div>
-          </div>
 
           ${nutrients.filter(n => n.avg > 0).map(n => {
             const breakfastPct = 33;
@@ -2037,6 +2033,9 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
             <div style="margin-top:10px;padding:8px 12px;background:var(--green-light);border:1px solid rgba(45,106,79,.2);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">
               ✅ ${isTodayMode ? getTodayLabel() : getTomorrowLabel()} 영양 균형 우수!
             </div>`}
+          <div style="font-size:10px;color:var(--ink3);text-align:right;margin-top:8px">
+            2020 한국인 영양소 섭취기준 적용 · 출처: 보건복지부·한국영양학회
+          </div>
         </div>`;
     }).join('')}
   `;
