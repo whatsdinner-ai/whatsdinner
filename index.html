@@ -3270,9 +3270,9 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     // 취소 시 페이드 효과
     const btn = document.getElementById('watschelin-heart-btn');
     if (btn) {
-      btn.style.transition = 'opacity .4s ease';
+      btn.style.transition = 'opacity 2.4s ease';
       btn.style.opacity = '0.3';
-      setTimeout(() => { btn.style.opacity = '1'; }, 400);
+      setTimeout(() => { btn.style.opacity = '1'; }, 2400);
     }
   } else {
     localStorage.setItem(heartKey, '1');
