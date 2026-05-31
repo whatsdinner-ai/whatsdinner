@@ -3236,6 +3236,8 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     showToast('설정 탭에서 닉네임을 먼저 등록해주세요!', true);
     return;
   }
+  // 진동
+  if (navigator.vibrate) navigator.vibrate(30);
   const heartKey   = `ws_heart_${schoolName}_${dateKey}`;
   const countKey   = `ws_count_${schoolName}_${dateKey}`;
   const todayStr   = formatDate(today);
