@@ -908,9 +908,34 @@ body {
           <span style="font-size:10px;color:var(--ink3)">여러분의 하트로 왓츠디너가 후원합니다 ❤️</span>
         </div>
       </div>
+
+      <!-- 명예의전당 -->
+      <div class="card" style="margin-top:12px">
+        <div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:12px">🏛️ 명예의 전당</div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">연도를 눌러 수상 학교를 확인하세요</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px" id="hall-of-fame-years"></div>
+      </div>
     </div>
 
-  </div>
+    <!-- 명예의전당 팝업 -->
+    <div id="hof-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center"
+      onclick="if(event.target===this)this.style.display='none'">
+      <div style="width:calc(100% - 48px);max-width:340px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
+        <div style="padding:20px 20px 14px;border-bottom:0.5px solid #e0e0e0;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🏛️</div>
+          <div id="hof-year-title" style="font-size:17px;font-weight:700;color:#000"></div>
+          <div style="font-size:12px;color:#888;margin-top:2px">왓슐랭 수상 학교</div>
+        </div>
+        <div id="hof-content" style="padding:16px 20px"></div>
+        <div style="border-top:0.5px solid #e0e0e0">
+          <button onclick="document.getElementById('hof-modal').style.display='none'"
+            style="width:100%;padding:14px;border:none;background:white;color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+    </div>
 
 </div><!-- /main-content -->
 
@@ -3128,6 +3153,37 @@ function showMain() {
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
+// ── 명예의 전당 ──
+const HALL_OF_FAME = {
+  2026: null, // 진행 중
+};
+
+function renderHallOfFame() {
+  const el = document.getElementById('hall-of-fame-years');
+  if (!el) return;
+  const currentYear = today.getFullYear();
+  const years = [];
+  for (let y = currentYear; y >= 2026; y--) years.push(y);
+  el.innerHTML = years.map(y => {
+    const isCurrent = y === currentYear;
+    return '<button onclick="showHofModal(' + y + ')" style="padding:6px 14px;border-radius:100px;border:1.5px solid ' + (isCurrent?'var(--accent)':'var(--border)') + ';background:' + (isCurrent?'var(--accent-light)':'var(--paper)') + ';color:' + (isCurrent?'var(--accent)':'var(--ink)') + ';font-size:12px;font-weight:' + (isCurrent?'700':'500') + ';cursor:pointer;font-family:inherit">' + y + '년' + (isCurrent?' 진행중':'') + '</button>';
+  }).join('');
+}
+
+function showHofModal(year) {
+  const modal = document.getElementById('hof-modal');
+  const title = document.getElementById('hof-year-title');
+  const content = document.getElementById('hof-content');
+  const currentYear = today.getFullYear();
+  title.textContent = year + '년 왓슐랭';
+  if (year === currentYear) {
+    content.innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:32px;margin-bottom:10px">🏆</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">' + year + '년 진행 중</div><div style="font-size:12px;color:#888;line-height:1.7">지금 하트를 눌러 우리 학교를<br>왓슐랭에 올려주세요!<br>연말에 최종 수상 학교가 발표돼요 🎉</div></div>';
+  } else {
+    content.innerHTML = '<div style="text-align:center;padding:20px 0;color:#888;font-size:13px">수상 결과 준비 중이에요</div>';
+  }
+  modal.style.display = 'flex';
+}
+
 function showWatschelin() {
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('section-cafe').style.display = 'none';
@@ -3138,6 +3194,7 @@ function showWatschelin() {
   const el = document.getElementById('section-watschelin');
   el.classList.add('active');
   renderWatschelin();
+  renderHallOfFame();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
