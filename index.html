@@ -3157,14 +3157,18 @@ function renderWatschelin() {
   const medal = ['🥇','🥈','🥉'];
 
   rankEl.innerHTML = `
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">전국 초·중·고 통합 집계</div>
-    <div style="font-size:10px;color:var(--ink3);background:var(--border);border-radius:8px;padding:6px 10px;margin-bottom:12px;line-height:1.6;display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-      <div>
-        📊 왓슐랭 랭킹은 급식일 대비 참여율 기준으로 산정됩니다<br>
-        <span style="color:var(--ink3)">학생 수·급식일수 차이가 반영되어 모든 학교가 공정하게 경쟁해요</span>
-      </div>
-      <button onclick="document.getElementById('watschelin-info-modal').style.display='flex'"
-        style="flex-shrink:0;border:none;background:none;font-size:14px;color:var(--ink3);cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent">ⓘ</button>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+      <span>전국 초·중·고 통합 집계</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:10px">랭킹 산정 기준은</span>
+        <button onclick="document.getElementById('watschelin-info-modal').style.display='flex'"
+          style="border:none;background:none;font-size:14px;color:var(--ink3);cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;line-height:1">ⓘ</button>
+        <span style="font-size:10px">를 눌러주세요</span>
+      </span>
+    </div>
+    <div style="font-size:10px;color:var(--ink3);background:var(--border);border-radius:8px;padding:6px 10px;margin-bottom:12px;line-height:1.6">
+      📊 왓슐랭 랭킹은 급식일 대비 참여율 기준으로 산정됩니다<br>
+      <span style="color:var(--ink3)">학생 수·급식일수 차이가 반영되어 모든 학교가 공정하게 경쟁해요</span>
     </div>
 
     <!-- 왓슐랭 랭킹 기준 설명 팝업 -->
