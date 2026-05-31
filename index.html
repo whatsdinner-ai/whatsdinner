@@ -526,6 +526,17 @@ body {
   margin: 0 auto 16px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes springUp {
+  0%   { opacity:0; transform: translateY(20px) scale(0.96); }
+  60%  { opacity:1; transform: translateY(-4px) scale(1.01); }
+  80%  { transform: translateY(2px) scale(0.99); }
+  100% { opacity:1; transform: translateY(0) scale(1); }
+}
+.spring-up { animation: springUp .45s cubic-bezier(.34,1.56,.64,1) both; }
 @keyframes heartPop {
   0%   { transform: scale(1); }
   30%  { transform: scale(1.5); }
@@ -810,7 +821,7 @@ body {
     </div>
 
     <div id="menu-results" style="display:none">
-      <div class="section-title">AI 저녁 추천</div>
+      <div class="section-title" style="background:linear-gradient(135deg,#FF6B00,#ff3366);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">✨ 저녁 추천</div>
       <div class="section-sub" id="menu-results-sub">급식에 없던 메뉴로 추천했어요</div>
 
       <!-- 3종 탭 -->
@@ -856,7 +867,7 @@ body {
 
   <!-- ══ 왓슐랭 ══ -->
   <div class="section" id="section-watschelin">
-    <div style="font-size:20px;font-weight:900;color:var(--ink);margin-bottom:4px">🌟 왓슐랭</div>
+    <div style="font-size:20px;font-weight:900;margin-bottom:4px;background:linear-gradient(135deg,#FF6B00,#ff3366);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌟 왓슐랭</div>
     <div style="font-size:12px;color:var(--ink3);margin-bottom:20px">학생들이 뽑는 왓슐랭</div>
 
     <!-- 영양샘 투표 -->
@@ -1588,9 +1599,24 @@ async function fetchAllLunch() {
   if (step2Label) step2Label.textContent = '급식';
 
   document.getElementById('lunch-display').innerHTML = `
-    <div style="text-align:center;padding:40px 20px">
-      <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-      <div style="color:var(--ink2);font-size:14px">NEIS에서 급식 정보를 가져오는 중</div>
+    <div style="animation:fadeUp .3s ease">
+      ${[1,2].map(() => `
+      <div style="background:var(--paper);border-radius:16px;padding:18px 20px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="width:16px;height:16px;border-radius:50%;background:linear-gradient(90deg,var(--border) 25%,#e8e8e8 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
+          <div style="width:140px;height:14px;border-radius:6px;background:linear-gradient(90deg,var(--border) 25%,#e8e8e8 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
+        </div>
+        ${[80,60,90,70,55,65].map(w => `
+          <div style="width:${w}%;height:13px;border-radius:6px;margin-bottom:8px;background:linear-gradient(90deg,var(--border) 25%,#e8e8e8 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
+        `).join('')}
+        <div style="margin-top:14px;height:1px;background:var(--border)"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          ${[40,35,45].map(w => `
+            <div style="width:${w}px;height:22px;border-radius:100px;background:linear-gradient(90deg,var(--border) 25%,#e8e8e8 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite"></div>
+          `).join('')}
+        </div>
+      </div>`).join('')}
+      <div style="text-align:center;font-size:11px;color:var(--ink3);margin-top:4px">NEIS에서 급식 정보를 가져오는 중</div>
     </div>`;
 
   const dateStr = formatDate(targetDate);
@@ -1760,7 +1786,7 @@ function renderAllLunch(cards) {
       </div>`;
 
     return `
-      <div class="lunch-card" style="margin-bottom:12px">
+      <div class="lunch-card spring-up" style="margin-bottom:12px;animation-delay:${i * 0.08}s">
         <div class="lunch-school">🏫 ${card.school} · ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일</div>
 
         <div class="lunch-items">
