@@ -3248,8 +3248,6 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     showToast('설정 탭에서 닉네임을 먼저 등록해주세요!', true);
     return;
   }
-  // 진동
-  if (navigator.vibrate) navigator.vibrate(60);
   const heartKey   = `ws_heart_${schoolName}_${dateKey}`;
   const countKey   = `ws_count_${schoolName}_${dateKey}`;
   const todayStr   = formatDate(today);
@@ -3270,11 +3268,13 @@ function toggleWatschelinHeart(schoolName, dateKey) {
     // 취소 시 페이드 효과
     const btn = document.getElementById('watschelin-heart-btn');
     if (btn) {
-      btn.style.transition = 'opacity 2.4s ease';
+      btn.style.transition = 'opacity 4.8s ease';
       btn.style.opacity = '0.3';
-      setTimeout(() => { btn.style.opacity = '1'; }, 2400);
+      setTimeout(() => { btn.style.opacity = '1'; }, 4800);
     }
   } else {
+    // 진동 (추가 시만)
+    if (navigator.vibrate) navigator.vibrate(60);
     localStorage.setItem(heartKey, '1');
     localStorage.setItem(lastVoteKey, todayStr);
     count += 1;
