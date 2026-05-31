@@ -1778,7 +1778,7 @@ function renderAllLunch(cards) {
     return;
   }
 
-  d.innerHTML = cards.map(card => {
+  d.innerHTML = cards.map((card, i) => {
     if (card.type === 'nodata') return `
       <div class="card" style="margin-bottom:12px;opacity:.8">
         <div style="font-size:13px;color:var(--ink3)">🏫 ${card.school}</div>
