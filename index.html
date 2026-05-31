@@ -2957,28 +2957,8 @@ function openDeliveryApp(app) {
 }
 
 function handleCoupangClick(itemName) {
-  // 쿠팡 앱 딥링크 시도 → 앱 없으면 웹으로 fallback
-  const appUrl = `coupang://search?q=${encodeURIComponent(itemName)}`;
   const webUrl = `https://www.coupang.com/np/search?q=${encodeURIComponent(itemName)}&channel=user&sorter=reviewCountDESC`;
-
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = appUrl;
-  document.body.appendChild(iframe);
-
-  // 앱 실행 안 되면 웹으로 이동
-  const timer = setTimeout(() => {
-    window.open(webUrl, '_blank');
-  }, 1500);
-
-  window.addEventListener('blur', () => {
-    clearTimeout(timer); // 앱이 열렸으면 타이머 취소
-    setTimeout(() => document.body.removeChild(iframe), 2000);
-  }, { once: true });
-
-  setTimeout(() => {
-    if (document.body.contains(iframe)) document.body.removeChild(iframe);
-  }, 3000);
+  window.open(webUrl, '_blank');
 }
 
 function orderPlatform(platform) {
