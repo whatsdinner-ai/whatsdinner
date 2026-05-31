@@ -3286,21 +3286,26 @@ function toggleWatschelinHeart(schoolName, dateKey) {
       void btn.offsetWidth;
       btn.classList.add('heart-pop');
       const rect = btn.getBoundingClientRect();
-      for (let i = 0; i < 6; i++) {
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const emojis = ['❤️','🧡','💛','💖','💗','✨','⭐'];
+      for (let i = 0; i < 12; i++) {
         const spark = document.createElement('span');
-        const angle = (i / 6) * Math.PI * 2;
-        const dist = 35 + Math.random() * 20;
-        spark.textContent = '❤️';
-        spark.style.cssText = 'position:fixed;font-size:14px;pointer-events:none;z-index:9999;'
-          + 'left:' + (rect.left + rect.width/2 - 8) + 'px;'
-          + 'top:' + (rect.top + rect.height/2 - 8) + 'px;'
-          + 'transition:all .5s ease-out;opacity:1;';
+        const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const dist = 40 + Math.random() * 40;
+        const size = 10 + Math.random() * 10;
+        const duration = 400 + Math.random() * 300;
+        spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        spark.style.cssText = 'position:fixed;font-size:' + size + 'px;pointer-events:none;z-index:9999;'
+          + 'left:' + (cx - size/2) + 'px;'
+          + 'top:' + (cy - size/2) + 'px;'
+          + 'transition:all ' + duration + 'ms cubic-bezier(.2,.8,.4,1);opacity:1;';
         document.body.appendChild(spark);
-        requestAnimationFrame(() => {
-          spark.style.transform = 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist) + 'px) scale(0)';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          spark.style.transform = 'translate(' + (Math.cos(angle)*dist) + 'px,' + (Math.sin(angle)*dist - 20) + 'px) scale(0) rotate(' + (Math.random()*360) + 'deg)';
           spark.style.opacity = '0';
-        });
-        setTimeout(() => spark.remove(), 600);
+        }));
+        setTimeout(() => spark.remove(), duration + 100);
       }
     }
   }
