@@ -44,7 +44,7 @@
 [data-theme="dark"] {
   --bg: #121212;
   --paper: #1e1e1e;
-  --card: #2a2a2a;
+  --card: #ffffff;
   --ink: #f0f0f0;
   --ink2: #c0c0c0;
   --ink3: #888888;
@@ -177,6 +177,7 @@ body {
   padding: 18px 20px;
   margin-bottom: 12px;
   box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  color: #191919;
 }
 
 /* ── 폼 ── */
@@ -602,7 +603,7 @@ body {
 <!-- 알림 안내 팝업 -->
 <div id="notif-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center"
   onclick="if(event.target===this)hideNotifInfoModal()">
-  <div style="width:calc(100% - 48px);max-width:340px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
+  <div style="width:calc(100% - 48px);max-width:340px;background:var(--paper);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
 
     <!-- 헤더 -->
     <div style="padding:20px 20px 14px;text-align:center;border-bottom:0.5px solid #e0e0e0">
@@ -635,7 +636,7 @@ body {
 </div>
 
 <!-- 알림 허용 팝업 -->
-<div id="push-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+<div id="push-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:var(--paper);border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
   <div style="display:flex;align-items:flex-start;gap:12px">
     <div style="font-size:32px;flex-shrink:0">🔔</div>
     <div style="flex:1">
@@ -660,7 +661,7 @@ body {
 </div>
 
 <!-- 홈화면 추가 안내 (iOS) -->
-<div id="ios-install-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:white;border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
+<div id="ios-install-prompt" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:440px;background:var(--paper);border-radius:16px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:8000;border:1.5px solid var(--border)">
   <div style="display:flex;align-items:flex-start;gap:12px">
     <div style="font-size:32px;flex-shrink:0">📲</div>
     <div style="flex:1">
@@ -693,7 +694,7 @@ body {
         </svg>
         <div style="padding-top:2px">
           <div style="display:flex;align-items:flex-start;gap:3px">
-            <div style="font-family:'Noto Sans KR','맑은 고딕',sans-serif;font-size:22px;font-weight:700;color:#1a1208;letter-spacing:-1px;line-height:1.2">왓츠디너</div>
+            <div style="font-family:'Noto Sans KR','맑은 고딕',sans-serif;font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-1px;line-height:1.2">왓츠디너</div>
             <span onclick="showInfoModal()" style="font-family:'Noto Sans KR','맑은 고딕',sans-serif;font-size:14px;font-weight:400;color:var(--ink3);margin-top:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0">ⓘ</span>
           </div>
           <div style="font-size:10px;color:#9a8a75;letter-spacing:0.3px;margin-top:1px">급식과는 다른저녁</div>
@@ -702,7 +703,7 @@ body {
 
       <!-- 오늘↔내일 토글 -->
       <div style="display:flex;align-items:center;gap:8px">
-        <div style="display:flex;align-items:center;background:#f0f0f0;border-radius:100px;padding:3px;gap:1px">
+        <div style="display:flex;align-items:center;background:var(--border);border-radius:100px;padding:3px;gap:1px">
           <button id="today-toggle" onclick="goToday()"
             style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
             오늘
@@ -901,7 +902,7 @@ body {
       <div style="display:flex;gap:8px">
         <input id="nickname-input" type="text" maxlength="10"
           placeholder="닉네임 입력 (최대 10자)"
-          style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--bg);outline:none"/>
+          style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--paper);outline:none"/>
         <button onclick="saveNickname()"
           style="padding:9px 16px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">
           저장
@@ -942,7 +943,7 @@ body {
 </div>
 
 <!-- 하단 탭바 (항상 표시) -->
-<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-top:1px solid #eeeeee;display:flex;z-index:200;padding:0 0 calc(env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.06)">
+<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--paper);border-top:1px solid var(--border);display:flex;z-index:200;padding:0 0 calc(env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.06)">
 
   <button id="btab-school" onclick="setBottomTab('school');showMain();goStepDirect(1)"
     style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:10px 4px 12px">
@@ -996,7 +997,7 @@ body {
 <!-- 앱 정보 모달 -->
 <div id="info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center"
   onclick="if(event.target===this)hideInfoModal()">
-  <div style="width:calc(100% - 48px);max-width:340px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
+  <div style="width:calc(100% - 48px);max-width:340px;background:var(--paper);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
 
     <!-- 앱 아이콘 + 이름 -->
     <div style="padding:24px 20px 16px;text-align:center;border-bottom:0.5px solid #e0e0e0">
@@ -1170,7 +1171,7 @@ function updateDateDisplay() {
 
   if (isTodayMode) {
     if (todayToggle) {
-      todayToggle.style.background = 'white';
+      todayToggle.style.background = 'var(--paper)';
       todayToggle.style.color = 'var(--accent)';
       todayToggle.style.boxShadow = '0 1px 4px rgba(0,0,0,.1)';
     }
@@ -3298,7 +3299,8 @@ function voteSurvey(btn, idx) {
     const bar = b.querySelector('.survey-bar div');
     if (bar) bar.style.width = i === idx ? '80%' : ['20%','40%','60%','30%'][i] || '10%';
   });
-  document.getElementById('survey-result').style.display = 'block';
+  const surveyResult = document.getElementById('survey-result');
+  if (surveyResult) surveyResult.style.display = 'block';
   showToast('소중한 의견 감사해요! 😊');
 }
 
@@ -3400,7 +3402,7 @@ function updateNotifUI(on) {
     label.style.color      = 'var(--ink3)';
     sub.textContent        = '탭해서 알림 켜기';
     btn.style.borderColor  = 'var(--border)';
-    btn.style.background   = '#f8f8f8';
+    btn.style.background = 'var(--border)';
   }
 }
 
