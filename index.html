@@ -171,7 +171,7 @@ body {
 
 /* ── 카드 ── */
 .card {
-  background: #ffffff;
+  background: var(--paper);
   border: 1px solid #f0f0f0;
   border-radius: var(--radius);
   padding: 18px 20px;
@@ -627,7 +627,7 @@ body {
     <!-- 버튼 -->
     <div style="border-top:0.5px solid #e0e0e0">
       <button onclick="hideNotifInfoModal()"
-        style="width:100%;padding:14px;border:none;background:white;color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
+        style="width:100%;padding:14px;border:none;background:var(--paper);color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
         닫기
       </button>
     </div>
@@ -652,7 +652,7 @@ body {
           허용하기
         </button>
         <button onclick="dismissPushPrompt()"
-          style="padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          style="padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);color:var(--ink3);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
           나중에
         </button>
       </div>
@@ -672,7 +672,7 @@ body {
         3. 앱처럼 사용 + 알림 수신
       </div>
       <button onclick="document.getElementById('ios-install-prompt').style.display='none';localStorage.setItem('iosPromptDismissed','1')"
-        style="width:100%;margin-top:12px;padding:10px;border-radius:10px;border:none;background:#f4f4f4;color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        style="width:100%;margin-top:12px;padding:10px;border-radius:10px;border:none;background:var(--border);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
         확인
       </button>
     </div>
@@ -705,7 +705,7 @@ body {
       <div style="display:flex;align-items:center;gap:8px">
         <div style="display:flex;align-items:center;background:var(--border);border-radius:100px;padding:3px;gap:1px">
           <button id="today-toggle" onclick="goToday()"
-            style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
+            style="padding:5px 16px;border-radius:100px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .2s;background:var(--paper);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)">
             오늘
           </button>
           <span id="toggle-arrow" style="font-size:12px;color:var(--ink3);padding:0 3px;transition:all .2s">→</span>
@@ -731,7 +731,7 @@ body {
     <!-- 알림 설정 토글 (상단) -->
     <div style="margin-bottom:14px">
       <button id="notif-toggle-btn" onclick="toggleNotification()"
-        style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f8f8f8;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:border-color .15s">
+        style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--border);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:border-color .15s">
         <div style="display:flex;align-items:center;gap:10px">
           <span id="notif-icon" style="font-size:18px">🔕</span>
           <div style="text-align:left">
@@ -808,11 +808,11 @@ body {
           🍳 요리
         </button>
         <button id="tab-milkit"  onclick="switchMenuTab('milkit')"
-          style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+          style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);color:var(--ink3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
           📦 밀키트
         </button>
         <button id="tab-delivery" onclick="switchMenuTab('delivery')"
-          style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+          style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);color:var(--ink3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
           🛵 배달
         </button>
       </div>
@@ -857,7 +857,7 @@ body {
         여러분의 이름으로<br>
         <span style="font-size:11px;color:var(--accent);font-weight:600">왓츠디너가 후원하겠습니다!</span>
       </div>
-      <div style="font-size:11px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
+      <div style="font-size:11px;color:var(--ink3);background:var(--border);border-radius:8px;padding:7px 10px;margin-bottom:12px;line-height:1.6">
         💡 1일 1회만 가능해요<br>
         📅 집계기간: 매년 급식일 동안 (3월 ~ 12월)
       </div>
@@ -1041,11 +1041,11 @@ body {
     <!-- 버튼 -->
     <div style="border-top:0.5px solid #e0e0e0">
       <button onclick="localStorage.removeItem('pushDismissed');hideInfoModal();setTimeout(initPushPrompt,500);"
-        style="width:100%;padding:14px;border:none;border-bottom:0.5px solid #e0e0e0;background:white;color:#FF6B00;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">
+        style="width:100%;padding:14px;border:none;border-bottom:0.5px solid #e0e0e0;background:var(--paper);color:#FF6B00;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">
         🔔 알림 설정
       </button>
       <button onclick="hideInfoModal()"
-        style="width:100%;padding:14px;border:none;background:white;color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
+        style="width:100%;padding:14px;border:none;background:var(--paper);color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
         닫기
       </button>
     </div>
@@ -1806,7 +1806,7 @@ function renderAllLunch(cards) {
             🚨 알레르기 주의!
           </div>
           ${card.allergyHits.map(hit => `
-            <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:8px;border:1px solid rgba(220,53,69,.3)">
+            <div style="margin-bottom:8px;padding:8px 10px;background:var(--paper);border-radius:8px;border:1px solid rgba(220,53,69,.3)">
               <div style="font-size:12px;font-weight:700;color:#dc3545;margin-bottom:4px">
                 ⑩ ${hit.name} (알레르기 ${hit.no}번)
               </div>
@@ -1856,7 +1856,7 @@ function renderSeasonalFruits() {
           : '<span style="font-size:10px;color:var(--ink3)">↗</span>';
         return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" '
           + 'style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;'
-          + 'border-radius:100px;background:#f5f5f5;text-decoration:none">'
+          + 'border-radius:100px;background:var(--border);text-decoration:none">'
           + '<span style="font-size:13px">' + f.emoji + '</span>'
           + '<span style="font-size:12px;font-weight:600;color:var(--ink)">' + f.name + '</span>'
           + badge
@@ -1997,7 +1997,7 @@ function renderWeeklyNutrition(childResults, RDA, lunchRDA) {
           <div style="margin-bottom:10px">
             <div style="font-weight:700;font-size:14px">🧒 ${childName}</div>
           </div>
-          <div style="font-size:10px;color:var(--ink3);background:#f8f8f8;border-radius:8px;padding:6px 10px;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--ink3);background:var(--border);border-radius:8px;padding:6px 10px;margin-bottom:10px">
             💡 아침에 1일 권장량의 1/3을 충분히 드셨다고 가정한 수치입니다.<br>&nbsp;&nbsp;&nbsp;남은 부분은 저녁에 채우시면 됩니다.
           </div>
 
@@ -2641,7 +2641,7 @@ function renderMenuTab(tab) {
 
         <!-- 요리 탭: 재료 + 쿠팡 버튼 -->
         ${showIngredients && ingredients.length > 0 ? `
-        <div style="border-top:1px solid #f4f4f4;padding:10px 14px;background:#fafafa">
+        <div style="border-top:1px solid #f4f4f4;padding:10px 14px;background:var(--paper)">
           ${mainIngs.length > 0 ? `
           <div style="margin-bottom:6px">
             <div style="font-size:10px;font-weight:700;color:#e8832a;margin-bottom:5px">🥩 주재료</div>
@@ -2649,7 +2649,7 @@ function renderMenuTab(tab) {
               ${mainIngs.map(ing => `
                 <a href="${coupangUrl(ing.name)}" target="_blank" rel="noopener noreferrer"
                   onclick="event.stopPropagation();handleCoupangClick('${ing.name.replace(/'/g,"\\'")}')"
-                  style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:white;border:1.5px solid #e8832a;border-radius:100px;text-decoration:none">
+                  style="display:flex;align-items:center;gap:4px;padding:5px 10px;background:var(--paper);border:1.5px solid #e8832a;border-radius:100px;text-decoration:none">
                   <span style="font-size:12px;font-weight:700;color:#e8832a">${ing.name}</span>
                   <span style="font-size:10px;color:#e8232a;font-weight:700">쿠팡↗</span>
                 </a>`).join('')}
@@ -2662,7 +2662,7 @@ function renderMenuTab(tab) {
               ${subIngs.map(ing => `
                 <a href="${coupangUrl(ing.name)}" target="_blank" rel="noopener noreferrer"
                   onclick="event.stopPropagation();handleCoupangClick('${ing.name.replace(/'/g,"\\'")}')"
-                  style="display:flex;align-items:center;gap:4px;padding:4px 9px;background:white;border:1px solid var(--border);border-radius:100px;text-decoration:none">
+                  style="display:flex;align-items:center;gap:4px;padding:4px 9px;background:var(--paper);border:1px solid var(--border);border-radius:100px;text-decoration:none">
                   <span style="font-size:11px;color:var(--ink2)">${ing.name}</span>
                   <span style="font-size:10px;color:#e8232a;font-weight:700">↗</span>
                 </a>`).join('')}
