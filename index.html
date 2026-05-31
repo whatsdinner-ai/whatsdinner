@@ -3146,6 +3146,55 @@ function renderWatschelin() {
 
   rankEl.innerHTML = `
     <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">전국 초·중·고 통합 집계</div>
+    <div style="font-size:10px;color:var(--ink3);background:var(--border);border-radius:8px;padding:6px 10px;margin-bottom:12px;line-height:1.6;display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div>
+        📊 왓슐랭 랭킹은 급식일 대비 참여율 기준으로 산정됩니다<br>
+        <span style="color:var(--ink3)">학생 수·급식일수 차이가 반영되어 모든 학교가 공정하게 경쟁해요</span>
+      </div>
+      <button onclick="document.getElementById('watschelin-info-modal').style.display='flex'"
+        style="flex-shrink:0;border:none;background:none;font-size:14px;color:var(--ink3);cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent">ⓘ</button>
+    </div>
+
+    <!-- 왓슐랭 랭킹 기준 설명 팝업 -->
+    <div id="watschelin-info-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center"
+      onclick="if(event.target===this)this.style.display='none'">
+      <div style="width:calc(100% - 48px);max-width:340px;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18)">
+
+        <div style="padding:20px 20px 14px;border-bottom:0.5px solid #e0e0e0;text-align:center">
+          <div style="font-size:17px;font-weight:700;color:#000;margin-bottom:4px">📊 랭킹 산정 기준</div>
+          <div style="font-size:12px;color:#888">급식일 대비 참여율로 공정하게</div>
+        </div>
+
+        <div style="padding:16px 20px;color:#191919">
+          <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:10px">계산 방법</div>
+          <div style="font-size:12px;color:#444;background:#f8f8f8;border-radius:10px;padding:10px 12px;margin-bottom:14px;line-height:1.9">
+            점수 = 총 하트 ÷ 급식일수 ÷ 앱 사용자수 × 100
+          </div>
+
+          <div style="font-size:12px;font-weight:700;color:#000;margin-bottom:8px">예시 비교</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+            <div style="background:#f8f8f8;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8">
+              <div style="font-weight:700">A중학교 (대형)</div>
+              <div style="color:#666">❤️ 500개 ÷ 100일 ÷ 50명 = <strong style="color:#e03030">10점</strong></div>
+            </div>
+            <div style="background:#fff3e8;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;border:1.5px solid rgba(255,107,0,.2)">
+              <div style="font-weight:700">B중학교 (소형) 🏆</div>
+              <div style="color:#666">❤️ 150개 ÷ 80일 ÷ 15명 = <strong style="color:#FF6B00">12.5점</strong></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#888;line-height:1.6">
+            💡 절대 하트 수가 적어도<br>참여율이 높으면 더 높은 순위!
+          </div>
+        </div>
+
+        <div style="border-top:0.5px solid #e0e0e0">
+          <button onclick="document.getElementById('watschelin-info-modal').style.display='none'"
+            style="width:100%;padding:14px;border:none;background:white;color:#007AFF;font-size:15px;font-weight:400;cursor:pointer;font-family:inherit">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
   ` + ranking.map((s,i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:${i<ranking.length-1?'0.5px solid var(--border)':'none'}">
       <span style="font-size:${i<3?'20':'14'}px;width:26px;text-align:center;flex-shrink:0;color:var(--ink3);font-weight:700">${medal[i]||`${i+1}`}</span>
