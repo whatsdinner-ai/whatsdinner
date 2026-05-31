@@ -3156,6 +3156,11 @@ function showMain() {
 // ── 명예의 전당 ──
 const HALL_OF_FAME = {
   2026: null, // 진행 중
+  2025: [
+    { school:'고양국제고등학교', region:'경기', score:'98.7', star:'⭐⭐⭐' },
+    { school:'송양중학교',       region:'경기', score:'91.2', star:'⭐⭐'  },
+    { school:'옥빛고등학교',     region:'경기', score:'84.5', star:'⭐'    },
+  ],
 };
 
 function renderHallOfFame() {
@@ -3163,7 +3168,7 @@ function renderHallOfFame() {
   if (!el) return;
   const currentYear = today.getFullYear();
   const years = [];
-  for (let y = currentYear; y >= 2026; y--) years.push(y);
+  for (let y = currentYear; y >= 2025; y--) years.push(y);
   el.innerHTML = years.map(y => {
     const isCurrent = y === currentYear;
     return '<button onclick="showHofModal(' + y + ')" style="padding:6px 14px;border-radius:100px;border:1.5px solid ' + (isCurrent?'var(--accent)':'var(--border)') + ';background:' + (isCurrent?'var(--accent-light)':'var(--paper)') + ';color:' + (isCurrent?'var(--accent)':'var(--ink)') + ';font-size:12px;font-weight:' + (isCurrent?'700':'500') + ';cursor:pointer;font-family:inherit">' + y + '년' + (isCurrent?' 진행중':'') + '</button>';
@@ -3178,6 +3183,21 @@ function showHofModal(year) {
   title.textContent = year + '년 왓슐랭';
   if (year === currentYear) {
     content.innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:32px;margin-bottom:10px">🏆</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">' + year + '년 진행 중</div><div style="font-size:12px;color:#888;line-height:1.7">지금 하트를 눌러 우리 학교를<br>왓슐랭에 올려주세요!<br>연말에 최종 수상 학교가 발표돼요 🎉</div></div>';
+  } else if (HALL_OF_FAME[year] && HALL_OF_FAME[year].length > 0) {
+    const medals = ['🥇','🥈','🥉'];
+    const starLabels = ['쓰리스타','투스타','원스타'];
+    content.innerHTML = HALL_OF_FAME[year].map((w,i) => 
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:' + (i<HALL_OF_FAME[year].length-1?'0.5px solid #e8e8e8':'none') + '">'
+      + '<span style="font-size:24px">' + medals[i] + '</span>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:800;color:#000">' + w.school + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'
+      + '<span style="font-size:12px">' + w.star + '</span>'
+      + '<span style="font-size:11px;color:#888">' + starLabels[i] + ' · ' + w.region + ' · ' + w.score + '점</span>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+    ).join('');
   } else {
     content.innerHTML = '<div style="text-align:center;padding:20px 0;color:#888;font-size:13px">수상 결과 준비 중이에요</div>';
   }
